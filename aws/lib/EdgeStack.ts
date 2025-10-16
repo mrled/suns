@@ -4,6 +4,7 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import { Construct } from 'constructs';
+import { config } from './config';
 
 export interface EdgeStackProps extends cdk.StackProps {
   contentBucket: s3.IBucket;
@@ -17,7 +18,7 @@ export class EdgeStack extends cdk.Stack {
     super(scope, id, props);
 
     // Create CloudFront Distribution with public S3 bucket origin
-    this.distribution = new cloudfront.Distribution(this, 'SunsDistribution', {
+    this.distribution = new cloudfront.Distribution(this, `${config.stackPrefix}Distribution`, {
       defaultBehavior: {
         origin: new origins.S3Origin(props.contentBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -26,7 +27,7 @@ export class EdgeStack extends cdk.Stack {
         compress: true,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
-      domainNames: ['suns.bz', 'zq.suns.bz'],
+      domainNames: [config.domainName, `zq.${config.domainName}`],
       certificate: props.certificate,
       defaultRootObject: 'index.html',
       errorResponses: [
@@ -46,19 +47,19 @@ export class EdgeStack extends cdk.Stack {
       minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
       httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
-      comment: 'CloudFront distribution for suns.bz and zq.suns.bz',
+      comment: `CloudFront distribution for ${config.domainName} and zq.${config.domainName}`,
     });
 
     new cdk.CfnOutput(this, 'DistributionId', {
       value: this.distribution.distributionId,
       description: 'CloudFront Distribution ID',
-      exportName: 'SunsDistributionId',
+      exportName: `${config.stackPrefix}DistributionId`,
     });
 
     new cdk.CfnOutput(this, 'DistributionDomainName', {
       value: this.distribution.distributionDomainName,
       description: 'CloudFront Distribution Domain Name',
-      exportName: 'SunsDistributionDomainName',
+      exportName: `${config.stackPrefix}DistributionDomainName`,
     });
   }
 }
