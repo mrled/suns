@@ -1,8 +1,6 @@
 +++
-title = "SUNS"
+title = "Society for Universal Name Symmetry"
 +++
-
-# Society for Universal Name Symmetry
 
 The Society for Universal Name Symmetry is a club open to anyone with a symmetric DNS name.
 
@@ -18,14 +16,14 @@ Some examples:
 - Mirrored DNS names: `me.example.com` / `com.example.me`
 - Antonymmic DNS names: `https://at.example.email` / `https@example.website`
 
-## Joining SUNS
+## Joining suns
 
 Want to join?
 
-1. Create a symmetrical name with one of the methods above
-2. Create TXT records for *each* domain
-3. Submit to `/webhook?type=TYPE&name=NAME` for single name symmetries
-   or `/webhook?type=TYPE&name=NAME&mirror=MIRROR` for dual-name symmetries.
+- Create a symmetrical name with one of the methods above
+- Create TXT records for *each* domain
+- Submit to `/webhook?type=TYPE&name=NAME` for single name symmetries
+  or `/webhook?type=TYPE&name=NAME&mirror=MIRROR` for dual-name symmetries.
 
 Any domain owner can join by creating a palindrome of their domain.
 For instance, if you own `example.institute`,
@@ -39,4 +37,4 @@ Of course, you can also join with one of the other methods above, like flips or 
 
 ## Members
 
-??
+- <https://me.micahrl.com> / <https://com.micahrl.me>

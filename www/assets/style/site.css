@@ -1,0 +1,41 @@
+:root {
+  --body-primary-font-family: monospace;
+  --body-bg-color: black;
+  --body-fg-color: rgb(174, 174, 174);
+  --body-fg-color-header: white;
+  --body-fg-color-deemphasize-nontext: rgb(57, 57, 57);
+  --body-fg-color-deemphasize-text: gray;
+  --body-bg-color-code: rgb(0, 0, 0);
+  /* --body-fg-color-code: rgb(9, 255, 0); */
+  /* --body-fg-color-link: rgb(0, 102, 204); */
+  --body-fg-color-code: rgb(231, 154, 0);
+  --body-fg-color-link: rgb(9, 255, 0);
+}
+
+body {
+  color: var(--body-fg-color);
+  background-color: var(--body-bg-color);
+  font-family: var(--body-primary-font-family);
+  line-height: 1.5;
+  margin: 0;
+  padding: 2rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: 1em;
+  font-weight: bold;
+  color: var(--body-fg-color-header);
+}
+
+code {
+  color: var(--body-fg-color-code);
+  background-color: var(--body-bg-color-code);
+}
+
+a {
+  color: var(--body-fg-color-link);
+}
+
+ul {
+  list-style-type: "* ";
+}

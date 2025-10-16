@@ -1,4 +1,4 @@
-# SUNS
+# suns
 
 Society for Universal Name Symmetry
 

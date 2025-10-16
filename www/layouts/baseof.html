@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
 
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/phosphor-yin-yang.svg">
 
     {{ $title := .Title | default .Site.Title -}}
     <title>{{ $title }}</title>
@@ -22,22 +22,11 @@
     <link rel="canonical" href="{{ .Permalink }}">
     <meta property="og:url" content="{{ .Permalink }}" />
 
-    <style id="inlined-styles-root">
-      :root {
-        --body-monospace-font: "Fira Code VF";
-
-        --body-primary-font-family: var(--body-monospace-font), monospace;
-        --body-primary-font-size: 15px;
-
-        --body-bg-color: black;
-        --body-fg-color: white;
-        --body-fg-color-deemphasize-nontext: rgb(57, 57, 57);
-        --body-fg-color-deemphasize-text: gray;
-      }
-    </style>
-
     <!--This styles the iOS overscroll area-->
     <meta name="theme-color" content="#FFFFFF" media="all">
+
+    {{- $siteCss := resources.Get "style/site.css" | resources.Fingerprint }}
+    <link rel="stylesheet" href="{{ $siteCss.Permalink }}">
   </head>
 
   <body>
