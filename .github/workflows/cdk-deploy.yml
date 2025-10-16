@@ -3,13 +3,13 @@ name: Deploy CDK Infrastructure
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'aws/**'
       - '.github/workflows/cdk-deploy.yml'
   pull_request:
     branches:
-      - main
+      - master
     paths:
       - 'aws/**'
       - '.github/workflows/cdk-deploy.yml'
