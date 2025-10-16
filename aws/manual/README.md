@@ -6,6 +6,7 @@ Assumes you already have:
 
 - A dedicated account (we are not locking down CI token permissions)
 - A way to create resources in that account from the command line for this manual configuration
+  ... probably via `aws configure sso` and `aws sso login`.
 
 ```sh
 IAM_ROLE_NAME="SunsCiCdIamRole"
@@ -74,7 +75,7 @@ Apply the updated policy:
 
 ```bash
 aws iam put-role-policy \
-  --role-name ${ROLE_NAME} \
+  --role-name {$IAM_ROLE_NAME} \
   --policy-name CDKDeploymentPolicy \
   --policy-document file://cipolicy.json
 ```
