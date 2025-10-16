@@ -1,0 +1,125 @@
+name: Deploy CDK Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'aws/**'
+      - '.github/workflows/cdk-deploy.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'aws/**'
+      - '.github/workflows/cdk-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  NODE_VERSION: '20'
+  CDK_VERSION: '2.100.0'
+
+jobs:
+  cdk-diff:
+    name: CDK Diff
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: aws/package-lock.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-CDK-Diff
+
+      - name: Install dependencies
+        working-directory: ./aws
+        run: npm ci
+
+      - name: Build CDK
+        working-directory: ./aws
+        run: npm run build
+
+      - name: CDK Diff
+        working-directory: ./aws
+        run: npx cdk diff --all
+
+  cdk-deploy:
+    name: CDK Deploy
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: aws/package-lock.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-CDK-Deploy
+
+      - name: Install dependencies
+        working-directory: ./aws
+        run: npm ci
+
+      - name: Build CDK
+        working-directory: ./aws
+        run: npm run build
+
+      - name: CDK Synth
+        working-directory: ./aws
+        run: npx cdk synth --all
+
+      - name: CDK Deploy
+        working-directory: ./aws
+        run: npx cdk deploy --all --require-approval never
+
+  cdk-synth:
+    name: CDK Synth (Validate)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: aws/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./aws
+        run: npm ci
+
+      - name: Build CDK
+        working-directory: ./aws
+        run: npm run build
+
+      - name: CDK Synth
+        working-directory: ./aws
+        run: npx cdk synth --all
