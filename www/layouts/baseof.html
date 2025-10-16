@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="{{ .Site.LanguageCode }}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+    {{ $title := .Title | default .Site.Title -}}
+    <title>{{ $title }}</title>
+    <meta property="og:title" content="{{ $title }}" />
+
+    {{ $desc := .Page.Params.Description | default .Site.Params.Description | markdownify -}}
+    <meta property="og:description" content="{{ $desc }}" />
+    <meta name="description" content="{{ $desc }}">
+
+    <meta property="og:type" content="website" />
+    <link rel="canonical" href="{{ .Permalink }}">
+    <meta property="og:url" content="{{ .Permalink }}" />
+
+    <style id="inlined-styles-root">
+      :root {
+        --body-monospace-font: "Fira Code VF";
+
+        --body-primary-font-family: var(--body-monospace-font), monospace;
+        --body-primary-font-size: 15px;
+
+        --body-bg-color: black;
+        --body-fg-color: white;
+        --body-fg-color-deemphasize-nontext: rgb(57, 57, 57);
+        --body-fg-color-deemphasize-text: gray;
+      }
+    </style>
+
+    <!--This styles the iOS overscroll area-->
+    <meta name="theme-color" content="#FFFFFF" media="all">
+  </head>
+
+  <body>
+    {{ block "title" . }}<h1>{{ .Title }}</h1>{{ end }}
+
+    <main id="content">
+      {{ block "main" . }}{{ .Content }}{{ end }}
+    </main>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+baseURL = 'zq.suns.bz'
+languageCode = 'en-us'
+title = 'SUNS'
+
+disableKinds = ["taxonomy", "term"]
