@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { DnsZoneStack } from '../lib/dns-zone-stack';
-import { CertStack } from '../lib/cert-stack';
-import { StorageStack } from '../lib/storage-stack';
-import { EdgeStack } from '../lib/edge-stack';
-import { DnsStack } from '../lib/dns-stack';
+import { DnsZoneStack } from '../lib/DnsZoneStack';
+import { CertStack } from '../lib/CertStack';
+import { StorageStack } from '../lib/StorageStack';
+import { EdgeStack } from '../lib/EdgeStack';
+import { DnsStack } from '../lib/DnsStack';
 
 const app = new cdk.App();
 
