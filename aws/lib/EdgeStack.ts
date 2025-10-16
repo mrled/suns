@@ -20,7 +20,7 @@ export class EdgeStack extends cdk.Stack {
     // Create CloudFront Distribution with public S3 bucket origin
     this.distribution = new cloudfront.Distribution(this, `${config.stackPrefix}Distribution`, {
       defaultBehavior: {
-        origin: new origins.S3Origin(props.contentBucket),
+        origin: origins.S3BucketOrigin.withOriginAccessControl(props.contentBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD_OPTIONS,
