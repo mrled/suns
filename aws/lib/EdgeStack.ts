@@ -17,10 +17,19 @@ export class EdgeStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: EdgeStackProps) {
     super(scope, id, props);
 
-    // Create CloudFront Distribution with public S3 bucket origin
+    // Create CloudFront Distribution with S3 website endpoint
+    // Using website endpoint instead of OAC to avoid cyclic dependency
+    // (since bucket is already publicly accessible)
+    const websiteOrigin = new origins.HttpOrigin(
+      props.contentBucket.bucketWebsiteDomainName,
+      {
+        protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+      }
+    );
+
     this.distribution = new cloudfront.Distribution(this, `${config.stackPrefix}Distribution`, {
       defaultBehavior: {
-        origin: origins.S3BucketOrigin.withOriginAccessControl(props.contentBucket),
+        origin: websiteOrigin,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD_OPTIONS,
