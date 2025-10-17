@@ -1,9 +1,11 @@
 package dnsverification
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
+	"time"
 )
 
 const (
@@ -36,6 +38,55 @@ func (r *DefaultResolver) LookupTXT(domain string) ([]string, error) {
 // LookupCNAME implements Resolver.LookupCNAME using net.LookupCNAME
 func (r *DefaultResolver) LookupCNAME(domain string) (string, error) {
 	return net.LookupCNAME(domain)
+}
+
+// CustomResolver uses a specific DNS server with a timeout and no retries
+type CustomResolver struct {
+	server string
+}
+
+// NewCustomResolver creates a resolver that uses the specified DNS server
+// The server should be in the format "host:port" (e.g., "1.1.1.1:53")
+func NewCustomResolver(server string) *CustomResolver {
+	return &CustomResolver{
+		server: server,
+	}
+}
+
+// LookupTXT implements Resolver.LookupTXT using a custom DNS server
+func (r *CustomResolver) LookupTXT(domain string) ([]string, error) {
+	resolver := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{
+				Timeout: 2 * time.Second,
+			}
+			return d.Dial("udp", r.server)
+		},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	return resolver.LookupTXT(ctx, domain)
+}
+
+// LookupCNAME implements Resolver.LookupCNAME using a custom DNS server
+func (r *CustomResolver) LookupCNAME(domain string) (string, error) {
+	resolver := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{
+				Timeout: 2 * time.Second,
+			}
+			return d.Dial("udp", r.server)
+		},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	return resolver.LookupCNAME(ctx, domain)
 }
 
 // Service handles TXT record lookups for SUNS
