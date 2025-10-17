@@ -2,23 +2,99 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"os"
 	"sync"
 
 	"github.com/callista/symval/internal/model"
 )
 
-// MemoryRepository is an in-memory implementation of DomainRepository
+// MemoryRepository is an in-memory implementation of DomainRepository optionally backed by a JSON file
 type MemoryRepository struct {
-	mu   sync.RWMutex
-	data map[string]*model.DomainData
+	mu       sync.RWMutex
+	data     map[string]*model.DomainData
+	filePath string
 }
 
-// NewMemoryRepository creates a new in-memory repository
+// NewMemoryRepository creates a new in-memory repository without persistence.
+// Data is stored only in memory and will be lost when the process terminates.
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{
-		data: make(map[string]*model.DomainData),
+		data:     make(map[string]*model.DomainData),
+		filePath: "",
 	}
+}
+
+// NewMemoryRepositoryWithPersistence creates a new in-memory repository backed by a JSON file.
+// The repository will load existing data from the file on initialization and persist
+// all changes (Store, Delete) to the file automatically.
+func NewMemoryRepositoryWithPersistence(filePath string) (*MemoryRepository, error) {
+	repo := &MemoryRepository{
+		data:     make(map[string]*model.DomainData),
+		filePath: filePath,
+	}
+
+	// Try to load existing data from file
+	if err := repo.load(); err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	return repo, nil
+}
+
+// load reads the JSON file and populates the in-memory data
+func (r *MemoryRepository) load() error {
+	file, err := os.Open(r.filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Check if file is empty
+	stat, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	if stat.Size() == 0 {
+		return nil
+	}
+
+	var dataSlice []*model.DomainData
+	if err := json.NewDecoder(file).Decode(&dataSlice); err != nil {
+		return err
+	}
+
+	r.data = make(map[string]*model.DomainData)
+	for _, d := range dataSlice {
+		r.data[d.Domain] = d
+	}
+
+	return nil
+}
+
+// save writes the in-memory data to the JSON file
+// If filePath is empty, this is a no-op
+func (r *MemoryRepository) save() error {
+	// Skip persistence if no file path is configured
+	if r.filePath == "" {
+		return nil
+	}
+
+	dataSlice := make([]*model.DomainData, 0, len(r.data))
+	for _, d := range r.data {
+		dataSlice = append(dataSlice, d)
+	}
+
+	file, err := os.Create(r.filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(dataSlice)
 }
 
 // Store saves domain data
@@ -35,7 +111,7 @@ func (r *MemoryRepository) Store(ctx context.Context, data *model.DomainData) er
 	}
 
 	r.data[data.Domain] = data
-	return nil
+	return r.save()
 }
 
 // Get retrieves domain data by domain name
@@ -74,5 +150,5 @@ func (r *MemoryRepository) Delete(ctx context.Context, domain string) error {
 	}
 
 	delete(r.data, domain)
-	return nil
+	return r.save()
 }
