@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/callista/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/model"
 )
 
 // MemoryRepository is an in-memory implementation of DomainRepository optionally backed by a JSON file

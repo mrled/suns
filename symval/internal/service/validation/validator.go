@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/callista/symval/internal/model"
-	"github.com/callista/symval/internal/service/groupid"
+	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/service/groupid"
 )
 
 // Validator defines the interface for domain validation

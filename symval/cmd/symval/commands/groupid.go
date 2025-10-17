@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/callista/symval/internal/service/groupid"
+	"github.com/mrled/suns/symval/internal/service/groupid"
 	"github.com/spf13/cobra"
 )
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/callista/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/model"
 )
 
 func TestMemoryRepository_JSONPersistence(t *testing.T) {

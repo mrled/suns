@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/callista/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/model"
 )
 
 func TestService_Validate_Success(t *testing.T) {

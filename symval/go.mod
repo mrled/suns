@@ -1,4 +1,4 @@
-module github.com/callista/symval
+module github.com/mrled/suns/symval
 
 go 1.23
 

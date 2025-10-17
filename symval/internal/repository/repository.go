@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/callista/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/model"
 )
 
 var (

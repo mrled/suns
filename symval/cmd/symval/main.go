@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/callista/symval/cmd/symval/commands"
+	"github.com/mrled/suns/symval/cmd/symval/commands"
 )
 
 func main() {

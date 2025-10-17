@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/callista/symval/internal/model"
-	"github.com/callista/symval/internal/service/validation"
+	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/service/validation"
 	"github.com/spf13/cobra"
 )
 
