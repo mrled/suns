@@ -45,10 +45,10 @@ jobs:
 
       - name: Build Hugo site
         working-directory: ./www
-        run: hugo --minify
+        run: hugo
 
       - name: Deploy to S3
         working-directory: ./www
         env:
           ACCOUNT_ID: ${{ steps.account.outputs.id }}
-        run: hugo deploy --target production --invalidateCDN --maxDeletes -1
+        run: hugo deploy --target=production --invalidateCDN=true --maxDeletes=-1
