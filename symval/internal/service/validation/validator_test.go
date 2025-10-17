@@ -12,12 +12,13 @@ func TestService_Validate_Success(t *testing.T) {
 	ctx := context.Background()
 
 	// Valid group: all fields match and groupID is correct
+	// Using "aba" which is a palindrome
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
-			Hostname: "example.com",
-			GroupID:  "v1:palindrome:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c=",
+			Hostname: "aba",
+			GroupID:  "v1:palindrome:YTqA8HY88O+h+FHhQbXLJAmAXDH4F+aFtBNAJwHqWgk=",
 		},
 	}
 
@@ -34,19 +35,19 @@ func TestService_Validate_MultipleHostnames(t *testing.T) {
 	service := NewService()
 	ctx := context.Background()
 
-	// Valid group with multiple hostnames
+	// Test with MirrorNames type which accepts multiple hostnames
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
-			Type:     model.Palindrome,
+			Type:     model.MirrorNames,
 			Hostname: "example.com",
-			GroupID:  "v1:palindrome:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
+			GroupID:  "v1:mirrornames:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
 		{
 			Owner:    "alice@example.com",
-			Type:     model.Palindrome,
+			Type:     model.MirrorNames,
 			Hostname: "flip.example.com",
-			GroupID:  "v1:palindrome:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
+			GroupID:  "v1:mirrornames:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
 	}
 
@@ -189,8 +190,8 @@ func TestService_ValidateBase_Success(t *testing.T) {
 		{
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
-			Hostname: "example.com",
-			GroupID:  "v1:palindrome:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c=",
+			Hostname: "aba",
+			GroupID:  "v1:palindrome:YTqA8HY88O+h+FHhQbXLJAmAXDH4F+aFtBNAJwHqWgk=",
 		},
 	}
 
@@ -201,7 +202,7 @@ func TestService_ValidateBase_Success(t *testing.T) {
 	if owner != "alice@example.com" {
 		t.Errorf("Expected owner 'alice@example.com', got '%s'", owner)
 	}
-	if groupID != "v1:palindrome:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c=" {
+	if groupID != "v1:palindrome:YTqA8HY88O+h+FHhQbXLJAmAXDH4F+aFtBNAJwHqWgk=" {
 		t.Errorf("Expected specific groupID, got '%s'", groupID)
 	}
 	if symmetryType != model.Palindrome {
@@ -216,14 +217,15 @@ func TestService_Validate_AllSymmetryTypes(t *testing.T) {
 	tests := []struct {
 		name         string
 		symmetryType model.SymmetryType
+		hostname     string
 		groupID      string
 	}{
-		{"Palindrome", model.Palindrome, "v1:palindrome:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"Flip180", model.Flip180, "v1:180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"DoubleFlip180", model.DoubleFlip180, "v1:double180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"MirrorText", model.MirrorText, "v1:mirrortext:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"MirrorNames", model.MirrorNames, "v1:mirrornames:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"AntonymNames", model.AntonymNames, "v1:antonymnames:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"Palindrome", model.Palindrome, "aba", "v1:palindrome:YTqA8HY88O+h+FHhQbXLJAmAXDH4F+aFtBNAJwHqWgk="},
+		{"Flip180", model.Flip180, "example.com", "v1:180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"DoubleFlip180", model.DoubleFlip180, "example.com", "v1:double180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"MirrorText", model.MirrorText, "example.com", "v1:mirrortext:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"MirrorNames", model.MirrorNames, "example.com", "v1:mirrornames:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"AntonymNames", model.AntonymNames, "example.com", "v1:antonymnames:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
 	}
 
 	for _, tt := range tests {
@@ -232,7 +234,7 @@ func TestService_Validate_AllSymmetryTypes(t *testing.T) {
 				{
 					Owner:    "alice@example.com",
 					Type:     tt.symmetryType,
-					Hostname: "example.com",
+					Hostname: tt.hostname,
 					GroupID:  tt.groupID,
 				},
 			}
