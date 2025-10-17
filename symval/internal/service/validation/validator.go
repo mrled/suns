@@ -25,11 +25,12 @@ func NewService() *Service {
 	}
 }
 
-// Validate checks that all DomainData structs have consistent owner, type, and groupid,
-// and that the groupid matches the calculated groupid for the given hostnames
-func (s *Service) Validate(ctx context.Context, data []*model.DomainData) (bool, error) {
+// ValidateBase checks that all DomainData structs have consistent owner, type, and groupid,
+// and that the groupid matches the calculated groupid for the given hostnames.
+// Returns the common owner, groupID, and type if validation succeeds.
+func (s *Service) ValidateBase(ctx context.Context, data []*model.DomainData) (string, string, model.SymmetryType, error) {
 	if len(data) == 0 {
-		return false, fmt.Errorf("no domain data provided")
+		return "", "", "", fmt.Errorf("no domain data provided")
 	}
 
 	// Use the first entry as the reference
@@ -42,13 +43,13 @@ func (s *Service) Validate(ctx context.Context, data []*model.DomainData) (bool,
 	hostnames := make([]string, 0, len(data))
 	for _, d := range data {
 		if d.Owner != owner {
-			return false, fmt.Errorf("owner mismatch: expected %s, got %s", owner, d.Owner)
+			return "", "", "", fmt.Errorf("owner mismatch: expected %s, got %s", owner, d.Owner)
 		}
 		if d.Type != symmetryType {
-			return false, fmt.Errorf("type mismatch: expected %s, got %s", symmetryType, d.Type)
+			return "", "", "", fmt.Errorf("type mismatch: expected %s, got %s", symmetryType, d.Type)
 		}
 		if d.GroupID != groupID {
-			return false, fmt.Errorf("groupID mismatch: expected %s, got %s", groupID, d.GroupID)
+			return "", "", "", fmt.Errorf("groupID mismatch: expected %s, got %s", groupID, d.GroupID)
 		}
 		hostnames = append(hostnames, d.Hostname)
 	}
@@ -56,13 +57,76 @@ func (s *Service) Validate(ctx context.Context, data []*model.DomainData) (bool,
 	// Calculate the expected groupID
 	expectedGroupID, err := s.groupIDService.CalculateV1(owner, string(symmetryType), hostnames)
 	if err != nil {
-		return false, fmt.Errorf("failed to calculate group ID: %w", err)
+		return "", "", "", fmt.Errorf("failed to calculate group ID: %w", err)
 	}
 
 	// Compare the provided groupID with the calculated one
 	if groupID != expectedGroupID {
-		return false, fmt.Errorf("groupID validation failed: expected %s, got %s", expectedGroupID, groupID)
+		return "", "", "", fmt.Errorf("groupID validation failed: expected %s, got %s", expectedGroupID, groupID)
 	}
 
+	return owner, groupID, symmetryType, nil
+}
+
+// validatePalindrome validates palindrome symmetry
+func (s *Service) validatePalindrome(ctx context.Context, data []*model.DomainData) (bool, error) {
+	// Stub implementation - always returns true
 	return true, nil
+}
+
+// validateFlip180 validates 180-degree flip symmetry
+func (s *Service) validateFlip180(ctx context.Context, data []*model.DomainData) (bool, error) {
+	// Stub implementation - always returns true
+	return true, nil
+}
+
+// validateDoubleFlip180 validates double 180-degree flip symmetry
+func (s *Service) validateDoubleFlip180(ctx context.Context, data []*model.DomainData) (bool, error) {
+	// Stub implementation - always returns true
+	return true, nil
+}
+
+// validateMirrorText validates mirror text symmetry
+func (s *Service) validateMirrorText(ctx context.Context, data []*model.DomainData) (bool, error) {
+	// Stub implementation - always returns true
+	return true, nil
+}
+
+// validateMirrorNames validates mirror names symmetry
+func (s *Service) validateMirrorNames(ctx context.Context, data []*model.DomainData) (bool, error) {
+	// Stub implementation - always returns true
+	return true, nil
+}
+
+// validateAntonymNames validates antonym names symmetry
+func (s *Service) validateAntonymNames(ctx context.Context, data []*model.DomainData) (bool, error) {
+	// Stub implementation - always returns true
+	return true, nil
+}
+
+// Validate performs base validation and then calls the appropriate type-specific validator
+func (s *Service) Validate(ctx context.Context, data []*model.DomainData) (bool, error) {
+	// Perform base validation
+	_, _, symmetryType, err := s.ValidateBase(ctx, data)
+	if err != nil {
+		return false, err
+	}
+
+	// Call type-specific validation
+	switch symmetryType {
+	case model.Palindrome:
+		return s.validatePalindrome(ctx, data)
+	case model.Flip180:
+		return s.validateFlip180(ctx, data)
+	case model.DoubleFlip180:
+		return s.validateDoubleFlip180(ctx, data)
+	case model.MirrorText:
+		return s.validateMirrorText(ctx, data)
+	case model.MirrorNames:
+		return s.validateMirrorNames(ctx, data)
+	case model.AntonymNames:
+		return s.validateAntonymNames(ctx, data)
+	default:
+		return false, fmt.Errorf("unknown symmetry type: %s", symmetryType)
+	}
 }

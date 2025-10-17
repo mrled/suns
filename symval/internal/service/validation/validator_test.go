@@ -180,3 +180,93 @@ func TestService_Validate_InvalidGroupID(t *testing.T) {
 		t.Error("Expected valid=false for invalid groupID")
 	}
 }
+
+func TestService_ValidateBase_Success(t *testing.T) {
+	service := NewService()
+	ctx := context.Background()
+
+	data := []*model.DomainData{
+		{
+			Owner:    "alice@example.com",
+			Type:     model.Palindrome,
+			Hostname: "example.com",
+			GroupID:  "v1:palindrome:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c=",
+		},
+	}
+
+	owner, groupID, symmetryType, err := service.ValidateBase(ctx, data)
+	if err != nil {
+		t.Errorf("Expected no error, got: %v", err)
+	}
+	if owner != "alice@example.com" {
+		t.Errorf("Expected owner 'alice@example.com', got '%s'", owner)
+	}
+	if groupID != "v1:palindrome:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c=" {
+		t.Errorf("Expected specific groupID, got '%s'", groupID)
+	}
+	if symmetryType != model.Palindrome {
+		t.Errorf("Expected type 'palindrome', got '%s'", symmetryType)
+	}
+}
+
+func TestService_Validate_AllSymmetryTypes(t *testing.T) {
+	service := NewService()
+	ctx := context.Background()
+
+	tests := []struct {
+		name         string
+		symmetryType model.SymmetryType
+		groupID      string
+	}{
+		{"Palindrome", model.Palindrome, "v1:palindrome:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"Flip180", model.Flip180, "v1:180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"DoubleFlip180", model.DoubleFlip180, "v1:double180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"MirrorText", model.MirrorText, "v1:mirrortext:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"MirrorNames", model.MirrorNames, "v1:mirrornames:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"AntonymNames", model.AntonymNames, "v1:antonymnames:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data := []*model.DomainData{
+				{
+					Owner:    "alice@example.com",
+					Type:     tt.symmetryType,
+					Hostname: "example.com",
+					GroupID:  tt.groupID,
+				},
+			}
+
+			valid, err := service.Validate(ctx, data)
+			if err != nil {
+				t.Errorf("Expected no error for %s, got: %v", tt.name, err)
+			}
+			if !valid {
+				t.Errorf("Expected valid=true for %s, got false", tt.name)
+			}
+		})
+	}
+}
+
+func TestService_Validate_UnknownSymmetryType(t *testing.T) {
+	service := NewService()
+	ctx := context.Background()
+
+	// Use an unknown symmetry type
+	data := []*model.DomainData{
+		{
+			Owner:    "alice@example.com",
+			Type:     model.SymmetryType("unknown"),
+			Hostname: "example.com",
+			GroupID:  "v1:unknown:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c=",
+		},
+	}
+
+	valid, err := service.Validate(ctx, data)
+	if err == nil {
+		t.Error("Expected error for unknown symmetry type, got nil")
+	}
+	if valid {
+		t.Error("Expected valid=false for unknown symmetry type")
+	}
+}
