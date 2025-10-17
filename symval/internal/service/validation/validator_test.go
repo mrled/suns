@@ -35,19 +35,19 @@ func TestService_Validate_MultipleHostnames(t *testing.T) {
 	service := NewService()
 	ctx := context.Background()
 
-	// Test with MirrorNames type which accepts multiple hostnames
+	// Test with MirrorNames type which requires exactly two hostnames that are mirror pairs
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
 			Type:     model.MirrorNames,
-			Hostname: "example.com",
-			GroupID:  "v1:mirrornames:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
+			Hostname: "a.b.com",
+			GroupID:  "v1:mirrornames:6peSPXBypjNbXD1Lv4NUg1Ye/WO8Fc9KUsCnCOUGwb4=",
 		},
 		{
 			Owner:    "alice@example.com",
 			Type:     model.MirrorNames,
-			Hostname: "flip.example.com",
-			GroupID:  "v1:mirrornames:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
+			Hostname: "com.b.a",
+			GroupID:  "v1:mirrornames:6peSPXBypjNbXD1Lv4NUg1Ye/WO8Fc9KUsCnCOUGwb4=",
 		},
 	}
 
@@ -217,26 +217,27 @@ func TestService_Validate_AllSymmetryTypes(t *testing.T) {
 	tests := []struct {
 		name         string
 		symmetryType model.SymmetryType
-		hostname     string
+		hostnames    []string
 		groupID      string
 	}{
-		{"Palindrome", model.Palindrome, "aba", "v1:palindrome:YTqA8HY88O+h+FHhQbXLJAmAXDH4F+aFtBNAJwHqWgk="},
-		{"Flip180", model.Flip180, "example.com", "v1:180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"DoubleFlip180", model.DoubleFlip180, "example.com", "v1:double180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"MirrorText", model.MirrorText, "example.com", "v1:mirrortext:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"MirrorNames", model.MirrorNames, "example.com", "v1:mirrornames:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"AntonymNames", model.AntonymNames, "example.com", "v1:antonymnames:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"Palindrome", model.Palindrome, []string{"aba"}, "v1:palindrome:YTqA8HY88O+h+FHhQbXLJAmAXDH4F+aFtBNAJwHqWgk="},
+		{"Flip180", model.Flip180, []string{"example.com"}, "v1:180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"DoubleFlip180", model.DoubleFlip180, []string{"example.com"}, "v1:double180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"MirrorText", model.MirrorText, []string{"example.com"}, "v1:mirrortext:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"MirrorNames", model.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:mirrornames:6peSPXBypjNbXD1Lv4NUg1Ye/WO8Fc9KUsCnCOUGwb4="},
+		{"AntonymNames", model.AntonymNames, []string{"example.com"}, "v1:antonymnames:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data := []*model.DomainData{
-				{
+			data := make([]*model.DomainData, len(tt.hostnames))
+			for i, hostname := range tt.hostnames {
+				data[i] = &model.DomainData{
 					Owner:    "alice@example.com",
 					Type:     tt.symmetryType,
-					Hostname: tt.hostname,
+					Hostname: hostname,
 					GroupID:  tt.groupID,
-				},
+				}
 			}
 
 			valid, err := service.Validate(ctx, data)
