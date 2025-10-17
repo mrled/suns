@@ -1,8 +1,12 @@
 package commands
 
 import (
+	"context"
 	"fmt"
+	"time"
 
+	"github.com/callista/symval/internal/model"
+	"github.com/callista/symval/internal/service/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -21,17 +25,35 @@ Arguments:
 		owner := args[0]
 		vtype := args[1]
 		domain := args[2]
-		var flip string
+		var flipPtr *string
 		if len(args) == 4 {
-			flip = args[3]
+			flip := args[3]
+			flipPtr = &flip
 		}
 
-		// Stub implementation - just return the input values
+		// Create DomainData from arguments
+		data := &model.DomainData{
+			ValidateTime: time.Now(),
+			Owner:        owner,
+			Domain:       domain,
+			Flip:         flipPtr,
+			Type:         model.SymmetryType(vtype),
+		}
+
+		// Create validator and validate
+		validator := validation.NewService()
+		ctx := context.Background()
+		valid, err := validator.Validate(ctx, data)
+		if err != nil {
+			return fmt.Errorf("validation error: %w", err)
+		}
+
+		// Echo the input values
 		fmt.Printf("Owner: %s\n", owner)
 		fmt.Printf("Type: %s\n", vtype)
 		fmt.Printf("Domain: %s\n", domain)
-		if flip != "" {
-			fmt.Printf("Flip: %s\n", flip)
+		if flipPtr != nil {
+			fmt.Printf("Flip: %s\n", *flipPtr)
 		} else {
 			fmt.Println("Flip: (none)")
 		}
@@ -41,6 +63,8 @@ Arguments:
 		} else {
 			fmt.Println("Persistence: in-memory only")
 		}
+
+		fmt.Printf("Valid: %t\n", valid)
 
 		return nil
 	},
