@@ -48,3 +48,15 @@ Representable invalid state
 * Group IDs are opaque to the database and must be enforced by the application.
 * A group that does not satisfy the business logic of domain validation.
   E.g. a single domain `DoubleFlip180` group.
+
+## DNS verification
+
+Require a special TXT record `_sums` for each domain.
+
+* If the domain is `example.com`, look for `_suns.example.com`
+* If the domain is `a.b.c.d.example.com`, look for `_suns.a.b.c.d.example.com`
+* Each domain in a type must have the same TXT record set.
+* Allow one CNAME hop.
+  Allowing a CNAME lets users delegate control to another zone.
+  Limit to one hop to keep verification deterministic.
+  (Not sure if this is important?)
