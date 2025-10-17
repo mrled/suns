@@ -28,11 +28,11 @@ func TestMemoryRepository_JSONPersistence(t *testing.T) {
 	}
 
 	testData := &model.DomainData{
-		ValidateTime: time.Now(),
 		Owner:        "test-owner",
-		Domain:       "example.com",
-		Flip:         nil,
 		Type:         model.Palindrome,
+		Hostname:     "example.com",
+		GroupID:      "group-123",
+		ValidateTime: time.Now(),
 	}
 
 	if err := repo1.Store(ctx, testData); err != nil {
@@ -51,14 +51,17 @@ func TestMemoryRepository_JSONPersistence(t *testing.T) {
 		t.Fatalf("Failed to get data: %v", err)
 	}
 
-	if retrieved.Domain != testData.Domain {
-		t.Errorf("Expected domain %s, got %s", testData.Domain, retrieved.Domain)
+	if retrieved.Hostname != testData.Hostname {
+		t.Errorf("Expected hostname %s, got %s", testData.Hostname, retrieved.Hostname)
 	}
 	if retrieved.Owner != testData.Owner {
 		t.Errorf("Expected owner %s, got %s", testData.Owner, retrieved.Owner)
 	}
 	if retrieved.Type != testData.Type {
 		t.Errorf("Expected type %s, got %s", testData.Type, retrieved.Type)
+	}
+	if retrieved.GroupID != testData.GroupID {
+		t.Errorf("Expected groupID %s, got %s", testData.GroupID, retrieved.GroupID)
 	}
 }
 
@@ -79,10 +82,11 @@ func TestMemoryRepository_DeletePersistence(t *testing.T) {
 	}
 
 	testData := &model.DomainData{
-		ValidateTime: time.Now(),
 		Owner:        "test-owner",
-		Domain:       "example.com",
 		Type:         model.MirrorText,
+		Hostname:     "example.com",
+		GroupID:      "group-456",
+		ValidateTime: time.Now(),
 	}
 
 	if err := repo.Store(ctx, testData); err != nil {
@@ -112,10 +116,11 @@ func TestMemoryRepository_NonPersistent(t *testing.T) {
 	repo := NewMemoryRepository()
 
 	testData := &model.DomainData{
-		ValidateTime: time.Now(),
 		Owner:        "test-owner",
-		Domain:       "example.com",
 		Type:         model.Flip180,
+		Hostname:     "example.com",
+		GroupID:      "group-789",
+		ValidateTime: time.Now(),
 	}
 
 	if err := repo.Store(ctx, testData); err != nil {
@@ -128,8 +133,8 @@ func TestMemoryRepository_NonPersistent(t *testing.T) {
 		t.Fatalf("Failed to get data: %v", err)
 	}
 
-	if retrieved.Domain != testData.Domain {
-		t.Errorf("Expected domain %s, got %s", testData.Domain, retrieved.Domain)
+	if retrieved.Hostname != testData.Hostname {
+		t.Errorf("Expected hostname %s, got %s", testData.Hostname, retrieved.Hostname)
 	}
 
 	// Verify List works

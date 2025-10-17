@@ -11,39 +11,42 @@ import (
 )
 
 var validateCmd = &cobra.Command{
-	Use:   "validate <owner> <type> <domain> [flip]",
-	Short: "Validate a domain",
-	Long: `Validate a domain with specified owner, type, domain, and optional flipped domain.
+	Use:   "validate <owner> <type> <groupid> <hostname1> [hostname2] [hostname3...]",
+	Short: "Validate a domain group",
+	Long: `Validate a domain group with specified owner, type, group ID, and one or more hostnames.
 
 Arguments:
-  owner   Owner of the domain
-  type    Type of validation
-  domain  Domain to validate
-  flip    Flipped domain (optional)`,
-	Args: cobra.RangeArgs(3, 4),
+  owner      Owner of the domain
+  type       Type of validation
+  groupid    Group ID for the domain
+  hostname1  First hostname to validate
+  hostname2+ Additional hostnames (optional)`,
+	Args: cobra.MinimumNArgs(4),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		owner := args[0]
 		vtype := args[1]
-		domain := args[2]
-		var flipPtr *string
-		if len(args) == 4 {
-			flip := args[3]
-			flipPtr = &flip
-		}
+		groupID := args[2]
+		hostnames := args[3:]
 
-		// Create DomainData from arguments
-		data := &model.DomainData{
-			ValidateTime: time.Now(),
-			Owner:        owner,
-			Domain:       domain,
-			Flip:         flipPtr,
-			Type:         model.SymmetryType(vtype),
+		// Create DomainData structs from arguments
+		dataList := make([]*model.DomainData, 0, len(hostnames))
+		validateTime := time.Now()
+
+		for _, hostname := range hostnames {
+			data := &model.DomainData{
+				Owner:        owner,
+				Type:         model.SymmetryType(vtype),
+				Hostname:     hostname,
+				GroupID:      groupID,
+				ValidateTime: validateTime,
+			}
+			dataList = append(dataList, data)
 		}
 
 		// Create validator and validate
 		validator := validation.NewService()
 		ctx := context.Background()
-		valid, err := validator.Validate(ctx, data)
+		valid, err := validator.Validate(ctx, dataList)
 		if err != nil {
 			return fmt.Errorf("validation error: %w", err)
 		}
@@ -51,12 +54,8 @@ Arguments:
 		// Echo the input values
 		fmt.Printf("Owner: %s\n", owner)
 		fmt.Printf("Type: %s\n", vtype)
-		fmt.Printf("Domain: %s\n", domain)
-		if flipPtr != nil {
-			fmt.Printf("Flip: %s\n", *flipPtr)
-		} else {
-			fmt.Println("Flip: (none)")
-		}
+		fmt.Printf("Group ID: %s\n", groupID)
+		fmt.Printf("Hostnames: %v\n", hostnames)
 
 		if persistenceFile != "" {
 			fmt.Printf("Persistence file: %s\n", persistenceFile)

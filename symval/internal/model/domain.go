@@ -16,9 +16,9 @@ const (
 
 // DomainData represents domain validation information
 type DomainData struct {
-	ValidateTime time.Time
 	Owner        string
-	Domain       string
-	Flip         *string
 	Type         SymmetryType
+	Hostname     string
+	GroupID      string
+	ValidateTime time.Time
 }

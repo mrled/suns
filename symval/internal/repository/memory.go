@@ -67,7 +67,7 @@ func (r *MemoryRepository) load() error {
 
 	r.data = make(map[string]*model.DomainData)
 	for _, d := range dataSlice {
-		r.data[d.Domain] = d
+		r.data[d.Hostname] = d
 	}
 
 	return nil
@@ -106,11 +106,11 @@ func (r *MemoryRepository) Store(ctx context.Context, data *model.DomainData) er
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if _, exists := r.data[data.Domain]; exists {
+	if _, exists := r.data[data.Hostname]; exists {
 		return ErrAlreadyExists
 	}
 
-	r.data[data.Domain] = data
+	r.data[data.Hostname] = data
 	return r.save()
 }
 

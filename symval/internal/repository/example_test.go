@@ -18,13 +18,12 @@ func ExampleMemoryRepository() {
 	ctx := context.Background()
 	repo, _ := NewMemoryRepositoryWithPersistence(tmpPath)
 
-	flip := "flip.example.com"
 	data := &model.DomainData{
-		ValidateTime: time.Date(2025, 10, 17, 12, 0, 0, 0, time.UTC),
 		Owner:        "alice@example.com",
-		Domain:       "example.com",
-		Flip:         &flip,
 		Type:         model.Palindrome,
+		Hostname:     "example.com",
+		GroupID:      "abc123",
+		ValidateTime: time.Date(2025, 10, 17, 12, 0, 0, 0, time.UTC),
 	}
 
 	repo.Store(ctx, data)
@@ -36,11 +35,11 @@ func ExampleMemoryRepository() {
 	// Output:
 	// [
 	//   {
-	//     "ValidateTime": "2025-10-17T12:00:00Z",
 	//     "Owner": "alice@example.com",
-	//     "Domain": "example.com",
-	//     "Flip": "flip.example.com",
-	//     "Type": "palindrome"
+	//     "Type": "palindrome",
+	//     "Hostname": "example.com",
+	//     "GroupID": "abc123",
+	//     "ValidateTime": "2025-10-17T12:00:00Z"
 	//   }
 	// ]
 }
