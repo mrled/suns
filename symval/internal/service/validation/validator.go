@@ -68,42 +68,6 @@ func (s *Service) ValidateBase(ctx context.Context, data []*model.DomainData) (s
 	return owner, groupID, symmetryType, nil
 }
 
-// validatePalindrome validates palindrome symmetry
-func (s *Service) validatePalindrome(ctx context.Context, data []*model.DomainData) (bool, error) {
-	// Stub implementation - always returns true
-	return true, nil
-}
-
-// validateFlip180 validates 180-degree flip symmetry
-func (s *Service) validateFlip180(ctx context.Context, data []*model.DomainData) (bool, error) {
-	// Stub implementation - always returns true
-	return true, nil
-}
-
-// validateDoubleFlip180 validates double 180-degree flip symmetry
-func (s *Service) validateDoubleFlip180(ctx context.Context, data []*model.DomainData) (bool, error) {
-	// Stub implementation - always returns true
-	return true, nil
-}
-
-// validateMirrorText validates mirror text symmetry
-func (s *Service) validateMirrorText(ctx context.Context, data []*model.DomainData) (bool, error) {
-	// Stub implementation - always returns true
-	return true, nil
-}
-
-// validateMirrorNames validates mirror names symmetry
-func (s *Service) validateMirrorNames(ctx context.Context, data []*model.DomainData) (bool, error) {
-	// Stub implementation - always returns true
-	return true, nil
-}
-
-// validateAntonymNames validates antonym names symmetry
-func (s *Service) validateAntonymNames(ctx context.Context, data []*model.DomainData) (bool, error) {
-	// Stub implementation - always returns true
-	return true, nil
-}
-
 // Validate performs base validation and then calls the appropriate type-specific validator
 func (s *Service) Validate(ctx context.Context, data []*model.DomainData) (bool, error) {
 	// Perform base validation
