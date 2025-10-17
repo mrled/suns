@@ -2,14 +2,7 @@
 title = "TODO"
 +++
 
-* Buy domain
-* Configure DNS
-    * Create CloudFormation stack
-    * Deploy CFN stack from GitHub
 * Deploy website
-    * Create CFN stack for deployed website
-    * Deploy CFN stack from Github
-    * Deploy Hugo site to bucket from Github
     * Handle `https://zq.suns.bz//:sdʇʇɥ` URL: redirect `suns.bz`, `zq.suns.bz` to that page
 * Add webhooks
     * Write webhook code
