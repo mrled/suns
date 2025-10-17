@@ -88,6 +88,14 @@ func TestLookup_MultipleTXTRecords(t *testing.T) {
 	if len(records) != 3 {
 		t.Fatalf("expected 3 records, got %d", len(records))
 	}
+
+	// Verify all records are present
+	expected := map[string]bool{"record1": true, "record2": true, "record3": true}
+	for _, record := range records {
+		if !expected[record] {
+			t.Errorf("unexpected record: %s", record)
+		}
+	}
 }
 
 func TestLookup_CNAMEHop(t *testing.T) {
@@ -112,6 +120,44 @@ func TestLookup_CNAMEHop(t *testing.T) {
 
 	if records[0] != "v1:delegated-data" {
 		t.Errorf("expected 'v1:delegated-data', got '%s'", records[0])
+	}
+}
+
+func TestLookup_CNAMEHopWithMultipleRecords(t *testing.T) {
+	// Test that multiple verification records are returned when following a CNAME
+	mock := &MockResolver{
+		TXTRecords: map[string][]string{
+			"verification.example.net": {
+				"v1:groupid1:hash1",
+				"v1:groupid2:hash2",
+				"v1:groupid3:hash3",
+			},
+		},
+		CNAMERecords: map[string]string{
+			"_suns.example.com": "verification.example.net",
+		},
+	}
+
+	service := NewServiceWithResolver(mock)
+	records, err := service.Lookup("example.com")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(records) != 3 {
+		t.Fatalf("expected 3 records via CNAME, got %d", len(records))
+	}
+
+	// Verify all records are present
+	expected := map[string]bool{
+		"v1:groupid1:hash1": true,
+		"v1:groupid2:hash2": true,
+		"v1:groupid3:hash3": true,
+	}
+	for _, record := range records {
+		if !expected[record] {
+			t.Errorf("unexpected record: %s", record)
+		}
 	}
 }
 
@@ -324,5 +370,62 @@ func TestErrRecordNotFound_ErrorsIs(t *testing.T) {
 	wrappedErr := errors.Join(ErrRecordNotFound, errors.New("additional context"))
 	if !errors.Is(wrappedErr, ErrRecordNotFound) {
 		t.Error("errors.Is should recognize wrapped ErrRecordNotFound")
+	}
+}
+
+func TestLookup_MultipleVerificationRecordsRealistic(t *testing.T) {
+	// Test a realistic scenario with multiple SUNS verification records
+	// representing different group memberships
+	mock := &MockResolver{
+		TXTRecords: map[string][]string{
+			"_suns.myapp.example.com": {
+				"v1:team-alpha:YWxwaGEtdGVhbS12ZXJpZmljYXRpb24taGFzaA==",
+				"v1:team-beta:YmV0YS10ZWFtLXZlcmlmaWNhdGlvbi1oYXNo",
+				"v1:team-gamma:Z2FtbWEtdGVhbS12ZXJpZmljYXRpb24taGFzaA==",
+				"v1:org-wide:b3JnLXdpZGUtdmVyaWZpY2F0aW9uLWhhc2g=",
+			},
+		},
+	}
+
+	service := NewServiceWithResolver(mock)
+	records, err := service.Lookup("myapp.example.com")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(records) != 4 {
+		t.Fatalf("expected 4 verification records, got %d", len(records))
+	}
+
+	// Verify specific records exist
+	hasTeamAlpha := false
+	hasTeamBeta := false
+	hasTeamGamma := false
+	hasOrgWide := false
+
+	for _, record := range records {
+		switch record {
+		case "v1:team-alpha:YWxwaGEtdGVhbS12ZXJpZmljYXRpb24taGFzaA==":
+			hasTeamAlpha = true
+		case "v1:team-beta:YmV0YS10ZWFtLXZlcmlmaWNhdGlvbi1oYXNo":
+			hasTeamBeta = true
+		case "v1:team-gamma:Z2FtbWEtdGVhbS12ZXJpZmljYXRpb24taGFzaA==":
+			hasTeamGamma = true
+		case "v1:org-wide:b3JnLXdpZGUtdmVyaWZpY2F0aW9uLWhhc2g=":
+			hasOrgWide = true
+		}
+	}
+
+	if !hasTeamAlpha {
+		t.Error("missing team-alpha verification record")
+	}
+	if !hasTeamBeta {
+		t.Error("missing team-beta verification record")
+	}
+	if !hasTeamGamma {
+		t.Error("missing team-gamma verification record")
+	}
+	if !hasOrgWide {
+		t.Error("missing org-wide verification record")
 	}
 }

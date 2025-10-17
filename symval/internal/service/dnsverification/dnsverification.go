@@ -58,17 +58,20 @@ func NewServiceWithResolver(resolver Resolver) *Service {
 	}
 }
 
-// Lookup performs a TXT record lookup for the SUNS record of the given domain.
-// It computes the label as "_suns.domain" and attempts to fetch the TXT record.
-// If the TXT record is not found, it checks for a CNAME record at that label
-// and performs one CNAME hop to re-check for the TXT record.
+// Lookup performs a TXT record lookup for the SUNS verification records of the given domain.
+// It computes the label as "_suns.domain" and attempts to fetch all TXT records at that label.
+// If no TXT records are found, it checks for a CNAME record at that label and performs one
+// CNAME hop to re-check for TXT records at the target.
 //
-// This allows users to delegate control to another zone while keeping
+// Multiple TXT records are supported - all verification records found will be returned.
+// This allows users to publish multiple SUNS verification records for different purposes.
+//
+// The single CNAME hop allows users to delegate control to another zone while keeping
 // verification deterministic by limiting to one hop.
 //
 // Returns:
-//   - The TXT record value(s) as a slice of strings
-//   - ErrRecordNotFound if the record doesn't exist after checking CNAME
+//   - All TXT record values as a slice of strings (may contain multiple verification records)
+//   - ErrRecordNotFound if no records exist after checking CNAME
 //   - Other errors for DNS lookup failures
 func (s *Service) Lookup(domain string) ([]string, error) {
 	if domain == "" {
