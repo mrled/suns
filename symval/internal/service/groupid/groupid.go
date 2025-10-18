@@ -21,8 +21,8 @@ func NewService() *Service {
 	return &Service{}
 }
 
-// CalculateV1 generates a group ID by hashing owner + all hostnames
-// The result is formatted as: idversion:type:base64(sha256(owner+sort(hostnames))).
+// CalculateV1 generates a group ID by hashing owner and hostnames separately
+// The result is formatted as: idversion:type:base64(sha256(owner)):base64(sha256(sort(hostnames))).
 func (s *Service) CalculateV1(owner, gtype string, hostnames []string) (string, error) {
 	if owner == "" {
 		return "", fmt.Errorf("owner cannot be empty")
@@ -39,21 +39,22 @@ func (s *Service) CalculateV1(owner, gtype string, hostnames []string) (string, 
 	copy(sorted, hostnames)
 	sort.Strings(sorted)
 
-	// Build the string to hash: owner + all hostnames
+	// Hash the owner
+	ownerHash := sha256.Sum256([]byte(owner))
+	ownerEncoded := base64.StdEncoding.EncodeToString(ownerHash[:])
+
+	// Build the string to hash: all sorted hostnames
 	var builder strings.Builder
-	builder.WriteString(owner)
 	for _, hostname := range sorted {
 		builder.WriteString(hostname)
 	}
 
-	// Hash the combined string
-	hash := sha256.Sum256([]byte(builder.String()))
+	// Hash the hostnames
+	hostnamesHash := sha256.Sum256([]byte(builder.String()))
+	hostnamesEncoded := base64.StdEncoding.EncodeToString(hostnamesHash[:])
 
-	// Base64 encode the hash
-	encoded := base64.StdEncoding.EncodeToString(hash[:])
-
-	// Format: idversion:type:base64hash
-	groupID := fmt.Sprintf("%s:%s:%s", IDVersion, gtype, encoded)
+	// Format: idversion:type:base64(sha256(owner)):base64(sha256(sort(hostnames)))
+	groupID := fmt.Sprintf("%s:%s:%s:%s", IDVersion, gtype, ownerEncoded, hostnamesEncoded)
 
 	return groupID, nil
 }

@@ -1,6 +1,7 @@
 package groupid
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ func TestCalculateV1(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		// Check format: v1:type:base64hash
+		// Check format: v1:type:base64hash:base64hash
 		if len(groupID) == 0 {
 			t.Fatal("groupID should not be empty")
 		}
@@ -22,6 +23,12 @@ func TestCalculateV1(t *testing.T) {
 		expected := "v1:type1:"
 		if len(groupID) < len(expected) || groupID[:len(expected)] != expected {
 			t.Errorf("groupID should start with %q, got %q", expected, groupID)
+		}
+
+		// Verify it has 4 colon-separated parts
+		parts := len(groupID) - len(strings.ReplaceAll(groupID, ":", ""))
+		if parts != 3 {
+			t.Errorf("groupID should have 4 colon-separated parts (3 colons), got %d colons", parts)
 		}
 	})
 
@@ -169,14 +176,14 @@ func TestCalculateV1_KnownValues(t *testing.T) {
 			owner:     "myowner",
 			gtype:     "mytype",
 			hostnames: []string{"host1.example.com"},
-			want:      "v1:mytype:gFEOj0UEJk8EI+oV0HCaKMfpeCwL6EFDbqAUQPFchSU=",
+			want:      "v1:mytype:ONhEevmGtSryy82u9a14bIzvtB3rpWzExC0atTB5ATI=:Gwha2Fxaavzv1ZfiQ+kOkXkprDhIaHnHDjRcd/RRZqM=",
 		},
 		{
 			name:      "multiple hostnames",
 			owner:     "myowner",
 			gtype:     "mytype",
 			hostnames: []string{"host1.example.com", "host2.example.com", "host3.example.com"},
-			want:      "v1:mytype:j1QFHMJKG8Gj/VbzAC5NXW30J2esEIHeWVelAskdKro=",
+			want:      "v1:mytype:ONhEevmGtSryy82u9a14bIzvtB3rpWzExC0atTB5ATI=:i+9aaIps5MPVnI4+JCWDQJvOYiKx4iRQ9PLp+vAxqdE=",
 		},
 	}
 

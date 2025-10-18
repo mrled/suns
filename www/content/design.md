@@ -21,7 +21,7 @@ The algorithm for this is defined in `CalculateV1()` in `symval/internal/service
 
 ```go
 // CalculateV1 generates a group ID by hashing owner + all hostnames
-// The result is formatted as: idversion:type:base64(sha256(owner+sort(hostnames))).
+// The result is formatted as: idversion:type:base64(sha256(owner)):base64(sha256(sort(hostnames))).
 func (s *Service) CalculateV1(owner, gtype string, hostnames []string) (string, error) {
   // ...
 }
@@ -42,13 +42,10 @@ Conceptually, we need to track:
 * Owner
 * SymmetryType
 * Hostname
-* Group ID
+* Group ID (see above)
 * Validated At
 
 These are stored in Dynamo DB.
-
-The group ID is predictable and calculated independently by the client and the server,
-and contains the type, and a hash of the owner plus every hostname in the group.
 
 This is written to Dynamo DB,
 and sent through Dynamo DB Streams to a Lambda worker

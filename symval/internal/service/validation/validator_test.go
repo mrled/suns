@@ -18,7 +18,7 @@ func TestService_Validate_Success(t *testing.T) {
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
 			Hostname: "aba",
-			GroupID:  "v1:palindrome:YTqA8HY88O+h+FHhQbXLJAmAXDH4F+aFtBNAJwHqWgk=",
+			GroupID:  "v1:palindrome:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=",
 		},
 	}
 
@@ -41,13 +41,13 @@ func TestService_Validate_MultipleHostnames(t *testing.T) {
 			Owner:    "alice@example.com",
 			Type:     model.MirrorNames,
 			Hostname: "a.b.com",
-			GroupID:  "v1:mirrornames:6peSPXBypjNbXD1Lv4NUg1Ye/WO8Fc9KUsCnCOUGwb4=",
+			GroupID:  "v1:mirrornames:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=",
 		},
 		{
 			Owner:    "alice@example.com",
 			Type:     model.MirrorNames,
 			Hostname: "com.b.a",
-			GroupID:  "v1:mirrornames:6peSPXBypjNbXD1Lv4NUg1Ye/WO8Fc9KUsCnCOUGwb4=",
+			GroupID:  "v1:mirrornames:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=",
 		},
 	}
 
@@ -191,7 +191,7 @@ func TestService_ValidateBase_Success(t *testing.T) {
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
 			Hostname: "aba",
-			GroupID:  "v1:palindrome:YTqA8HY88O+h+FHhQbXLJAmAXDH4F+aFtBNAJwHqWgk=",
+			GroupID:  "v1:palindrome:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=",
 		},
 	}
 
@@ -202,7 +202,7 @@ func TestService_ValidateBase_Success(t *testing.T) {
 	if owner != "alice@example.com" {
 		t.Errorf("Expected owner 'alice@example.com', got '%s'", owner)
 	}
-	if groupID != "v1:palindrome:YTqA8HY88O+h+FHhQbXLJAmAXDH4F+aFtBNAJwHqWgk=" {
+	if groupID != "v1:palindrome:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=" {
 		t.Errorf("Expected specific groupID, got '%s'", groupID)
 	}
 	if symmetryType != model.Palindrome {
@@ -220,12 +220,12 @@ func TestService_Validate_AllSymmetryTypes(t *testing.T) {
 		hostnames    []string
 		groupID      string
 	}{
-		{"Palindrome", model.Palindrome, []string{"aba"}, "v1:palindrome:YTqA8HY88O+h+FHhQbXLJAmAXDH4F+aFtBNAJwHqWgk="},
-		{"Flip180", model.Flip180, []string{"example.com"}, "v1:180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"DoubleFlip180", model.DoubleFlip180, []string{"example.com"}, "v1:double180flip:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"MirrorText", model.MirrorText, []string{"example.com"}, "v1:mirrortext:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
-		{"MirrorNames", model.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:mirrornames:6peSPXBypjNbXD1Lv4NUg1Ye/WO8Fc9KUsCnCOUGwb4="},
-		{"AntonymNames", model.AntonymNames, []string{"example.com"}, "v1:antonymnames:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c="},
+		{"Palindrome", model.Palindrome, []string{"aba"}, "v1:palindrome:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0="},
+		{"Flip180", model.Flip180, []string{"example.com"}, "v1:180flip:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"DoubleFlip180", model.DoubleFlip180, []string{"example.com"}, "v1:double180flip:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"MirrorText", model.MirrorText, []string{"example.com"}, "v1:mirrortext:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"MirrorNames", model.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:mirrornames:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c="},
+		{"AntonymNames", model.AntonymNames, []string{"example.com"}, "v1:antonymnames:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
 	}
 
 	for _, tt := range tests {
