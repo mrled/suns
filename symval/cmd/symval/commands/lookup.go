@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
-	"github.com/mrled/suns/symval/internal/usecase"
+	"github.com/mrled/suns/symval/internal/usecase/consistencycheck"
 	"github.com/spf13/cobra"
 )
 
@@ -27,19 +27,15 @@ For each domain, this command will:
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		domains := args
-
-		// Create DNS verification service with custom resolver
 		resolver := dnsclaims.NewCustomResolver(resolverAddr)
 		dnsService := dnsclaims.NewServiceWithResolver(resolver)
-
-		// Create verify use case
-		verifyUC := usecase.NewVerifyUseCase(dnsService)
+		consistencyChecker := consistencycheck.NewConsistencyCheckUseCase(dnsService)
 
 		// Process each domain
 		for _, domain := range domains {
 			fmt.Printf("Domain: %s\n", domain)
 
-			groupIDs, err := verifyUC.VerifyDomain(domain)
+			groupIDs, err := consistencyChecker.CheckDomainClaimRecordsConsistency(domain)
 			if err != nil {
 				fmt.Printf("  Error: %v\n", err)
 			} else if len(groupIDs) == 0 {

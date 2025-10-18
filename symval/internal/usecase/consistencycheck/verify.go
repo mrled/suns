@@ -1,4 +1,4 @@
-package usecase
+package consistencycheck
 
 import (
 	"fmt"
@@ -7,23 +7,23 @@ import (
 	"github.com/mrled/suns/symval/internal/service/groupid"
 )
 
-// VerifyUseCase orchestrates the DNS verification and group ID validation process
-type VerifyUseCase struct {
+// ConsistencyCheckUseCase orchestrates the DNS verification and group ID validation process
+type ConsistencyCheckUseCase struct {
 	dnsService *dnsclaims.Service
 }
 
-// NewVerifyUseCase creates a new verify use case with the given DNS service
-func NewVerifyUseCase(dnsService *dnsclaims.Service) *VerifyUseCase {
-	return &VerifyUseCase{
+// NewConsistencyCheckUseCase creates a new verify use case with the given DNS service
+func NewConsistencyCheckUseCase(dnsService *dnsclaims.Service) *ConsistencyCheckUseCase {
+	return &ConsistencyCheckUseCase{
 		dnsService: dnsService,
 	}
 }
 
-// Verify checks consistency of group IDs by verifying that all group IDs
-// have the same owner hash. This function validates that all provided group IDs
-// belong to the same owner. Additional consistency checks may be added in the future.
+// CheckGroupIdConsistency checks consistency of group IDs.
+// 1. Verify that all of the same owner hash
+// 2. ... more checks can be added here ...
 // Returns an error if the group IDs are inconsistent or if any group ID cannot be parsed.
-func Verify(groupIDs []groupid.GroupIDV1) error {
+func CheckGroupIdConsistency(groupIDs []groupid.GroupIDV1) error {
 	if len(groupIDs) == 0 {
 		return nil
 	}
@@ -42,11 +42,11 @@ func Verify(groupIDs []groupid.GroupIDV1) error {
 	return nil
 }
 
-// VerifyDomain looks up the TXT records for a domain, parses them as group IDs,
-// and verifies their consistency. It returns the parsed group IDs if verification passes,
+// CheckDomainClaimRecordsConsistency looks up the TXT records for a domain and checks their consistency.
+// It returns the parsed group IDs if verification passes,
 // an empty slice with no error if no records exist, or an empty slice with an error
 // if verification fails or parsing fails.
-func (uc *VerifyUseCase) VerifyDomain(domain string) ([]groupid.GroupIDV1, error) {
+func (uc *ConsistencyCheckUseCase) CheckDomainClaimRecordsConsistency(domain string) ([]groupid.GroupIDV1, error) {
 	// Lookup TXT records
 	records, err := uc.dnsService.Lookup(domain)
 	if err != nil {
@@ -69,7 +69,7 @@ func (uc *VerifyUseCase) VerifyDomain(domain string) ([]groupid.GroupIDV1, error
 	}
 
 	// Verify consistency
-	if err := Verify(groupIDs); err != nil {
+	if err := CheckGroupIdConsistency(groupIDs); err != nil {
 		return nil, fmt.Errorf("verification failed: %w", err)
 	}
 

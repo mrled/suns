@@ -1,4 +1,4 @@
-package usecase
+package consistencycheck
 
 import (
 	"net"
@@ -54,7 +54,7 @@ func (m *MockResolver) LookupCNAME(domain string) (string, error) {
 
 func TestVerify(t *testing.T) {
 	t.Run("empty slice", func(t *testing.T) {
-		err := Verify([]groupid.GroupIDV1{})
+		err := CheckGroupIdConsistency([]groupid.GroupIDV1{})
 		if err != nil {
 			t.Errorf("expected no error for empty slice, got %v", err)
 		}
@@ -68,7 +68,7 @@ func TestVerify(t *testing.T) {
 			DomainsHash: "domainhash1",
 			Raw:         "v1:type1:hash123:domainhash1",
 		}
-		err := Verify([]groupid.GroupIDV1{gid})
+		err := CheckGroupIdConsistency([]groupid.GroupIDV1{gid})
 		if err != nil {
 			t.Errorf("expected no error for single group ID, got %v", err)
 		}
@@ -98,7 +98,7 @@ func TestVerify(t *testing.T) {
 				Raw:         "v1:type3:sameowner:domains3",
 			},
 		}
-		err := Verify(gids)
+		err := CheckGroupIdConsistency(gids)
 		if err != nil {
 			t.Errorf("expected no error for consistent owner hashes, got %v", err)
 		}
@@ -121,7 +121,7 @@ func TestVerify(t *testing.T) {
 				Raw:         "v1:type2:owner2:domains2",
 			},
 		}
-		err := Verify(gids)
+		err := CheckGroupIdConsistency(gids)
 		if err == nil {
 			t.Fatal("expected error for inconsistent owner hashes")
 		}
@@ -151,7 +151,7 @@ func TestVerify(t *testing.T) {
 				Raw:         "v1:type3:differentowner:domains3",
 			},
 		}
-		err := Verify(gids)
+		err := CheckGroupIdConsistency(gids)
 		if err == nil {
 			t.Fatal("expected error when third group ID has different owner")
 		}
@@ -164,9 +164,9 @@ func TestVerifyDomain(t *testing.T) {
 			TXTRecords: map[string][]string{},
 		}
 		dnsService := dnsclaims.NewServiceWithResolver(mock)
-		verifyUC := NewVerifyUseCase(dnsService)
+		verifyUC := NewConsistencyCheckUseCase(dnsService)
 
-		gids, err := verifyUC.VerifyDomain("example.com")
+		gids, err := verifyUC.CheckDomainClaimRecordsConsistency("example.com")
 		if err != nil {
 			t.Fatalf("expected no error for no records, got %v", err)
 		}
@@ -182,9 +182,9 @@ func TestVerifyDomain(t *testing.T) {
 			},
 		}
 		dnsService := dnsclaims.NewServiceWithResolver(mock)
-		verifyUC := NewVerifyUseCase(dnsService)
+		verifyUC := NewConsistencyCheckUseCase(dnsService)
 
-		gids, err := verifyUC.VerifyDomain("example.com")
+		gids, err := verifyUC.CheckDomainClaimRecordsConsistency("example.com")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -210,9 +210,9 @@ func TestVerifyDomain(t *testing.T) {
 			},
 		}
 		dnsService := dnsclaims.NewServiceWithResolver(mock)
-		verifyUC := NewVerifyUseCase(dnsService)
+		verifyUC := NewConsistencyCheckUseCase(dnsService)
 
-		gids, err := verifyUC.VerifyDomain("example.com")
+		gids, err := verifyUC.CheckDomainClaimRecordsConsistency("example.com")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -238,9 +238,9 @@ func TestVerifyDomain(t *testing.T) {
 			},
 		}
 		dnsService := dnsclaims.NewServiceWithResolver(mock)
-		verifyUC := NewVerifyUseCase(dnsService)
+		verifyUC := NewConsistencyCheckUseCase(dnsService)
 
-		_, err := verifyUC.VerifyDomain("example.com")
+		_, err := verifyUC.CheckDomainClaimRecordsConsistency("example.com")
 		if err == nil {
 			t.Fatal("expected error for inconsistent owner hashes")
 		}
@@ -253,9 +253,9 @@ func TestVerifyDomain(t *testing.T) {
 			},
 		}
 		dnsService := dnsclaims.NewServiceWithResolver(mock)
-		verifyUC := NewVerifyUseCase(dnsService)
+		verifyUC := NewConsistencyCheckUseCase(dnsService)
 
-		_, err := verifyUC.VerifyDomain("example.com")
+		_, err := verifyUC.CheckDomainClaimRecordsConsistency("example.com")
 		if err == nil {
 			t.Fatal("expected error for invalid group ID format")
 		}
@@ -271,9 +271,9 @@ func TestVerifyDomain(t *testing.T) {
 			},
 		}
 		dnsService := dnsclaims.NewServiceWithResolver(mock)
-		verifyUC := NewVerifyUseCase(dnsService)
+		verifyUC := NewConsistencyCheckUseCase(dnsService)
 
-		_, err := verifyUC.VerifyDomain("example.com")
+		_, err := verifyUC.CheckDomainClaimRecordsConsistency("example.com")
 		if err == nil {
 			t.Fatal("expected error when parsing mixed valid/invalid formats")
 		}
@@ -288,9 +288,9 @@ func TestVerifyDomain(t *testing.T) {
 			},
 		}
 		dnsService := dnsclaims.NewServiceWithResolver(mock)
-		verifyUC := NewVerifyUseCase(dnsService)
+		verifyUC := NewConsistencyCheckUseCase(dnsService)
 
-		_, err := verifyUC.VerifyDomain("example.com")
+		_, err := verifyUC.CheckDomainClaimRecordsConsistency("example.com")
 		if err == nil {
 			t.Fatal("expected error for DNS lookup failure")
 		}

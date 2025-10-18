@@ -96,9 +96,9 @@ Require a special TXT record `_suns` for each domain.
 These records provide _claims_ that the domain is part of the group,
 but they don't _verify_ the claims.
 
-## Grou p verification
+## Consitency checking
 
-Group verification checks that
+Consistency checking confirms that
 
 * All domains in the group have valid DNS claims.
 * All domains in the group have a claim record with the group ID.
