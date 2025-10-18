@@ -79,7 +79,7 @@ Representable invalid state
 * A group that does not satisfy the business logic of domain validation.
   E.g. a single domain `DoubleFlip180` group.
 
-## DNS verification
+## DNS claims
 
 Require a special TXT record `_suns` for each domain.
 
@@ -92,3 +92,20 @@ Require a special TXT record `_suns` for each domain.
   Limit to one hop to keep verification deterministic.
   (Not sure if this is important?)
 * Expect one TXT record for every group that the domain is in.
+
+These records provide _claims_ that the domain is part of the group,
+but they don't _verify_ the claims.
+
+## Grou p verification
+
+Group verification checks that
+
+* All domains in the group have valid DNS claims.
+* All domains in the group have a claim record with the group ID.
+* All DNS claims for all domains the group have the same owner.
+  * This is subtle:
+    for every domain in the group,
+    check that every claim for that domain has the same owner,
+    even claims for _other groups_.
+    Domains can be in more than one group,
+    but cannot be owned by more than one owner.

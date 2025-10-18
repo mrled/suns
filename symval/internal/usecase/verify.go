@@ -3,17 +3,17 @@ package usecase
 import (
 	"fmt"
 
-	"github.com/mrled/suns/symval/internal/service/dnsverification"
+	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/service/groupid"
 )
 
 // VerifyUseCase orchestrates the DNS verification and group ID validation process
 type VerifyUseCase struct {
-	dnsService *dnsverification.Service
+	dnsService *dnsclaims.Service
 }
 
 // NewVerifyUseCase creates a new verify use case with the given DNS service
-func NewVerifyUseCase(dnsService *dnsverification.Service) *VerifyUseCase {
+func NewVerifyUseCase(dnsService *dnsclaims.Service) *VerifyUseCase {
 	return &VerifyUseCase{
 		dnsService: dnsService,
 	}

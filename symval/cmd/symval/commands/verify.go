@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mrled/suns/symval/internal/service/dnsverification"
+	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/usecase"
 	"github.com/spf13/cobra"
 )
@@ -29,8 +29,8 @@ For each domain, this command will:
 		domains := args
 
 		// Create DNS verification service with custom resolver
-		resolver := dnsverification.NewCustomResolver(resolverAddr)
-		dnsService := dnsverification.NewServiceWithResolver(resolver)
+		resolver := dnsclaims.NewCustomResolver(resolverAddr)
+		dnsService := dnsclaims.NewServiceWithResolver(resolver)
 
 		// Create verify use case
 		verifyUC := usecase.NewVerifyUseCase(dnsService)

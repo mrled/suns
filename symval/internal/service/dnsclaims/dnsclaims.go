@@ -1,4 +1,4 @@
-package dnsverification
+package dnsclaims
 
 import (
 	"context"
@@ -177,4 +177,3 @@ func isNotFoundError(err error) bool {
 
 	return false
 }
-

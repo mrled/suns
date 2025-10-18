@@ -1,4 +1,4 @@
-package dnsverification
+package dnsclaims
 
 import (
 	"net"
@@ -234,7 +234,7 @@ func TestLookup_PreferDirectOverCNAME(t *testing.T) {
 	// If both TXT and CNAME exist, TXT should be preferred
 	mock := &MockResolver{
 		TXTRecords: map[string][]string{
-			"_suns.example.com":  {"direct-record"},
+			"_suns.example.com": {"direct-record"},
 			"other.example.net": {"cname-record"},
 		},
 		CNAMERecords: map[string]string{
@@ -322,8 +322,8 @@ func TestLookup_OnlyOneCNAMEHop(t *testing.T) {
 			"final.example.org": {"should-not-reach"},
 		},
 		CNAMERecords: map[string]string{
-			"_suns.example.com":    "middle.example.net",
-			"middle.example.net":   "final.example.org",
+			"_suns.example.com":  "middle.example.net",
+			"middle.example.net": "final.example.org",
 		},
 	}
 
@@ -414,4 +414,3 @@ func TestLookup_MultipleVerificationRecordsRealistic(t *testing.T) {
 		t.Error("missing org-wide verification record")
 	}
 }
-

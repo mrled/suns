@@ -4,7 +4,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/mrled/suns/symval/internal/service/dnsverification"
+	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/service/groupid"
 )
 
@@ -163,7 +163,7 @@ func TestVerifyDomain(t *testing.T) {
 		mock := &MockResolver{
 			TXTRecords: map[string][]string{},
 		}
-		dnsService := dnsverification.NewServiceWithResolver(mock)
+		dnsService := dnsclaims.NewServiceWithResolver(mock)
 		verifyUC := NewVerifyUseCase(dnsService)
 
 		gids, err := verifyUC.VerifyDomain("example.com")
@@ -181,7 +181,7 @@ func TestVerifyDomain(t *testing.T) {
 				"_suns.example.com": {"v1:type1:ownerhash123:domainshash456"},
 			},
 		}
-		dnsService := dnsverification.NewServiceWithResolver(mock)
+		dnsService := dnsclaims.NewServiceWithResolver(mock)
 		verifyUC := NewVerifyUseCase(dnsService)
 
 		gids, err := verifyUC.VerifyDomain("example.com")
@@ -209,7 +209,7 @@ func TestVerifyDomain(t *testing.T) {
 				},
 			},
 		}
-		dnsService := dnsverification.NewServiceWithResolver(mock)
+		dnsService := dnsclaims.NewServiceWithResolver(mock)
 		verifyUC := NewVerifyUseCase(dnsService)
 
 		gids, err := verifyUC.VerifyDomain("example.com")
@@ -237,7 +237,7 @@ func TestVerifyDomain(t *testing.T) {
 				},
 			},
 		}
-		dnsService := dnsverification.NewServiceWithResolver(mock)
+		dnsService := dnsclaims.NewServiceWithResolver(mock)
 		verifyUC := NewVerifyUseCase(dnsService)
 
 		_, err := verifyUC.VerifyDomain("example.com")
@@ -252,7 +252,7 @@ func TestVerifyDomain(t *testing.T) {
 				"_suns.example.com": {"invalid-format"},
 			},
 		}
-		dnsService := dnsverification.NewServiceWithResolver(mock)
+		dnsService := dnsclaims.NewServiceWithResolver(mock)
 		verifyUC := NewVerifyUseCase(dnsService)
 
 		_, err := verifyUC.VerifyDomain("example.com")
@@ -270,7 +270,7 @@ func TestVerifyDomain(t *testing.T) {
 				},
 			},
 		}
-		dnsService := dnsverification.NewServiceWithResolver(mock)
+		dnsService := dnsclaims.NewServiceWithResolver(mock)
 		verifyUC := NewVerifyUseCase(dnsService)
 
 		_, err := verifyUC.VerifyDomain("example.com")
@@ -287,7 +287,7 @@ func TestVerifyDomain(t *testing.T) {
 				IsTemporary: true,
 			},
 		}
-		dnsService := dnsverification.NewServiceWithResolver(mock)
+		dnsService := dnsclaims.NewServiceWithResolver(mock)
 		verifyUC := NewVerifyUseCase(dnsService)
 
 		_, err := verifyUC.VerifyDomain("example.com")
