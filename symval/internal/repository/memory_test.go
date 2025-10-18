@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
 func TestMemoryRepository_JSONPersistence(t *testing.T) {
@@ -29,7 +30,7 @@ func TestMemoryRepository_JSONPersistence(t *testing.T) {
 
 	testData := &model.DomainData{
 		Owner:        "test-owner",
-		Type:         model.Palindrome,
+		Type:         symgroup.Palindrome,
 		Hostname:     "example.com",
 		GroupID:      "group-123",
 		ValidateTime: time.Now(),
@@ -83,7 +84,7 @@ func TestMemoryRepository_DeletePersistence(t *testing.T) {
 
 	testData := &model.DomainData{
 		Owner:        "test-owner",
-		Type:         model.MirrorText,
+		Type:         symgroup.MirrorText,
 		Hostname:     "example.com",
 		GroupID:      "group-456",
 		ValidateTime: time.Now(),
@@ -117,7 +118,7 @@ func TestMemoryRepository_NonPersistent(t *testing.T) {
 
 	testData := &model.DomainData{
 		Owner:        "test-owner",
-		Type:         model.Flip180,
+		Type:         symgroup.Flip180,
 		Hostname:     "example.com",
 		GroupID:      "group-789",
 		ValidateTime: time.Now(),

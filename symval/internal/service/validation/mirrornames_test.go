@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
 // Test isMirrorPair function with various inputs
@@ -84,13 +85,13 @@ func TestValidateMirrorNames_Success(t *testing.T) {
 			data := []*model.DomainData{
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: tt.hostname1,
 					GroupID:  "test-group-id",
 				},
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: tt.hostname2,
 					GroupID:  "test-group-id",
 				},
@@ -129,13 +130,13 @@ func TestValidateMirrorNames_NotMirrorPairs(t *testing.T) {
 			data := []*model.DomainData{
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: tt.hostname1,
 					GroupID:  "test-group-id",
 				},
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: tt.hostname2,
 					GroupID:  "test-group-id",
 				},
@@ -170,7 +171,7 @@ func TestValidateMirrorNames_WrongNumberOfDomains(t *testing.T) {
 			[]*model.DomainData{
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: "example.com",
 					GroupID:  "test-group-id",
 				},
@@ -181,19 +182,19 @@ func TestValidateMirrorNames_WrongNumberOfDomains(t *testing.T) {
 			[]*model.DomainData{
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: "a.com",
 					GroupID:  "test-group-id",
 				},
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: "com.a",
 					GroupID:  "test-group-id",
 				},
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: "b.com",
 					GroupID:  "test-group-id",
 				},
@@ -204,25 +205,25 @@ func TestValidateMirrorNames_WrongNumberOfDomains(t *testing.T) {
 			[]*model.DomainData{
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: "a.b.com",
 					GroupID:  "test-group-id",
 				},
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: "com.b.a",
 					GroupID:  "test-group-id",
 				},
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: "x.y.com",
 					GroupID:  "test-group-id",
 				},
 				{
 					Owner:    "alice@example.com",
-					Type:     model.MirrorNames,
+					Type:     symgroup.MirrorNames,
 					Hostname: "com.y.x",
 					GroupID:  "test-group-id",
 				},

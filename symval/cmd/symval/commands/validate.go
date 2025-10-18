@@ -8,6 +8,7 @@ import (
 
 	"github.com/mrled/suns/symval/internal/model"
 	"github.com/mrled/suns/symval/internal/service/validation"
+	"github.com/mrled/suns/symval/internal/symgroup"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +31,7 @@ Arguments:
 		hostnames := args[3:]
 
 		// Convert type name to code
-		typeCode, ok := model.TypeNameToCode[typeName]
+		typeCode, ok := symgroup.TypeNameToCode[typeName]
 		if !ok {
 			return fmt.Errorf("invalid type %q, must be one of: %s", args[1], getAvailableTypes())
 		}
@@ -42,7 +43,7 @@ Arguments:
 		for _, hostname := range hostnames {
 			data := &model.DomainData{
 				Owner:        owner,
-				Type:         model.SymmetryType(typeCode),
+				Type:         symgroup.SymmetryType(typeCode),
 				Hostname:     hostname,
 				GroupID:      groupID,
 				ValidateTime: validateTime,

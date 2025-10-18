@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrled/suns/symval/internal/groupid"
 	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
 // Validator defines the interface for domain validation
@@ -24,7 +25,7 @@ func NewService() *Service {
 // ValidateBase checks that all DomainData structs have consistent owner, type, and groupid,
 // and that the groupid matches the calculated groupid for the given hostnames.
 // Returns the common owner, groupID, and type if validation succeeds.
-func (s *Service) ValidateBase(ctx context.Context, data []*model.DomainData) (string, string, model.SymmetryType, error) {
+func (s *Service) ValidateBase(ctx context.Context, data []*model.DomainData) (string, string, symgroup.SymmetryType, error) {
 	if len(data) == 0 {
 		return "", "", "", fmt.Errorf("no domain data provided")
 	}
@@ -74,17 +75,17 @@ func (s *Service) Validate(ctx context.Context, data []*model.DomainData) (bool,
 
 	// Call type-specific validation
 	switch symmetryType {
-	case model.Palindrome:
+	case symgroup.Palindrome:
 		return s.validatePalindrome(ctx, data)
-	case model.Flip180:
+	case symgroup.Flip180:
 		return s.validateFlip180(ctx, data)
-	case model.DoubleFlip180:
+	case symgroup.DoubleFlip180:
 		return s.validateDoubleFlip180(ctx, data)
-	case model.MirrorText:
+	case symgroup.MirrorText:
 		return s.validateMirrorText(ctx, data)
-	case model.MirrorNames:
+	case symgroup.MirrorNames:
 		return s.validateMirrorNames(ctx, data)
-	case model.AntonymNames:
+	case symgroup.AntonymNames:
 		return s.validateAntonymNames(ctx, data)
 	default:
 		return false, fmt.Errorf("unknown symmetry type: %s", symmetryType)

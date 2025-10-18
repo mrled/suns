@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
 func TestService_Validate_Success(t *testing.T) {
@@ -16,7 +17,7 @@ func TestService_Validate_Success(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
-			Type:     model.Palindrome,
+			Type:     symgroup.Palindrome,
 			Hostname: "aba",
 			GroupID:  "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=",
 		},
@@ -39,13 +40,13 @@ func TestService_Validate_MultipleHostnames(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
-			Type:     model.MirrorNames,
+			Type:     symgroup.MirrorNames,
 			Hostname: "a.b.com",
 			GroupID:  "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=",
 		},
 		{
 			Owner:    "alice@example.com",
-			Type:     model.MirrorNames,
+			Type:     symgroup.MirrorNames,
 			Hostname: "com.b.a",
 			GroupID:  "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=",
 		},
@@ -82,13 +83,13 @@ func TestService_Validate_OwnerMismatch(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
-			Type:     model.Palindrome,
+			Type:     symgroup.Palindrome,
 			Hostname: "example.com",
 			GroupID:  "v1:a:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
 		{
 			Owner:    "bob@example.com", // Different owner
-			Type:     model.Palindrome,
+			Type:     symgroup.Palindrome,
 			Hostname: "flip.example.com",
 			GroupID:  "v1:a:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
@@ -110,13 +111,13 @@ func TestService_Validate_TypeMismatch(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
-			Type:     model.Palindrome,
+			Type:     symgroup.Palindrome,
 			Hostname: "example.com",
 			GroupID:  "v1:a:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
 		{
 			Owner:    "alice@example.com",
-			Type:     model.Flip180, // Different type
+			Type:     symgroup.Flip180, // Different type
 			Hostname: "flip.example.com",
 			GroupID:  "v1:a:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
@@ -138,13 +139,13 @@ func TestService_Validate_GroupIDMismatch(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
-			Type:     model.Palindrome,
+			Type:     symgroup.Palindrome,
 			Hostname: "example.com",
 			GroupID:  "v1:a:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
 		{
 			Owner:    "alice@example.com",
-			Type:     model.Palindrome,
+			Type:     symgroup.Palindrome,
 			Hostname: "flip.example.com",
 			GroupID:  "v1:a:different-group-id", // Different groupID
 		},
@@ -167,7 +168,7 @@ func TestService_Validate_InvalidGroupID(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
-			Type:     model.Palindrome,
+			Type:     symgroup.Palindrome,
 			Hostname: "example.com",
 			GroupID:  "v1:a:wrong-hash-value",
 		},
@@ -189,7 +190,7 @@ func TestService_ValidateBase_Success(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
-			Type:     model.Palindrome,
+			Type:     symgroup.Palindrome,
 			Hostname: "aba",
 			GroupID:  "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=",
 		},
@@ -205,7 +206,7 @@ func TestService_ValidateBase_Success(t *testing.T) {
 	if groupID != "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=" {
 		t.Errorf("Expected specific groupID, got '%s'", groupID)
 	}
-	if symmetryType != model.Palindrome {
+	if symmetryType != symgroup.Palindrome {
 		t.Errorf("Expected type 'a', got '%s'", symmetryType)
 	}
 }
@@ -216,16 +217,16 @@ func TestService_Validate_AllSymmetryTypes(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		symmetryType model.SymmetryType
+		symmetryType symgroup.SymmetryType
 		hostnames    []string
 		groupID      string
 	}{
-		{"Palindrome", model.Palindrome, []string{"aba"}, "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0="},
-		{"Flip180", model.Flip180, []string{"example.com"}, "v1:b:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
-		{"DoubleFlip180", model.DoubleFlip180, []string{"example.com"}, "v1:c:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
-		{"MirrorText", model.MirrorText, []string{"example.com"}, "v1:d:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
-		{"MirrorNames", model.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c="},
-		{"AntonymNames", model.AntonymNames, []string{"example.com"}, "v1:f:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"Palindrome", symgroup.Palindrome, []string{"aba"}, "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0="},
+		{"Flip180", symgroup.Flip180, []string{"example.com"}, "v1:b:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"DoubleFlip180", symgroup.DoubleFlip180, []string{"example.com"}, "v1:c:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"MirrorText", symgroup.MirrorText, []string{"example.com"}, "v1:d:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"MirrorNames", symgroup.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c="},
+		{"AntonymNames", symgroup.AntonymNames, []string{"example.com"}, "v1:f:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
 	}
 
 	for _, tt := range tests {
@@ -259,7 +260,7 @@ func TestService_Validate_UnknownSymmetryType(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
-			Type:     model.SymmetryType("unknown"),
+			Type:     symgroup.SymmetryType("unknown"),
 			Hostname: "example.com",
 			GroupID:  "v1:unknown:ddhIziTf/kTYyc/vnrux+C84XVmM3twmGEJ5wPrUA4c=",
 		},

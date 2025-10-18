@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/mrled/suns/symval/internal/groupid"
-	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/symgroup"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ Arguments:
 		hostnames := args[2:]
 
 		// Convert type name to code
-		typeCode, ok := model.TypeNameToCode[typeName]
+		typeCode, ok := symgroup.TypeNameToCode[typeName]
 		if !ok {
 			return fmt.Errorf("invalid type %q, must be one of: %s", args[1], getAvailableTypes())
 		}
@@ -45,8 +45,8 @@ Arguments:
 
 // getAvailableTypes returns a comma-separated list of available type names
 func getAvailableTypes() string {
-	types := make([]string, 0, len(model.TypeNameToCode))
-	for name := range model.TypeNameToCode {
+	types := make([]string, 0, len(symgroup.TypeNameToCode))
+	for name := range symgroup.TypeNameToCode {
 		types = append(types, name)
 	}
 	sort.Strings(types)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
 func ExampleMemoryRepository() {
@@ -20,7 +21,7 @@ func ExampleMemoryRepository() {
 
 	data := &model.DomainData{
 		Owner:        "alice@example.com",
-		Type:         model.Palindrome,
+		Type:         symgroup.Palindrome,
 		Hostname:     "example.com",
 		GroupID:      "abc123",
 		ValidateTime: time.Date(2025, 10, 17, 12, 0, 0, 0, time.UTC),

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
 // Test isPalindrome function with various inputs
@@ -85,7 +86,7 @@ func TestValidatePalindrome_Success(t *testing.T) {
 			data := []*model.DomainData{
 				{
 					Owner:    "alice@example.com",
-					Type:     model.Palindrome,
+					Type:     symgroup.Palindrome,
 					Hostname: tt.hostname,
 					GroupID:  "test-group-id",
 				},
@@ -121,7 +122,7 @@ func TestValidatePalindrome_NotPalindrome(t *testing.T) {
 			data := []*model.DomainData{
 				{
 					Owner:    "alice@example.com",
-					Type:     model.Palindrome,
+					Type:     symgroup.Palindrome,
 					Hostname: tt.hostname,
 					GroupID:  "test-group-id",
 				},
@@ -156,13 +157,13 @@ func TestValidatePalindrome_WrongNumberOfDomains(t *testing.T) {
 			[]*model.DomainData{
 				{
 					Owner:    "alice@example.com",
-					Type:     model.Palindrome,
+					Type:     symgroup.Palindrome,
 					Hostname: "racecar.com",
 					GroupID:  "test-group-id",
 				},
 				{
 					Owner:    "alice@example.com",
-					Type:     model.Palindrome,
+					Type:     symgroup.Palindrome,
 					Hostname: "noon.com",
 					GroupID:  "test-group-id",
 				},
@@ -173,19 +174,19 @@ func TestValidatePalindrome_WrongNumberOfDomains(t *testing.T) {
 			[]*model.DomainData{
 				{
 					Owner:    "alice@example.com",
-					Type:     model.Palindrome,
+					Type:     symgroup.Palindrome,
 					Hostname: "aba.com",
 					GroupID:  "test-group-id",
 				},
 				{
 					Owner:    "alice@example.com",
-					Type:     model.Palindrome,
+					Type:     symgroup.Palindrome,
 					Hostname: "noon.com",
 					GroupID:  "test-group-id",
 				},
 				{
 					Owner:    "alice@example.com",
-					Type:     model.Palindrome,
+					Type:     symgroup.Palindrome,
 					Hostname: "racecar.com",
 					GroupID:  "test-group-id",
 				},
