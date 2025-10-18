@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/mrled/suns/symval/internal/groupid"
 	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/service/groupid"
 	"github.com/spf13/cobra"
 )
 
@@ -31,9 +31,8 @@ Arguments:
 			return fmt.Errorf("invalid type %q, must be one of: %s", args[1], getAvailableTypes())
 		}
 
-		// Create service and calculate group ID
-		service := groupid.NewService()
-		groupID, err := service.CalculateV1(owner, typeCode, hostnames)
+		// Calculate group ID
+		groupID, err := groupid.CalculateV1(owner, typeCode, hostnames)
 		if err != nil {
 			return fmt.Errorf("failed to calculate group ID: %w", err)
 		}

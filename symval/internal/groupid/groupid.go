@@ -54,17 +54,9 @@ func ParseGroupIDv1(raw string) (GroupIDV1, error) {
 	}, nil
 }
 
-// Service handles group ID calculation
-type Service struct{}
-
-// NewService creates a new group ID service
-func NewService() *Service {
-	return &Service{}
-}
-
 // CalculateV1 generates a group ID by hashing owner and hostnames separately
 // The result is formatted as: idversion:type:base64(sha256(owner)):base64(sha256(sort(hostnames))).
-func (s *Service) CalculateV1(owner, gtype string, hostnames []string) (string, error) {
+func CalculateV1(owner, gtype string, hostnames []string) (string, error) {
 	if owner == "" {
 		return "", fmt.Errorf("owner cannot be empty")
 	}

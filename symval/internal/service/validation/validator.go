@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mrled/suns/symval/internal/groupid"
 	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/service/groupid"
 )
 
 // Validator defines the interface for domain validation
@@ -14,15 +14,11 @@ type Validator interface {
 }
 
 // Service implements the Validator interface
-type Service struct {
-	groupIDService *groupid.Service
-}
+type Service struct{}
 
 // NewService creates a new validation service
 func NewService() *Service {
-	return &Service{
-		groupIDService: groupid.NewService(),
-	}
+	return &Service{}
 }
 
 // ValidateBase checks that all DomainData structs have consistent owner, type, and groupid,
@@ -55,7 +51,7 @@ func (s *Service) ValidateBase(ctx context.Context, data []*model.DomainData) (s
 	}
 
 	// Calculate the expected groupID
-	expectedGroupID, err := s.groupIDService.CalculateV1(owner, string(symmetryType), hostnames)
+	expectedGroupID, err := groupid.CalculateV1(owner, string(symmetryType), hostnames)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to calculate group ID: %w", err)
 	}

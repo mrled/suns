@@ -4,8 +4,8 @@ import (
 	"net"
 	"testing"
 
+	"github.com/mrled/suns/symval/internal/groupid"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
-	"github.com/mrled/suns/symval/internal/service/groupid"
 )
 
 // MockResolver is a mock implementation of the Resolver interface for testing

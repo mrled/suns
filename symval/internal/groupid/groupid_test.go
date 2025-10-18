@@ -6,10 +6,8 @@ import (
 )
 
 func TestCalculateV1(t *testing.T) {
-	service := NewService()
-
 	t.Run("basic calculation", func(t *testing.T) {
-		groupID, err := service.CalculateV1("owner1", "type1", []string{"host1.example.com"})
+		groupID, err := CalculateV1("owner1", "type1", []string{"host1.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -33,7 +31,7 @@ func TestCalculateV1(t *testing.T) {
 	})
 
 	t.Run("multiple hostnames", func(t *testing.T) {
-		groupID, err := service.CalculateV1("owner1", "type1", []string{"host1.example.com", "host2.example.com", "host3.example.com"})
+		groupID, err := CalculateV1("owner1", "type1", []string{"host1.example.com", "host2.example.com", "host3.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -45,13 +43,13 @@ func TestCalculateV1(t *testing.T) {
 
 	t.Run("hostname order independence", func(t *testing.T) {
 		// Calculate with hostnames in one order
-		groupID1, err := service.CalculateV1("owner1", "type1", []string{"host1.example.com", "host2.example.com", "host3.example.com"})
+		groupID1, err := CalculateV1("owner1", "type1", []string{"host1.example.com", "host2.example.com", "host3.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
 		// Calculate with hostnames in different order
-		groupID2, err := service.CalculateV1("owner1", "type1", []string{"host3.example.com", "host1.example.com", "host2.example.com"})
+		groupID2, err := CalculateV1("owner1", "type1", []string{"host3.example.com", "host1.example.com", "host2.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -63,12 +61,12 @@ func TestCalculateV1(t *testing.T) {
 	})
 
 	t.Run("different owners produce different IDs", func(t *testing.T) {
-		groupID1, err := service.CalculateV1("owner1", "type1", []string{"host1.example.com"})
+		groupID1, err := CalculateV1("owner1", "type1", []string{"host1.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		groupID2, err := service.CalculateV1("owner2", "type1", []string{"host1.example.com"})
+		groupID2, err := CalculateV1("owner2", "type1", []string{"host1.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -79,12 +77,12 @@ func TestCalculateV1(t *testing.T) {
 	})
 
 	t.Run("different types produce different IDs", func(t *testing.T) {
-		groupID1, err := service.CalculateV1("owner1", "type1", []string{"host1.example.com"})
+		groupID1, err := CalculateV1("owner1", "type1", []string{"host1.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		groupID2, err := service.CalculateV1("owner1", "type2", []string{"host1.example.com"})
+		groupID2, err := CalculateV1("owner1", "type2", []string{"host1.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -96,12 +94,12 @@ func TestCalculateV1(t *testing.T) {
 	})
 
 	t.Run("different hostnames produce different IDs", func(t *testing.T) {
-		groupID1, err := service.CalculateV1("owner1", "type1", []string{"host1.example.com"})
+		groupID1, err := CalculateV1("owner1", "type1", []string{"host1.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		groupID2, err := service.CalculateV1("owner1", "type1", []string{"host2.example.com"})
+		groupID2, err := CalculateV1("owner1", "type1", []string{"host2.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -113,12 +111,12 @@ func TestCalculateV1(t *testing.T) {
 
 	t.Run("deterministic results", func(t *testing.T) {
 		// Calculate the same group ID multiple times
-		groupID1, err := service.CalculateV1("owner1", "type1", []string{"host1.example.com", "host2.example.com"})
+		groupID1, err := CalculateV1("owner1", "type1", []string{"host1.example.com", "host2.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		groupID2, err := service.CalculateV1("owner1", "type1", []string{"host1.example.com", "host2.example.com"})
+		groupID2, err := CalculateV1("owner1", "type1", []string{"host1.example.com", "host2.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -130,31 +128,29 @@ func TestCalculateV1(t *testing.T) {
 }
 
 func TestCalculateV1_Errors(t *testing.T) {
-	service := NewService()
-
 	t.Run("empty owner", func(t *testing.T) {
-		_, err := service.CalculateV1("", "type1", []string{"host1.example.com"})
+		_, err := CalculateV1("", "type1", []string{"host1.example.com"})
 		if err == nil {
 			t.Fatal("expected error for empty owner")
 		}
 	})
 
 	t.Run("empty type", func(t *testing.T) {
-		_, err := service.CalculateV1("owner1", "", []string{"host1.example.com"})
+		_, err := CalculateV1("owner1", "", []string{"host1.example.com"})
 		if err == nil {
 			t.Fatal("expected error for empty type")
 		}
 	})
 
 	t.Run("no hostnames", func(t *testing.T) {
-		_, err := service.CalculateV1("owner1", "type1", []string{})
+		_, err := CalculateV1("owner1", "type1", []string{})
 		if err == nil {
 			t.Fatal("expected error for empty hostnames")
 		}
 	})
 
 	t.Run("nil hostnames", func(t *testing.T) {
-		_, err := service.CalculateV1("owner1", "type1", nil)
+		_, err := CalculateV1("owner1", "type1", nil)
 		if err == nil {
 			t.Fatal("expected error for nil hostnames")
 		}
@@ -162,8 +158,6 @@ func TestCalculateV1_Errors(t *testing.T) {
 }
 
 func TestCalculateV1_KnownValues(t *testing.T) {
-	service := NewService()
-
 	tests := []struct {
 		name      string
 		owner     string
@@ -189,7 +183,7 @@ func TestCalculateV1_KnownValues(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := service.CalculateV1(tt.owner, tt.gtype, tt.hostnames)
+			got, err := CalculateV1(tt.owner, tt.gtype, tt.hostnames)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -257,8 +251,7 @@ func TestParseGroupIDv1(t *testing.T) {
 	})
 
 	t.Run("roundtrip with CalculateV1", func(t *testing.T) {
-		service := NewService()
-		groupID, err := service.CalculateV1("owner1", "type1", []string{"host1.example.com"})
+		groupID, err := CalculateV1("owner1", "type1", []string{"host1.example.com"})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -281,8 +274,6 @@ func TestParseGroupIDv1(t *testing.T) {
 }
 
 func TestCalculateV1_TXTRecordValidity(t *testing.T) {
-	service := NewService()
-
 	// WARNING: DO NOT CHANGE THIS TEST WITHOUT CONSIDERING DNS TXT RECORD LIMITATIONS.
 	// A single string in a DNS TXT record can hold a maximum of 255 bytes.
 	// Currently, we require the generated group ID to fit within a single string.
@@ -297,7 +288,7 @@ func TestCalculateV1_TXTRecordValidity(t *testing.T) {
 			"subdomain3.example.com",
 		}
 
-		groupID, err := service.CalculateV1(longOwner, longType, hostnames)
+		groupID, err := CalculateV1(longOwner, longType, hostnames)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}

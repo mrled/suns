@@ -3,8 +3,8 @@ package consistencycheck
 import (
 	"fmt"
 
+	"github.com/mrled/suns/symval/internal/groupid"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
-	"github.com/mrled/suns/symval/internal/service/groupid"
 )
 
 // ConsistencyCheckUseCase orchestrates the DNS verification and group ID validation process
