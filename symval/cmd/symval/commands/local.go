@@ -18,5 +18,5 @@ func init() {
 	localCmd.PersistentFlags().StringVarP(&persistenceFile, "file", "f", "", "JSON file for persistence (optional)")
 	localCmd.AddCommand(validateCmd)
 	localCmd.AddCommand(groupidCmd)
-	localCmd.AddCommand(verifyCmd)
+	localCmd.AddCommand(lookupCmd)
 }

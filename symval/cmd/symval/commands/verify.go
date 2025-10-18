@@ -11,9 +11,9 @@ var (
 	resolverAddr string
 )
 
-var verifyCmd = &cobra.Command{
-	Use:   "verify <domain> [domain...]",
-	Short: "Verify DNS records for one or more domains",
+var lookupCmd = &cobra.Command{
+	Use:   "lookup <domain> [domain...]",
+	Short: "Lookup DNS records for one or more domains",
 	Long: `Query DNS TXT records at _suns.<domain> and display verification records.
 
 Arguments:
@@ -58,5 +58,5 @@ For each domain, this command will:
 }
 
 func init() {
-	verifyCmd.Flags().StringVarP(&resolverAddr, "resolver", "r", "1.1.1.1:53", "DNS resolver address (host:port)")
+	lookupCmd.Flags().StringVarP(&resolverAddr, "resolver", "r", "1.1.1.1:53", "DNS resolver address (host:port)")
 }
