@@ -36,7 +36,7 @@ func ExampleMemoryRepository() {
 	// [
 	//   {
 	//     "Owner": "alice@example.com",
-	//     "Type": "palindrome",
+	//     "Type": "a",
 	//     "Hostname": "example.com",
 	//     "GroupID": "abc123",
 	//     "ValidateTime": "2025-10-17T12:00:00Z"

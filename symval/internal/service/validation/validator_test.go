@@ -18,7 +18,7 @@ func TestService_Validate_Success(t *testing.T) {
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
 			Hostname: "aba",
-			GroupID:  "v1:palindrome:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=",
+			GroupID:  "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=",
 		},
 	}
 
@@ -41,13 +41,13 @@ func TestService_Validate_MultipleHostnames(t *testing.T) {
 			Owner:    "alice@example.com",
 			Type:     model.MirrorNames,
 			Hostname: "a.b.com",
-			GroupID:  "v1:mirrornames:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=",
+			GroupID:  "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=",
 		},
 		{
 			Owner:    "alice@example.com",
 			Type:     model.MirrorNames,
 			Hostname: "com.b.a",
-			GroupID:  "v1:mirrornames:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=",
+			GroupID:  "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=",
 		},
 	}
 
@@ -84,13 +84,13 @@ func TestService_Validate_OwnerMismatch(t *testing.T) {
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
 			Hostname: "example.com",
-			GroupID:  "v1:palindrome:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
+			GroupID:  "v1:a:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
 		{
 			Owner:    "bob@example.com", // Different owner
 			Type:     model.Palindrome,
 			Hostname: "flip.example.com",
-			GroupID:  "v1:palindrome:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
+			GroupID:  "v1:a:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
 	}
 
@@ -112,13 +112,13 @@ func TestService_Validate_TypeMismatch(t *testing.T) {
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
 			Hostname: "example.com",
-			GroupID:  "v1:palindrome:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
+			GroupID:  "v1:a:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
 		{
 			Owner:    "alice@example.com",
 			Type:     model.Flip180, // Different type
 			Hostname: "flip.example.com",
-			GroupID:  "v1:palindrome:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
+			GroupID:  "v1:a:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
 	}
 
@@ -140,13 +140,13 @@ func TestService_Validate_GroupIDMismatch(t *testing.T) {
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
 			Hostname: "example.com",
-			GroupID:  "v1:palindrome:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
+			GroupID:  "v1:a:z6RsiCWP6vkX8TbKrzwt8sTVAObs79zVOoj9ibZaGyU=",
 		},
 		{
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
 			Hostname: "flip.example.com",
-			GroupID:  "v1:palindrome:different-group-id", // Different groupID
+			GroupID:  "v1:a:different-group-id", // Different groupID
 		},
 	}
 
@@ -169,7 +169,7 @@ func TestService_Validate_InvalidGroupID(t *testing.T) {
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
 			Hostname: "example.com",
-			GroupID:  "v1:palindrome:wrong-hash-value",
+			GroupID:  "v1:a:wrong-hash-value",
 		},
 	}
 
@@ -191,7 +191,7 @@ func TestService_ValidateBase_Success(t *testing.T) {
 			Owner:    "alice@example.com",
 			Type:     model.Palindrome,
 			Hostname: "aba",
-			GroupID:  "v1:palindrome:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=",
+			GroupID:  "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=",
 		},
 	}
 
@@ -202,11 +202,11 @@ func TestService_ValidateBase_Success(t *testing.T) {
 	if owner != "alice@example.com" {
 		t.Errorf("Expected owner 'alice@example.com', got '%s'", owner)
 	}
-	if groupID != "v1:palindrome:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=" {
+	if groupID != "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=" {
 		t.Errorf("Expected specific groupID, got '%s'", groupID)
 	}
 	if symmetryType != model.Palindrome {
-		t.Errorf("Expected type 'palindrome', got '%s'", symmetryType)
+		t.Errorf("Expected type 'a', got '%s'", symmetryType)
 	}
 }
 
@@ -220,12 +220,12 @@ func TestService_Validate_AllSymmetryTypes(t *testing.T) {
 		hostnames    []string
 		groupID      string
 	}{
-		{"Palindrome", model.Palindrome, []string{"aba"}, "v1:palindrome:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0="},
-		{"Flip180", model.Flip180, []string{"example.com"}, "v1:180flip:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
-		{"DoubleFlip180", model.DoubleFlip180, []string{"example.com"}, "v1:double180flip:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
-		{"MirrorText", model.MirrorText, []string{"example.com"}, "v1:mirrortext:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
-		{"MirrorNames", model.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:mirrornames:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c="},
-		{"AntonymNames", model.AntonymNames, []string{"example.com"}, "v1:antonymnames:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"Palindrome", model.Palindrome, []string{"aba"}, "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0="},
+		{"Flip180", model.Flip180, []string{"example.com"}, "v1:b:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"DoubleFlip180", model.DoubleFlip180, []string{"example.com"}, "v1:c:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"MirrorText", model.MirrorText, []string{"example.com"}, "v1:d:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"MirrorNames", model.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c="},
+		{"AntonymNames", model.AntonymNames, []string{"example.com"}, "v1:f:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
 	}
 
 	for _, tt := range tests {

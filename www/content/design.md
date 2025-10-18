@@ -6,15 +6,15 @@ How domain data is processed.
 
 ## Group ID
 
-When a domain is singularly symmetrical (like `palindrome`),
+When a domain is singularly symmetrical (like `a` for palindrome),
 it's in a group with just itself.
-When a domain is symmetrical with another domain (like `mirrornames`),
+When a domain is symmetrical with another domain (like `e` for mirrornames),
 it's in a group with another domain.
 
 In either case, we create a `group ID` that incorporates:
 
 * The owner: an arbitrary string, I recommend a URL
-* The symmetry type: `palindrome`, `mirrornames`, etc
+* The symmetry type: `a` (palindrome), `e` (mirrornames), etc
 * Each domain name, sorted alphabetically: `me.example.com`, `com.example.me`, etc
 
 The algorithm for this is defined in `CalculateV1()` in `symval/internal/service/groupid/groupid.go`,

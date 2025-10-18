@@ -6,12 +6,12 @@ import "time"
 type SymmetryType string
 
 const (
-	Palindrome      SymmetryType = "palindrome"
-	Flip180         SymmetryType = "180flip"
-	DoubleFlip180   SymmetryType = "double180flip"
-	MirrorText      SymmetryType = "mirrortext"
-	MirrorNames     SymmetryType = "mirrornames"
-	AntonymNames    SymmetryType = "antonymnames"
+	Palindrome      SymmetryType = "a"
+	Flip180         SymmetryType = "b"
+	DoubleFlip180   SymmetryType = "c"
+	MirrorText      SymmetryType = "d"
+	MirrorNames     SymmetryType = "e"
+	AntonymNames    SymmetryType = "f"
 )
 
 // DomainData represents domain validation information
