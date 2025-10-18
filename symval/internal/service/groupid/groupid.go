@@ -13,6 +13,47 @@ const (
 	IDVersion = "v1"
 )
 
+// GroupIDV1 represents a parsed v1 group ID
+type GroupIDV1 struct {
+	Version     string
+	TypeCode    string
+	OwnerHash   string
+	DomainsHash string
+	Raw         string
+}
+
+// String returns the raw group ID string
+func (g GroupIDV1) String() string {
+	return g.Raw
+}
+
+// ParseGroupIDv1 parses a raw group ID string into a GroupIDV1 struct.
+// The expected format is: v1:typecode:ownerhash:domainshash
+// Returns an error if the format is invalid or the version is not v1.
+func ParseGroupIDv1(raw string) (GroupIDV1, error) {
+	if raw == "" {
+		return GroupIDV1{}, fmt.Errorf("group ID cannot be empty")
+	}
+
+	parts := strings.Split(raw, ":")
+	if len(parts) != 4 {
+		return GroupIDV1{}, fmt.Errorf("invalid group ID format: expected 4 colon-separated parts, got %d", len(parts))
+	}
+
+	version := parts[0]
+	if version != "v1" {
+		return GroupIDV1{}, fmt.Errorf("unsupported group ID version: %s (expected v1)", version)
+	}
+
+	return GroupIDV1{
+		Version:     parts[0],
+		TypeCode:    parts[1],
+		OwnerHash:   parts[2],
+		DomainsHash: parts[3],
+		Raw:         raw,
+	}, nil
+}
+
 // Service handles group ID calculation
 type Service struct{}
 

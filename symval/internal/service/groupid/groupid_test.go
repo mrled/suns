@@ -200,6 +200,86 @@ func TestCalculateV1_KnownValues(t *testing.T) {
 	}
 }
 
+func TestParseGroupIDv1(t *testing.T) {
+	t.Run("valid group ID", func(t *testing.T) {
+		raw := "v1:mytype:ONhEevmGtSryy82u9a14bIzvtB3rpWzExC0atTB5ATI=:Gwha2Fxaavzv1ZfiQ+kOkXkprDhIaHnHDjRcd/RRZqM="
+		gid, err := ParseGroupIDv1(raw)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if gid.Version != "v1" {
+			t.Errorf("expected version 'v1', got '%s'", gid.Version)
+		}
+		if gid.TypeCode != "mytype" {
+			t.Errorf("expected type 'mytype', got '%s'", gid.TypeCode)
+		}
+		if gid.OwnerHash != "ONhEevmGtSryy82u9a14bIzvtB3rpWzExC0atTB5ATI=" {
+			t.Errorf("unexpected owner hash: %s", gid.OwnerHash)
+		}
+		if gid.DomainsHash != "Gwha2Fxaavzv1ZfiQ+kOkXkprDhIaHnHDjRcd/RRZqM=" {
+			t.Errorf("unexpected domains hash: %s", gid.DomainsHash)
+		}
+		if gid.Raw != raw {
+			t.Errorf("expected raw to be '%s', got '%s'", raw, gid.Raw)
+		}
+		if gid.String() != raw {
+			t.Errorf("String() should return raw value")
+		}
+	})
+
+	t.Run("empty string", func(t *testing.T) {
+		_, err := ParseGroupIDv1("")
+		if err == nil {
+			t.Fatal("expected error for empty string")
+		}
+	})
+
+	t.Run("invalid format - too few parts", func(t *testing.T) {
+		_, err := ParseGroupIDv1("v1:type:hash")
+		if err == nil {
+			t.Fatal("expected error for too few parts")
+		}
+	})
+
+	t.Run("invalid format - too many parts", func(t *testing.T) {
+		_, err := ParseGroupIDv1("v1:type:hash1:hash2:extra")
+		if err == nil {
+			t.Fatal("expected error for too many parts")
+		}
+	})
+
+	t.Run("unsupported version", func(t *testing.T) {
+		_, err := ParseGroupIDv1("v2:type:hash1:hash2")
+		if err == nil {
+			t.Fatal("expected error for unsupported version")
+		}
+	})
+
+	t.Run("roundtrip with CalculateV1", func(t *testing.T) {
+		service := NewService()
+		groupID, err := service.CalculateV1("owner1", "type1", []string{"host1.example.com"})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		parsed, err := ParseGroupIDv1(groupID)
+		if err != nil {
+			t.Fatalf("failed to parse generated group ID: %v", err)
+		}
+
+		if parsed.Version != "v1" {
+			t.Errorf("expected version v1, got %s", parsed.Version)
+		}
+		if parsed.TypeCode != "type1" {
+			t.Errorf("expected type 'type1', got %s", parsed.TypeCode)
+		}
+		if parsed.String() != groupID {
+			t.Errorf("String() should return original group ID")
+		}
+	})
+}
+
 func TestCalculateV1_TXTRecordValidity(t *testing.T) {
 	service := NewService()
 

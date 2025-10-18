@@ -35,15 +35,15 @@ For each domain, this command will:
 		for _, domain := range domains {
 			fmt.Printf("Domain: %s\n", domain)
 
-			records, err := service.Lookup(domain)
+			groupIDs, err := service.VerifyDomain(domain)
 			if err != nil {
 				fmt.Printf("  Error: %v\n", err)
-			} else if len(records) == 0 {
+			} else if len(groupIDs) == 0 {
 				fmt.Println("  No _suns records found")
 			} else {
-				fmt.Printf("  Found %d record(s):\n", len(records))
-				for _, record := range records {
-					fmt.Printf("    %s\n", record)
+				fmt.Printf("  Found %d record(s) (verified consistent):\n", len(groupIDs))
+				for _, gid := range groupIDs {
+					fmt.Printf("    %s\n", gid.String())
 				}
 			}
 
