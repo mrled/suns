@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mrled/suns/symval/internal/service/dnsverification"
+	"github.com/mrled/suns/symval/internal/usecase"
 	"github.com/spf13/cobra"
 )
 
@@ -29,13 +30,16 @@ For each domain, this command will:
 
 		// Create DNS verification service with custom resolver
 		resolver := dnsverification.NewCustomResolver(resolverAddr)
-		service := dnsverification.NewServiceWithResolver(resolver)
+		dnsService := dnsverification.NewServiceWithResolver(resolver)
+
+		// Create verify use case
+		verifyUC := usecase.NewVerifyUseCase(dnsService)
 
 		// Process each domain
 		for _, domain := range domains {
 			fmt.Printf("Domain: %s\n", domain)
 
-			groupIDs, err := service.VerifyDomain(domain)
+			groupIDs, err := verifyUC.VerifyDomain(domain)
 			if err != nil {
 				fmt.Printf("  Error: %v\n", err)
 			} else if len(groupIDs) == 0 {
