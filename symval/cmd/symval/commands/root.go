@@ -17,4 +17,5 @@ func Execute() error {
 
 func init() {
 	rootCmd.AddCommand(localCmd)
+	rootCmd.AddCommand(groupidCmd)
 }

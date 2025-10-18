@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/mrled/suns/symval/internal/model"
@@ -17,16 +18,22 @@ var validateCmd = &cobra.Command{
 
 Arguments:
   owner      Owner of the domain
-  type       Type of validation
+  type       Type of validation (one of: ` + getAvailableTypes() + `)
   groupid    Group ID for the domain
   hostname1  First hostname to validate
   hostname2+ Additional hostnames (optional)`,
 	Args: cobra.MinimumNArgs(4),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		owner := args[0]
-		vtype := args[1]
+		typeName := strings.ToLower(args[1])
 		groupID := args[2]
 		hostnames := args[3:]
+
+		// Convert type name to code
+		typeCode, ok := model.TypeNameToCode[typeName]
+		if !ok {
+			return fmt.Errorf("invalid type %q, must be one of: %s", args[1], getAvailableTypes())
+		}
 
 		// Create DomainData structs from arguments
 		dataList := make([]*model.DomainData, 0, len(hostnames))
@@ -35,7 +42,7 @@ Arguments:
 		for _, hostname := range hostnames {
 			data := &model.DomainData{
 				Owner:        owner,
-				Type:         model.SymmetryType(vtype),
+				Type:         model.SymmetryType(typeCode),
 				Hostname:     hostname,
 				GroupID:      groupID,
 				ValidateTime: validateTime,
@@ -53,7 +60,7 @@ Arguments:
 
 		// Echo the input values
 		fmt.Printf("Owner: %s\n", owner)
-		fmt.Printf("Type: %s\n", vtype)
+		fmt.Printf("Type: %s (%s)\n", typeName, typeCode)
 		fmt.Printf("Group ID: %s\n", groupID)
 		fmt.Printf("Hostnames: %v\n", hostnames)
 
