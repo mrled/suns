@@ -13,10 +13,6 @@ const (
 	RecordName = "_suns"
 )
 
-// ErrRecordNotFound is returned when the TXT record does not exist
-// after checking both the direct lookup and one CNAME hop
-var ErrRecordNotFound = errors.New("TXT record not found")
-
 // Resolver is an interface for DNS lookups, allowing dependency injection
 // for testing with mock implementations
 type Resolver interface {
@@ -122,8 +118,8 @@ func NewServiceWithResolver(resolver Resolver) *Service {
 //
 // Returns:
 //   - All TXT record values as a slice of strings (may contain multiple verification records)
-//   - ErrRecordNotFound if no records exist after checking CNAME
-//   - Other errors for DNS lookup failures
+//   - An empty slice if no records exist after checking CNAME
+//   - Other errors for DNS lookup failures (timeouts, temporary failures, etc.)
 func (s *Service) Lookup(domain string) ([]string, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain cannot be empty")
@@ -144,9 +140,9 @@ func (s *Service) Lookup(domain string) ([]string, error) {
 	// Second attempt: check for CNAME and follow one hop
 	cname, cnameErr := s.resolver.LookupCNAME(label)
 	if cnameErr != nil {
-		// No CNAME found, return the appropriate error
+		// No CNAME found, return empty list if not found, or error for other issues
 		if isNotFoundError(originalErr) {
-			return nil, ErrRecordNotFound
+			return []string{}, nil
 		}
 		return nil, fmt.Errorf("failed to lookup TXT or CNAME for %s: %w", label, originalErr)
 	}
@@ -161,7 +157,7 @@ func (s *Service) Lookup(domain string) ([]string, error) {
 
 	// After CNAME hop, still no TXT record found
 	if isNotFoundError(err) || isNotFoundError(originalErr) {
-		return nil, ErrRecordNotFound
+		return []string{}, nil
 	}
 
 	return nil, fmt.Errorf("failed to lookup TXT after CNAME hop: %w", err)

@@ -1,7 +1,6 @@
 package dnsverification
 
 import (
-	"errors"
 	"net"
 	"testing"
 )
@@ -171,11 +170,14 @@ func TestLookup_CNAMEWithTrailingDot(t *testing.T) {
 	}
 
 	service := NewServiceWithResolver(mock)
-	_, err := service.Lookup("example.com")
+	records, err := service.Lookup("example.com")
 
-	// Should get ErrRecordNotFound, not hang or error differently
-	if !errors.Is(err, ErrRecordNotFound) {
-		t.Errorf("expected ErrRecordNotFound, got %v", err)
+	// Should get empty list, not hang or error differently
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+	if len(records) != 0 {
+		t.Errorf("expected empty list, got %d records", len(records))
 	}
 }
 
@@ -186,10 +188,13 @@ func TestLookup_RecordNotFound(t *testing.T) {
 	}
 
 	service := NewServiceWithResolver(mock)
-	_, err := service.Lookup("nonexistent.example.com")
+	records, err := service.Lookup("nonexistent.example.com")
 
-	if !errors.Is(err, ErrRecordNotFound) {
-		t.Errorf("expected ErrRecordNotFound, got %v", err)
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+	if len(records) != 0 {
+		t.Errorf("expected empty list, got %d records", len(records))
 	}
 }
 
@@ -203,10 +208,6 @@ func TestLookup_EmptyDomain(t *testing.T) {
 
 	if err == nil {
 		t.Fatal("expected error for empty domain")
-	}
-
-	if errors.Is(err, ErrRecordNotFound) {
-		t.Error("should not return ErrRecordNotFound for empty domain")
 	}
 }
 
@@ -266,10 +267,13 @@ func TestLookup_CNAMEPointsToSelf(t *testing.T) {
 	}
 
 	service := NewServiceWithResolver(mock)
-	_, err := service.Lookup("example.com")
+	records, err := service.Lookup("example.com")
 
-	if !errors.Is(err, ErrRecordNotFound) {
-		t.Errorf("expected ErrRecordNotFound for self-referencing CNAME, got %v", err)
+	if err != nil {
+		t.Errorf("expected no error for self-referencing CNAME, got %v", err)
+	}
+	if len(records) != 0 {
+		t.Errorf("expected empty list, got %d records", len(records))
 	}
 }
 
@@ -289,10 +293,6 @@ func TestLookup_DNSErrorHandling(t *testing.T) {
 		if err == nil {
 			t.Fatal("expected error for temporary DNS failure")
 		}
-
-		if errors.Is(err, ErrRecordNotFound) {
-			t.Error("temporary error should not be treated as 'not found'")
-		}
 	})
 
 	t.Run("timeout DNS error", func(t *testing.T) {
@@ -309,10 +309,6 @@ func TestLookup_DNSErrorHandling(t *testing.T) {
 
 		if err == nil {
 			t.Fatal("expected error for DNS timeout")
-		}
-
-		if errors.Is(err, ErrRecordNotFound) {
-			t.Error("timeout error should not be treated as 'not found'")
 		}
 	})
 }
@@ -332,12 +328,15 @@ func TestLookup_OnlyOneCNAMEHop(t *testing.T) {
 	}
 
 	service := NewServiceWithResolver(mock)
-	_, err := service.Lookup("example.com")
+	records, err := service.Lookup("example.com")
 
 	// Since we only do one CNAME hop, and middle.example.net has no TXT,
-	// we should get ErrRecordNotFound
-	if !errors.Is(err, ErrRecordNotFound) {
-		t.Errorf("expected ErrRecordNotFound since only one hop is allowed, got %v", err)
+	// we should get empty list
+	if err != nil {
+		t.Errorf("expected no error since only one hop is allowed, got %v", err)
+	}
+	if len(records) != 0 {
+		t.Errorf("expected empty list, got %d records", len(records))
 	}
 }
 
@@ -356,20 +355,6 @@ func TestRecordNameConstant(t *testing.T) {
 	// Verify the constant value
 	if RecordName != "_suns" {
 		t.Errorf("RecordName should be '_suns', got '%s'", RecordName)
-	}
-}
-
-func TestErrRecordNotFound_ErrorsIs(t *testing.T) {
-	// Verify that ErrRecordNotFound can be checked with errors.Is
-	err := ErrRecordNotFound
-	if !errors.Is(err, ErrRecordNotFound) {
-		t.Error("errors.Is should recognize ErrRecordNotFound")
-	}
-
-	// Wrap the error and verify it still works
-	wrappedErr := errors.Join(ErrRecordNotFound, errors.New("additional context"))
-	if !errors.Is(wrappedErr, ErrRecordNotFound) {
-		t.Error("errors.Is should recognize wrapped ErrRecordNotFound")
 	}
 }
 

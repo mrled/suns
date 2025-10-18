@@ -37,11 +37,9 @@ For each domain, this command will:
 
 			records, err := service.Lookup(domain)
 			if err != nil {
-				if err == dnsverification.ErrRecordNotFound {
-					fmt.Println("  No _suns records found")
-				} else {
-					fmt.Printf("  Error: %v\n", err)
-				}
+				fmt.Printf("  Error: %v\n", err)
+			} else if len(records) == 0 {
+				fmt.Println("  No _suns records found")
 			} else {
 				fmt.Printf("  Found %d record(s):\n", len(records))
 				for _, record := range records {
