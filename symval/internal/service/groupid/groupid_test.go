@@ -192,3 +192,32 @@ func TestCalculateV1_KnownValues(t *testing.T) {
 		})
 	}
 }
+
+func TestCalculateV1_TXTRecordValidity(t *testing.T) {
+	service := NewService()
+
+	// WARNING: DO NOT CHANGE THIS TEST WITHOUT CONSIDERING DNS TXT RECORD LIMITATIONS.
+	// A single string in a DNS TXT record can hold a maximum of 255 bytes.
+	// Currently, we require the generated group ID to fit within a single string.
+	// If we need to expand it in the future, we can consider splitting across multiple strings.
+	t.Run("group ID fits in DNS TXT string (255 bytes)", func(t *testing.T) {
+		// Test with a long owner URL and type
+		longOwner := "https://very-long-domain-name-example.com/path/to/resource/that/is/quite/long"
+		longType := "verylongsymmetrytypename"
+		hostnames := []string{
+			"subdomain1.example.com",
+			"subdomain2.example.com",
+			"subdomain3.example.com",
+		}
+
+		groupID, err := service.CalculateV1(longOwner, longType, hostnames)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		// len() in Go returns byte length, not logical Unicode character length, which is what we want
+		if len(groupID) > 255 {
+			t.Errorf("group ID byte length %d exceeds DNS TXT string size limit of 255 bytes: %s", len(groupID), groupID)
+		}
+	})
+}
