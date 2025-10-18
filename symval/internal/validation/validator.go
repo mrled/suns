@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/mrled/suns/symval/internal/groupid"
@@ -9,23 +8,10 @@ import (
 	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
-// Validator defines the interface for domain validation
-type Validator interface {
-	Validate(ctx context.Context, data []*model.DomainData) (bool, error)
-}
-
-// Service implements the Validator interface
-type Service struct{}
-
-// NewService creates a new validation service
-func NewService() *Service {
-	return &Service{}
-}
-
 // ValidateBase checks that all DomainData structs have consistent owner, type, and groupid,
 // and that the groupid matches the calculated groupid for the given hostnames.
 // Returns the common owner, groupID, and type if validation succeeds.
-func (s *Service) ValidateBase(ctx context.Context, data []*model.DomainData) (string, string, symgroup.SymmetryType, error) {
+func ValidateBase(data []*model.DomainData) (string, string, symgroup.SymmetryType, error) {
 	if len(data) == 0 {
 		return "", "", "", fmt.Errorf("no domain data provided")
 	}
@@ -66,9 +52,9 @@ func (s *Service) ValidateBase(ctx context.Context, data []*model.DomainData) (s
 }
 
 // Validate performs base validation and then calls the appropriate type-specific validator
-func (s *Service) Validate(ctx context.Context, data []*model.DomainData) (bool, error) {
+func Validate(data []*model.DomainData) (bool, error) {
 	// Perform base validation
-	_, _, symmetryType, err := s.ValidateBase(ctx, data)
+	_, _, symmetryType, err := ValidateBase(data)
 	if err != nil {
 		return false, err
 	}
@@ -76,17 +62,17 @@ func (s *Service) Validate(ctx context.Context, data []*model.DomainData) (bool,
 	// Call type-specific validation
 	switch symmetryType {
 	case symgroup.Palindrome:
-		return s.validatePalindrome(ctx, data)
+		return validatePalindrome(data)
 	case symgroup.Flip180:
-		return s.validateFlip180(ctx, data)
+		return validateFlip180(data)
 	case symgroup.DoubleFlip180:
-		return s.validateDoubleFlip180(ctx, data)
+		return validateDoubleFlip180(data)
 	case symgroup.MirrorText:
-		return s.validateMirrorText(ctx, data)
+		return validateMirrorText(data)
 	case symgroup.MirrorNames:
-		return s.validateMirrorNames(ctx, data)
+		return validateMirrorNames(data)
 	case symgroup.AntonymNames:
-		return s.validateAntonymNames(ctx, data)
+		return validateAntonymNames(data)
 	default:
 		return false, fmt.Errorf("unknown symmetry type: %s", symmetryType)
 	}

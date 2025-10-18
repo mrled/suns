@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -35,7 +34,7 @@ func isMirrorPair(s1, s2 string) bool {
 }
 
 // validateMirrorNames validates mirror names symmetry
-func (s *Service) validateMirrorNames(ctx context.Context, data []*model.DomainData) (bool, error) {
+func validateMirrorNames(data []*model.DomainData) (bool, error) {
 	if len(data) != 2 {
 		return false, fmt.Errorf("mirrornames validation expects exactly two domains, got %d", len(data))
 	}

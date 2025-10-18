@@ -1,17 +1,13 @@
 package validation
 
 import (
-	"context"
 	"testing"
 
 	"github.com/mrled/suns/symval/internal/model"
 	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
-func TestService_Validate_Success(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
+func TestValidate_Success(t *testing.T) {
 	// Valid group: all fields match and groupID is correct
 	// Using "aba" which is a palindrome
 	data := []*model.DomainData{
@@ -23,7 +19,7 @@ func TestService_Validate_Success(t *testing.T) {
 		},
 	}
 
-	valid, err := service.Validate(ctx, data)
+	valid, err := Validate(data)
 	if err != nil {
 		t.Errorf("Expected no error, got: %v", err)
 	}
@@ -32,10 +28,7 @@ func TestService_Validate_Success(t *testing.T) {
 	}
 }
 
-func TestService_Validate_MultipleHostnames(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
+func TestValidate_MultipleHostnames(t *testing.T) {
 	// Test with MirrorNames type which requires exactly two hostnames that are mirror pairs
 	data := []*model.DomainData{
 		{
@@ -52,7 +45,7 @@ func TestService_Validate_MultipleHostnames(t *testing.T) {
 		},
 	}
 
-	valid, err := service.Validate(ctx, data)
+	valid, err := Validate(data)
 	if err != nil {
 		t.Errorf("Expected no error, got: %v", err)
 	}
@@ -61,13 +54,10 @@ func TestService_Validate_MultipleHostnames(t *testing.T) {
 	}
 }
 
-func TestService_Validate_EmptyList(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
+func TestValidate_EmptyList(t *testing.T) {
 	data := []*model.DomainData{}
 
-	valid, err := service.Validate(ctx, data)
+	valid, err := Validate(data)
 	if err == nil {
 		t.Error("Expected error for empty list, got nil")
 	}
@@ -76,10 +66,7 @@ func TestService_Validate_EmptyList(t *testing.T) {
 	}
 }
 
-func TestService_Validate_OwnerMismatch(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
+func TestValidate_OwnerMismatch(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
@@ -95,7 +82,7 @@ func TestService_Validate_OwnerMismatch(t *testing.T) {
 		},
 	}
 
-	valid, err := service.Validate(ctx, data)
+	valid, err := Validate(data)
 	if err == nil {
 		t.Error("Expected error for owner mismatch, got nil")
 	}
@@ -104,10 +91,7 @@ func TestService_Validate_OwnerMismatch(t *testing.T) {
 	}
 }
 
-func TestService_Validate_TypeMismatch(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
+func TestValidate_TypeMismatch(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
@@ -123,7 +107,7 @@ func TestService_Validate_TypeMismatch(t *testing.T) {
 		},
 	}
 
-	valid, err := service.Validate(ctx, data)
+	valid, err := Validate(data)
 	if err == nil {
 		t.Error("Expected error for type mismatch, got nil")
 	}
@@ -132,10 +116,7 @@ func TestService_Validate_TypeMismatch(t *testing.T) {
 	}
 }
 
-func TestService_Validate_GroupIDMismatch(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
+func TestValidate_GroupIDMismatch(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
@@ -151,7 +132,7 @@ func TestService_Validate_GroupIDMismatch(t *testing.T) {
 		},
 	}
 
-	valid, err := service.Validate(ctx, data)
+	valid, err := Validate(data)
 	if err == nil {
 		t.Error("Expected error for groupID mismatch, got nil")
 	}
@@ -160,10 +141,7 @@ func TestService_Validate_GroupIDMismatch(t *testing.T) {
 	}
 }
 
-func TestService_Validate_InvalidGroupID(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
+func TestValidate_InvalidGroupID(t *testing.T) {
 	// GroupID doesn't match the calculated value
 	data := []*model.DomainData{
 		{
@@ -174,7 +152,7 @@ func TestService_Validate_InvalidGroupID(t *testing.T) {
 		},
 	}
 
-	valid, err := service.Validate(ctx, data)
+	valid, err := Validate(data)
 	if err == nil {
 		t.Error("Expected error for invalid groupID, got nil")
 	}
@@ -183,10 +161,7 @@ func TestService_Validate_InvalidGroupID(t *testing.T) {
 	}
 }
 
-func TestService_ValidateBase_Success(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
+func TestValidateBase_Success(t *testing.T) {
 	data := []*model.DomainData{
 		{
 			Owner:    "alice@example.com",
@@ -196,7 +171,7 @@ func TestService_ValidateBase_Success(t *testing.T) {
 		},
 	}
 
-	owner, groupID, symmetryType, err := service.ValidateBase(ctx, data)
+	owner, groupID, symmetryType, err := ValidateBase(data)
 	if err != nil {
 		t.Errorf("Expected no error, got: %v", err)
 	}
@@ -211,10 +186,7 @@ func TestService_ValidateBase_Success(t *testing.T) {
 	}
 }
 
-func TestService_Validate_AllSymmetryTypes(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
+func TestValidate_AllSymmetryTypes(t *testing.T) {
 	tests := []struct {
 		name         string
 		symmetryType symgroup.SymmetryType
@@ -241,7 +213,7 @@ func TestService_Validate_AllSymmetryTypes(t *testing.T) {
 				}
 			}
 
-			valid, err := service.Validate(ctx, data)
+			valid, err := Validate(data)
 			if err != nil {
 				t.Errorf("Expected no error for %s, got: %v", tt.name, err)
 			}
@@ -252,10 +224,7 @@ func TestService_Validate_AllSymmetryTypes(t *testing.T) {
 	}
 }
 
-func TestService_Validate_UnknownSymmetryType(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
+func TestValidate_UnknownSymmetryType(t *testing.T) {
 	// Use an unknown symmetry type
 	data := []*model.DomainData{
 		{
@@ -266,7 +235,7 @@ func TestService_Validate_UnknownSymmetryType(t *testing.T) {
 		},
 	}
 
-	valid, err := service.Validate(ctx, data)
+	valid, err := Validate(data)
 	if err == nil {
 		t.Error("Expected error for unknown symmetry type, got nil")
 	}

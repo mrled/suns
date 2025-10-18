@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"context"
 	"testing"
 
 	"github.com/mrled/suns/symval/internal/model"
@@ -66,9 +65,6 @@ func TestIsPalindrome(t *testing.T) {
 
 // Test validatePalindrome with valid single domain
 func TestValidatePalindrome_Success(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
 	tests := []struct {
 		name     string
 		hostname string
@@ -92,7 +88,7 @@ func TestValidatePalindrome_Success(t *testing.T) {
 				},
 			}
 
-			valid, err := service.validatePalindrome(ctx, data)
+			valid, err := validatePalindrome(data)
 			if err != nil {
 				t.Errorf("Expected no error, got: %v", err)
 			}
@@ -105,9 +101,6 @@ func TestValidatePalindrome_Success(t *testing.T) {
 
 // Test validatePalindrome with non-palindrome hostnames
 func TestValidatePalindrome_NotPalindrome(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
 	tests := []struct {
 		name     string
 		hostname string
@@ -128,7 +121,7 @@ func TestValidatePalindrome_NotPalindrome(t *testing.T) {
 				},
 			}
 
-			valid, err := service.validatePalindrome(ctx, data)
+			valid, err := validatePalindrome(data)
 			if err == nil {
 				t.Errorf("Expected error for non-palindrome %q, got nil", tt.hostname)
 			}
@@ -141,9 +134,6 @@ func TestValidatePalindrome_NotPalindrome(t *testing.T) {
 
 // Test validatePalindrome expects exactly one domain
 func TestValidatePalindrome_WrongNumberOfDomains(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
 	tests := []struct {
 		name       string
 		domainData []*model.DomainData
@@ -196,7 +186,7 @@ func TestValidatePalindrome_WrongNumberOfDomains(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			valid, err := service.validatePalindrome(ctx, tt.domainData)
+			valid, err := validatePalindrome(tt.domainData)
 			if err == nil {
 				t.Errorf("Expected error for %d domains, got nil", len(tt.domainData))
 			}

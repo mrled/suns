@@ -109,3 +109,11 @@ Consistency checking confirms that
     even claims for _other groups_.
     Domains can be in more than one group,
     but cannot be owned by more than one owner.
+
+## Group validation
+
+Group validation takes DNS claims which have been individually looked up and consistency checked,
+and validates that they make sense as a whole.
+
+* All domains are present in the group
+* The group doesn't contain any spurious domains

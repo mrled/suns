@@ -1,14 +1,13 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/service/validation"
 	"github.com/mrled/suns/symval/internal/symgroup"
+	"github.com/mrled/suns/symval/internal/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -51,10 +50,8 @@ Arguments:
 			dataList = append(dataList, data)
 		}
 
-		// Create validator and validate
-		validator := validation.NewService()
-		ctx := context.Background()
-		valid, err := validator.Validate(ctx, dataList)
+		// Validate
+		valid, err := validation.Validate(dataList)
 		if err != nil {
 			return fmt.Errorf("validation error: %w", err)
 		}

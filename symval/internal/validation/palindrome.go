@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/mrled/suns/symval/internal/model"
@@ -26,7 +25,7 @@ func isPalindrome(s string) bool {
 }
 
 // validatePalindrome validates palindrome symmetry
-func (s *Service) validatePalindrome(ctx context.Context, data []*model.DomainData) (bool, error) {
+func validatePalindrome(data []*model.DomainData) (bool, error) {
 	if len(data) != 1 {
 		return false, fmt.Errorf("palindrome validation expects exactly one domain, got %d", len(data))
 	}

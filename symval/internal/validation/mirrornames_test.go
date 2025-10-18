@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"context"
 	"testing"
 
 	"github.com/mrled/suns/symval/internal/model"
@@ -64,9 +63,6 @@ func TestIsMirrorPair(t *testing.T) {
 
 // Test validateMirrorNames with valid mirror pairs
 func TestValidateMirrorNames_Success(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
 	tests := []struct {
 		name      string
 		hostname1 string
@@ -97,7 +93,7 @@ func TestValidateMirrorNames_Success(t *testing.T) {
 				},
 			}
 
-			valid, err := service.validateMirrorNames(ctx, data)
+			valid, err := validateMirrorNames(data)
 			if err != nil {
 				t.Errorf("Expected no error, got: %v", err)
 			}
@@ -110,9 +106,6 @@ func TestValidateMirrorNames_Success(t *testing.T) {
 
 // Test validateMirrorNames with non-mirror pairs
 func TestValidateMirrorNames_NotMirrorPairs(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
 	tests := []struct {
 		name      string
 		hostname1 string
@@ -142,7 +135,7 @@ func TestValidateMirrorNames_NotMirrorPairs(t *testing.T) {
 				},
 			}
 
-			valid, err := service.validateMirrorNames(ctx, data)
+			valid, err := validateMirrorNames(data)
 			if err == nil {
 				t.Errorf("Expected error for non-mirror pair %q and %q, got nil", tt.hostname1, tt.hostname2)
 			}
@@ -155,9 +148,6 @@ func TestValidateMirrorNames_NotMirrorPairs(t *testing.T) {
 
 // Test validateMirrorNames expects exactly two domains
 func TestValidateMirrorNames_WrongNumberOfDomains(t *testing.T) {
-	service := NewService()
-	ctx := context.Background()
-
 	tests := []struct {
 		name       string
 		domainData []*model.DomainData
@@ -233,7 +223,7 @@ func TestValidateMirrorNames_WrongNumberOfDomains(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			valid, err := service.validateMirrorNames(ctx, tt.domainData)
+			valid, err := validateMirrorNames(tt.domainData)
 			if err == nil {
 				t.Errorf("Expected error for %d domains, got nil", len(tt.domainData))
 			}
