@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
-	"github.com/mrled/suns/symval/internal/usecase/consistencycheck"
+	"github.com/mrled/suns/symval/internal/usecase/concheck"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ For each domain, this command will:
 		domains := args
 		resolver := dnsclaims.NewCustomResolver(resolverAddr)
 		dnsService := dnsclaims.NewServiceWithResolver(resolver)
-		consistencyChecker := consistencycheck.NewConsistencyCheckUseCase(dnsService)
+		consistencyChecker := concheck.NewConsistencyCheckUseCase(dnsService)
 
 		// Process each domain
 		for _, domain := range domains {

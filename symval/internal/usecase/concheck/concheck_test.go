@@ -1,4 +1,4 @@
-package consistencycheck
+package concheck
 
 import (
 	"net"
