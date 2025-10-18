@@ -22,8 +22,7 @@ func NewService() *Service {
 }
 
 // CalculateV1 generates a group ID by hashing owner + all hostnames
-// The result is formatted as: idversion:type:base64(hash)
-// where the hash is computed from owner + sorted hostnames
+// The result is formatted as: idversion:type:base64(sha256(owner+sort(hostnames))).
 func (s *Service) CalculateV1(owner, gtype string, hostnames []string) (string, error) {
 	if owner == "" {
 		return "", fmt.Errorf("owner cannot be empty")

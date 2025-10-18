@@ -4,6 +4,39 @@ title = "suns system design"
 
 How domain data is processed.
 
+## Group ID
+
+When a domain is singularly symmetrical (like `palindrome`),
+it's in a group with just itself.
+When a domain is symmetrical with another domain (like `mirrornames`),
+it's in a group with another domain.
+
+In either case, we create a `group ID` that incorporates:
+
+* The owner: an arbitrary string, I recommend a URL
+* The symmetry type: `palindrome`, `mirrornames`, etc
+* Each domain name, sorted alphabetically: `me.example.com`, `com.example.me`, etc
+
+The algorithm for this is defined in `CalculateV1()` in `symval/internal/service/groupid/groupid.go`,
+
+```go
+// CalculateV1 generates a group ID by hashing owner + all hostnames
+// The result is formatted as: idversion:type:base64(sha256(owner+sort(hostnames))).
+func (s *Service) CalculateV1(owner, gtype string, hostnames []string) (string, error) {
+  // ...
+}
+```
+
+Implementation notes:
+
+* In theory, this could be used to support groups of more than two domain names,
+  though it's not clear what it would mean for a group of 3 or more names to be symmetrical.
+  Perhaps theoretical mathematics has an answer for this important question.
+* Sorting the domain names ensures that a group ID is consistent no matter who calcualtes it ---
+  and ensures that a logical set of hosts cannot be counted more than once.
+
+## Dynamo design
+
 Conceptually, we need to track:
 
 * Owner
@@ -51,12 +84,14 @@ Representable invalid state
 
 ## DNS verification
 
-Require a special TXT record `_sums` for each domain.
+Require a special TXT record `_suns` for each domain.
 
 * If the domain is `example.com`, look for `_suns.example.com`
 * If the domain is `a.b.c.d.example.com`, look for `_suns.a.b.c.d.example.com`
-* Each domain in a type must have the same TXT record set.
+* Each domain in a group must have the same TXT record set.
+* The contents of the TXT record is the group ID (see above).
 * Allow one CNAME hop.
   Allowing a CNAME lets users delegate control to another zone.
   Limit to one hop to keep verification deterministic.
   (Not sure if this is important?)
+* Expect one TXT record for every group that the domain is in.
