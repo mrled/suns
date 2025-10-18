@@ -62,12 +62,6 @@ Arguments:
 		fmt.Printf("Group ID: %s\n", groupID)
 		fmt.Printf("Hostnames: %v\n", hostnames)
 
-		if persistenceFile != "" {
-			fmt.Printf("Persistence file: %s\n", persistenceFile)
-		} else {
-			fmt.Println("Persistence: in-memory only")
-		}
-
 		fmt.Printf("Valid: %t\n", valid)
 
 		return nil
