@@ -19,5 +19,6 @@ func init() {
 	rootCmd.AddCommand(attestCmd)
 	rootCmd.AddCommand(groupidCmd)
 	rootCmd.AddCommand(lookupCmd)
+	rootCmd.AddCommand(revalidateCmd)
 	rootCmd.AddCommand(validateCmd)
 }
