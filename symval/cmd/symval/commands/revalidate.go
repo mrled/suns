@@ -100,9 +100,22 @@ Examples:
 			fmt.Println("No filters specified - checking all records")
 		}
 
+		// Get all records that match the filters (before validation)
+		allRecords, err := repo.List(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to list records: %w", err)
+		}
+
+		// Apply filters to get the records we're checking
+		candidateRecords := filterRecordsForDisplay(allRecords, filters)
+
+		if len(candidateRecords) == 0 {
+			fmt.Println("\nNo records to check.")
+			return nil
+		}
+
 		// Perform revalidation
 		var invalidRecords []*model.DomainRecord
-		var err error
 
 		if revalidateDryRun {
 			fmt.Println("\n--- DRY RUN MODE (no changes will be made) ---")
@@ -117,36 +130,100 @@ Examples:
 			}
 		}
 
-		// Print results
-		if len(invalidRecords) == 0 {
-			fmt.Println("\n✓ All checked records are valid")
-			fmt.Println("No invalid records found.")
-		} else {
-			if revalidateDryRun {
-				fmt.Printf("\n✗ Found %d invalid record(s) that would be removed:\n\n", len(invalidRecords))
+		// Create a map of invalid records for quick lookup
+		invalidMap := make(map[string]bool)
+		for _, record := range invalidRecords {
+			invalidMap[record.Hostname] = true
+		}
+
+		// Print status of all records
+		fmt.Printf("\nChecked %d record(s) of %d total record(s):\n\n", len(candidateRecords), len(allRecords))
+
+		validCount := 0
+		invalidCount := 0
+
+		for i, record := range candidateRecords {
+			status := "✓ VALID"
+			if invalidMap[record.Hostname] {
+				status = "✗ INVALID"
+				invalidCount++
 			} else {
-				fmt.Printf("\n✗ Found and removed %d invalid record(s):\n\n", len(invalidRecords))
+				validCount++
 			}
 
-			// Print details of invalid records
-			for i, record := range invalidRecords {
-				fmt.Printf("%d. Hostname: %s\n", i+1, record.Hostname)
-				fmt.Printf("   Owner: %s\n", record.Owner)
-				fmt.Printf("   Type: %s\n", record.Type)
-				fmt.Printf("   GroupID: %s\n", record.GroupID)
-				fmt.Printf("   ValidateTime: %s\n", record.ValidateTime.Format("2006-01-02 15:04:05"))
-				fmt.Println()
-			}
+			fmt.Printf("%d. [%s] %s\n", i+1, status, record.Hostname)
+			fmt.Printf("   Owner: %s\n", record.Owner)
+			fmt.Printf("   Type: %s\n", record.Type)
+			fmt.Printf("   GroupID: %s\n", record.GroupID)
+			fmt.Printf("   ValidateTime: %s\n", record.ValidateTime.Format("2006-01-02 15:04:05"))
+			fmt.Println()
+		}
 
+		// Print summary
+		fmt.Printf("Summary: %d valid, %d invalid\n", validCount, invalidCount)
+
+		if invalidCount > 0 {
 			if !revalidateDryRun {
-				fmt.Printf("Changes persisted to: %s\n", revalidateFilePath)
+				fmt.Printf("✓ Removed %d invalid record(s)\n", invalidCount)
+				if revalidateFilePath != "" {
+					fmt.Printf("Changes persisted to: %s\n", revalidateFilePath)
+				}
 			} else {
-				fmt.Println("(No changes made - dry run)")
+				fmt.Printf("(No changes made - dry run)\n")
 			}
 		}
 
 		return nil
 	},
+}
+
+// filterRecordsForDisplay applies basic filtering to determine which records to display
+// This mirrors the logic in the revalidate use case but is used for display purposes
+func filterRecordsForDisplay(records []*model.DomainRecord, filters revalidate.FilterOptions) []*model.DomainRecord {
+	// If no filters specified, return all records
+	if len(filters.Owners) == 0 && len(filters.Domains) == 0 && len(filters.GroupIDs) == 0 {
+		return records
+	}
+
+	// Create lookup maps for efficient filtering
+	ownerMap := make(map[string]bool)
+	for _, owner := range filters.Owners {
+		ownerMap[owner] = true
+	}
+
+	domainMap := make(map[string]bool)
+	for _, domain := range filters.Domains {
+		domainMap[domain] = true
+	}
+
+	groupIDMap := make(map[string]bool)
+	for _, groupID := range filters.GroupIDs {
+		groupIDMap[groupID] = true
+	}
+
+	var filtered []*model.DomainRecord
+
+	for _, record := range records {
+		// Apply owner filter
+		if len(filters.Owners) > 0 && !ownerMap[record.Owner] {
+			continue
+		}
+
+		// Apply domain filter - note: the use case expands this to include whole groups,
+		// but for display we just show records that match initially
+		if len(filters.Domains) > 0 && !domainMap[record.Hostname] {
+			continue
+		}
+
+		// Apply groupID filter
+		if len(filters.GroupIDs) > 0 && !groupIDMap[record.GroupID] {
+			continue
+		}
+
+		filtered = append(filtered, record)
+	}
+
+	return filtered
 }
 
 func init() {
