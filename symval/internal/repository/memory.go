@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/mrled/suns/symval/internal/model"
@@ -33,6 +34,12 @@ func NewMemoryRepositoryWithPersistence(filePath string) (*MemoryRepository, err
 	repo := &MemoryRepository{
 		data:     make(map[string]*model.DomainRecord),
 		filePath: filePath,
+	}
+
+	// Create parent directory if it doesn't exist
+	dir := filepath.Dir(filePath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return nil, err
 	}
 
 	// Try to load existing data from file

@@ -110,6 +110,6 @@ Example:
 }
 
 func init() {
-	attestCmd.Flags().StringVar(&attestFilePath, "file", "", "Path to JSON file for persistence")
-	attestCmd.Flags().StringVar(&attestDynamoName, "dynamo", "", "DynamoDB table name for persistence")
+	attestCmd.Flags().StringVarP(&attestFilePath, "file", "f", "", "Path to JSON file for persistence")
+	attestCmd.Flags().StringVarP(&attestDynamoName, "dynamo", "d", "", "DynamoDB table name for persistence")
 }
