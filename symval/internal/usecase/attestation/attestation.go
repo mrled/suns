@@ -46,9 +46,16 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 	}
 	result.ExpectedID = expectedID
 
-	// Look up DNS records for all domains
+	// Look up DNS records for all domains and filter them
 	var allRecords []string
-	domainDataMap := make(map[string]*model.DomainData)
+	var allDomainData []*model.DomainData
+	validateTime := time.Now()
+
+	// Set up filter criteria using the provided owner and type
+	criteria := FilterCriteria{
+		Owner: &owner,
+		Type:  &symmetryType,
+	}
 
 	for _, domain := range domains {
 		records, err := uc.dnsService.Lookup(domain)
@@ -56,21 +63,24 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 			return nil, fmt.Errorf("failed to lookup DNS records for %s: %w", domain, err)
 		}
 
-		// Collect all records for parsing
-		allRecords = append(allRecords, records...)
-
-		// Create DomainData entry for this domain using the first record
-		if len(records) > 0 {
-			if _, exists := domainDataMap[domain]; !exists {
-				domainDataMap[domain] = &model.DomainData{
-					Owner:        owner,
-					Type:         symmetryType,
-					Hostname:     domain,
-					GroupID:      records[0],
-					ValidateTime: time.Now(),
-				}
-			}
+		// Filter the records for this domain
+		filteredData, err := filterDomainData(domain, records, criteria, validateTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed to filter records for %s: %w", domain, err)
 		}
+
+		// Fail attestation if no matching records found for this domain
+		if len(filteredData) == 0 {
+			result.IsValid = false
+			result.ErrorMessage = fmt.Sprintf("no matching records found for domain %s", domain)
+			return result, nil
+		}
+
+		// Use the first matching record for this domain
+		allDomainData = append(allDomainData, filteredData[0])
+
+		// Collect the group ID for consistency checking
+		allRecords = append(allRecords, filteredData[0].GroupID)
 	}
 
 	// Parse all records at once using ParseGroupIDv1Slice
@@ -81,13 +91,7 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 	}
 
 	result.GroupIDs = allGroupIDs
-
-	// Check if we found any group IDs
-	if len(allGroupIDs) == 0 {
-		result.IsValid = false
-		result.ErrorMessage = "no valid group IDs found in DNS records"
-		return result, nil
-	}
+	result.DomainData = allDomainData
 
 	// Check for consistency across all group IDs
 	if err := concheck.CheckGroupIdConsistency(allGroupIDs); err != nil {
@@ -96,15 +100,8 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 		return result, nil
 	}
 
-	// Convert domainDataMap to slice for validation
-	domainDataSlice := make([]*model.DomainData, 0, len(domainDataMap))
-	for _, dd := range domainDataMap {
-		domainDataSlice = append(domainDataSlice, dd)
-	}
-	result.DomainData = domainDataSlice
-
 	// Validate the group
-	isValid, err := validation.Validate(domainDataSlice)
+	isValid, err := validation.Validate(allDomainData)
 	if err != nil {
 		result.IsValid = false
 		result.ErrorMessage = fmt.Sprintf("validation failed: %v", err)
