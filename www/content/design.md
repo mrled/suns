@@ -117,3 +117,14 @@ and validates that they make sense as a whole.
 
 * All domains are present in the group
 * The group doesn't contain any spurious domains
+
+## Attestation
+
+Attestation ties all of these together.
+
+* Receive input from users
+* Query DNS for claims
+* Consistency-check the claims
+* Validate the claims
+
+Basically a "Lookup + Validate" flow.
