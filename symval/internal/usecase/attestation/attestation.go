@@ -1,11 +1,13 @@
 package attestation
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/mrled/suns/symval/internal/groupid"
 	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/symgroup"
 	"github.com/mrled/suns/symval/internal/usecase/concheck"
@@ -15,12 +17,15 @@ import (
 // AttestationUseCase handles attestation of domain groups
 type AttestationUseCase struct {
 	dnsService *dnsclaims.Service
+	repository repository.DomainRepository
 }
 
 // NewAttestationUseCase creates a new attestation use case
-func NewAttestationUseCase(dnsService *dnsclaims.Service) *AttestationUseCase {
+// If repository is nil, attestation results will not be persisted
+func NewAttestationUseCase(dnsService *dnsclaims.Service, repo repository.DomainRepository) *AttestationUseCase {
 	return &AttestationUseCase{
 		dnsService: dnsService,
+		repository: repo,
 	}
 }
 
@@ -109,5 +114,19 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 	}
 
 	result.IsValid = isValid
+
+	// If attestation is successful and repository is configured, persist the records
+	if result.IsValid && uc.repository != nil {
+		ctx := context.Background()
+		for _, record := range allDomainRecords {
+			// Try to store the record, but don't fail attestation if storage fails
+			if err := uc.repository.Store(ctx, record); err != nil {
+				// Log error but continue - storage is supplementary to attestation
+				// In a production system, this would use proper logging
+				fmt.Printf("Warning: failed to store record for %s: %v\n", record.Hostname, err)
+			}
+		}
+	}
+
 	return result, nil
 }

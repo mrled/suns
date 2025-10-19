@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/symgroup"
 	"github.com/mrled/suns/symval/internal/usecase/attestation"
@@ -40,13 +41,11 @@ Example:
   symval attest owner123 mirrortext domain1.com domain2.com domain3.com`,
 	Args: cobra.MinimumNArgs(3),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Check for persistence flags and exit with not implemented message
-		if attestFilePath != "" {
-			return fmt.Errorf("--file flag is not yet implemented")
-		}
+		// Check for DynamoDB flag (not yet implemented)
 		if attestDynamoName != "" {
 			return fmt.Errorf("--dynamo flag is not yet implemented")
 		}
+
 		owner := args[0]
 		typeName := strings.ToLower(args[1])
 		domains := args[2:]
@@ -64,9 +63,24 @@ Example:
 
 		symmetryType := symgroup.SymmetryType(typeCode)
 
+		// Create repository based on persistence flags
+		var repo repository.DomainRepository
+		if attestFilePath != "" {
+			// Use JSON file persistence
+			memRepo, err := repository.NewMemoryRepositoryWithPersistence(attestFilePath)
+			if err != nil {
+				return fmt.Errorf("failed to create repository: %w", err)
+			}
+			repo = memRepo
+			fmt.Printf("Using JSON persistence: %s\n", attestFilePath)
+		} else {
+			// Use in-memory only (no persistence)
+			repo = repository.NewMemoryRepository()
+		}
+
 		// Create DNS service and attestation use case
 		dnsService := dnsclaims.NewService()
-		attestUseCase := attestation.NewAttestationUseCase(dnsService)
+		attestUseCase := attestation.NewAttestationUseCase(dnsService, repo)
 
 		// Perform attestation
 		result, err := attestUseCase.Attest(owner, symmetryType, domains)
@@ -81,6 +95,9 @@ Example:
 		if result.IsValid {
 			fmt.Println("\n✓ Attestation PASSED")
 			fmt.Println("The domains form a valid symmetric group.")
+			if attestFilePath != "" {
+				fmt.Printf("Results persisted to: %s\n", attestFilePath)
+			}
 		} else {
 			fmt.Println("\n✗ Attestation FAILED")
 			if result.ErrorMessage != "" {
