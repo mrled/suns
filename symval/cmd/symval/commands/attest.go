@@ -10,6 +10,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	attestFilePath   string
+	attestDynamoName string
+)
+
 var attestCmd = &cobra.Command{
 	Use:   "attest <owner> <type> <domain1> [domain2]...",
 	Short: "Attest a group of domains for consistency and validity",
@@ -35,6 +40,13 @@ Example:
   symval attest owner123 mirrortext domain1.com domain2.com domain3.com`,
 	Args: cobra.MinimumNArgs(3),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// Check for persistence flags and exit with not implemented message
+		if attestFilePath != "" {
+			return fmt.Errorf("--file flag is not yet implemented")
+		}
+		if attestDynamoName != "" {
+			return fmt.Errorf("--dynamo flag is not yet implemented")
+		}
 		owner := args[0]
 		typeName := strings.ToLower(args[1])
 		domains := args[2:]
@@ -78,4 +90,9 @@ Example:
 
 		return nil
 	},
+}
+
+func init() {
+	attestCmd.Flags().StringVar(&attestFilePath, "file", "", "Path to JSON file for persistence")
+	attestCmd.Flags().StringVar(&attestDynamoName, "dynamo", "", "DynamoDB table name for persistence")
 }
