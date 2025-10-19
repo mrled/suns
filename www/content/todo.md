@@ -6,10 +6,12 @@ title = "TODO"
     * Handle `https://zq.suns.bz//:sdʇʇɥ` URL: redirect `suns.bz`, `zq.suns.bz` to that page
 * Add webhooks
     * Write webhook code
+    * Build with CGO disabled for faster startup time (cheaper Lambda)
     * Deploy to AWS Lambda
     * Connect with API Gateway
 * Add daily re-checking job
     * Write job
+    * Build with CGO disabled for faster startup time (cheaper Lambda)
     * Deploy to AWS Lambda
     * Schedule with EventBridge rule
 * Create tools page
