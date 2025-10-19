@@ -59,6 +59,9 @@ func (uc *ConsistencyCheckUseCase) CheckDomainClaimRecordsConsistency(domain str
 	}
 
 	groupIDs, err := groupid.ParseGroupIDv1Slice(records)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse group IDs: %w", err)
+	}
 
 	// Verify consistency
 	if err := CheckGroupIdConsistency(groupIDs); err != nil {
