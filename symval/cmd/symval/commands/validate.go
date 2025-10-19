@@ -13,8 +13,8 @@ import (
 
 var validateCmd = &cobra.Command{
 	Use:   "valgrp <owner> <type> <groupid> <hostname1> [hostname2] [hostname3...]",
-	Short: "Validate group data locally",
-	Long: `Validate group data locally with specified owner, type, group ID, and one or more hostnames.
+	Short: "Validate passed-in group data",
+	Long: `Validate group data by passing in specified owner, type, group ID, and one or more hostnames.
 
 Arguments:
   owner      Owner of the domain
