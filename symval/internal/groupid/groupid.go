@@ -54,6 +54,19 @@ func ParseGroupIDv1(raw string) (GroupIDV1, error) {
 	}, nil
 }
 
+// ParseGroupIDv1Slice parses a slice of raw group ID strings into a slice of GroupIDV1 structs.
+func ParseGroupIDv1Slice(records []string) ([]GroupIDV1, error) {
+	groupIDs := make([]GroupIDV1, 0, len(records))
+	for i, record := range records {
+		gid, err := ParseGroupIDv1(record)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse record at index %d: %w", i, err)
+		}
+		groupIDs = append(groupIDs, gid)
+	}
+	return groupIDs, nil
+}
+
 // CalculateV1 generates a group ID by hashing owner and hostnames separately
 // The result is formatted as: idversion:type:base64(sha256(owner)):base64(sha256(sort(hostnames))).
 func CalculateV1(owner, gtype string, hostnames []string) (string, error) {

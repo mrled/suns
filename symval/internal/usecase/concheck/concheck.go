@@ -58,15 +58,7 @@ func (uc *ConsistencyCheckUseCase) CheckDomainClaimRecordsConsistency(domain str
 		return []groupid.GroupIDV1{}, nil
 	}
 
-	// Parse all records as group IDs
-	groupIDs := make([]groupid.GroupIDV1, 0, len(records))
-	for i, record := range records {
-		gid, err := groupid.ParseGroupIDv1(record)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse record at index %d: %w", i, err)
-		}
-		groupIDs = append(groupIDs, gid)
-	}
+	groupIDs, err := groupid.ParseGroupIDv1Slice(records)
 
 	// Verify consistency
 	if err := CheckGroupIdConsistency(groupIDs); err != nil {
