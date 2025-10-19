@@ -16,6 +16,7 @@ func Execute() error {
 }
 
 func init() {
+	rootCmd.AddCommand(attestCmd)
 	rootCmd.AddCommand(groupidCmd)
 	rootCmd.AddCommand(lookupCmd)
 	rootCmd.AddCommand(validateCmd)
