@@ -8,7 +8,7 @@ import (
 	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
-func TestFilterDomainData(t *testing.T) {
+func TestFilterDomainRecord(t *testing.T) {
 	hostname := "example.com"
 	owner := "testowner"
 	typeA := symgroup.Palindrome
@@ -91,17 +91,17 @@ func TestFilterDomainData(t *testing.T) {
 			wantGroupID: groupID1,
 		},
 		{
-			name:     "filter by owner - no matching records",
-			hostname: hostname,
-			records:  []string{groupID2}, // only differentowner
-			criteria: FilterCriteria{Owner: &owner},
+			name:      "filter by owner - no matching records",
+			hostname:  hostname,
+			records:   []string{groupID2}, // only differentowner
+			criteria:  FilterCriteria{Owner: &owner},
 			wantCount: 0,
 		},
 		{
-			name:     "empty records list",
-			hostname: hostname,
-			records:  []string{},
-			criteria: FilterCriteria{Owner: &owner},
+			name:      "empty records list",
+			hostname:  hostname,
+			records:   []string{},
+			criteria:  FilterCriteria{Owner: &owner},
 			wantCount: 0,
 		},
 		{
@@ -115,19 +115,19 @@ func TestFilterDomainData(t *testing.T) {
 			wantGroupID: groupID1,
 		},
 		{
-			name:     "all invalid records",
-			hostname: hostname,
-			records:  []string{"invalid:record", "also:invalid:format"},
-			criteria: FilterCriteria{},
+			name:      "all invalid records",
+			hostname:  hostname,
+			records:   []string{"invalid:record", "also:invalid:format"},
+			criteria:  FilterCriteria{},
 			wantCount: 0,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := filterDomainData(tt.hostname, tt.records, tt.criteria, validateTime)
+			result, err := filterDomainRecords(tt.hostname, tt.records, tt.criteria, validateTime)
 			if err != nil {
-				t.Fatalf("filterDomainData returned unexpected error: %v", err)
+				t.Fatalf("filterDomainRecords returned unexpected error: %v", err)
 			}
 
 			if len(result) != tt.wantCount {
@@ -161,7 +161,7 @@ func TestFilterDomainData(t *testing.T) {
 	}
 }
 
-func TestFilterDomainData_TypeInference(t *testing.T) {
+func TestFilterDomainRecords_TypeInference(t *testing.T) {
 	// Test that when Type filter is not specified, the type is inferred from the record
 	hostname := "example.com"
 	owner := "testowner"
@@ -175,9 +175,9 @@ func TestFilterDomainData_TypeInference(t *testing.T) {
 	records := []string{groupIDFlip180}
 	criteria := FilterCriteria{} // No type specified
 
-	result, err := filterDomainData(hostname, records, criteria, validateTime)
+	result, err := filterDomainRecords(hostname, records, criteria, validateTime)
 	if err != nil {
-		t.Fatalf("filterDomainData returned unexpected error: %v", err)
+		t.Fatalf("filterDomainRecords returned unexpected error: %v", err)
 	}
 
 	if len(result) != 1 {
@@ -189,7 +189,7 @@ func TestFilterDomainData_TypeInference(t *testing.T) {
 	}
 }
 
-func TestFilterDomainData_MultipleMatchingRecords(t *testing.T) {
+func TestFilterDomainRecords_MultipleMatchingRecords(t *testing.T) {
 	// Test that multiple records matching the criteria are all returned
 	hostname := "example.com"
 	owner := "testowner"
@@ -210,9 +210,9 @@ func TestFilterDomainData_MultipleMatchingRecords(t *testing.T) {
 	records := []string{groupID1, groupID2}
 	criteria := FilterCriteria{Owner: &owner, Type: &typeA}
 
-	result, err := filterDomainData(hostname, records, criteria, validateTime)
+	result, err := filterDomainRecords(hostname, records, criteria, validateTime)
 	if err != nil {
-		t.Fatalf("filterDomainData returned unexpected error: %v", err)
+		t.Fatalf("filterDomainRecords returned unexpected error: %v", err)
 	}
 
 	if len(result) != 2 {
@@ -233,7 +233,7 @@ func TestFilterDomainData_MultipleMatchingRecords(t *testing.T) {
 	}
 }
 
-func TestFilterDomainData_OwnerHashComparison(t *testing.T) {
+func TestFilterDomainRecords_OwnerHashComparison(t *testing.T) {
 	// Test that owner filtering works correctly by comparing owner hashes
 	hostname := "example.com"
 	owner1 := "owner1"
@@ -255,9 +255,9 @@ func TestFilterDomainData_OwnerHashComparison(t *testing.T) {
 
 	// Filter for owner1
 	criteria := FilterCriteria{Owner: &owner1}
-	result, err := filterDomainData(hostname, records, criteria, validateTime)
+	result, err := filterDomainRecords(hostname, records, criteria, validateTime)
 	if err != nil {
-		t.Fatalf("filterDomainData returned unexpected error: %v", err)
+		t.Fatalf("filterDomainRecords returned unexpected error: %v", err)
 	}
 
 	if len(result) != 1 {
@@ -270,9 +270,9 @@ func TestFilterDomainData_OwnerHashComparison(t *testing.T) {
 
 	// Filter for owner2
 	criteria2 := FilterCriteria{Owner: &owner2}
-	result2, err := filterDomainData(hostname, records, criteria2, validateTime)
+	result2, err := filterDomainRecords(hostname, records, criteria2, validateTime)
 	if err != nil {
-		t.Fatalf("filterDomainData returned unexpected error: %v", err)
+		t.Fatalf("filterDomainRecords returned unexpected error: %v", err)
 	}
 
 	if len(result2) != 1 {

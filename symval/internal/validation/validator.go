@@ -8,10 +8,10 @@ import (
 	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
-// ValidateBase checks that all DomainData structs have consistent owner, type, and groupid,
+// ValidateBase checks that all DomainRecord structs have consistent owner, type, and groupid,
 // and that the groupid matches the calculated groupid for the given hostnames.
 // Returns the common owner, groupID, and type if validation succeeds.
-func ValidateBase(data []*model.DomainData) (string, string, symgroup.SymmetryType, error) {
+func ValidateBase(data []*model.DomainRecord) (string, string, symgroup.SymmetryType, error) {
 	if len(data) == 0 {
 		return "", "", "", fmt.Errorf("no domain data provided")
 	}
@@ -52,7 +52,7 @@ func ValidateBase(data []*model.DomainData) (string, string, symgroup.SymmetryTy
 }
 
 // Validate performs base validation and then calls the appropriate type-specific validator
-func Validate(data []*model.DomainData) (bool, error) {
+func Validate(data []*model.DomainRecord) (bool, error) {
 	// Perform base validation
 	_, _, symmetryType, err := ValidateBase(data)
 	if err != nil {

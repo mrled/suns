@@ -19,7 +19,7 @@ func ExampleMemoryRepository() {
 	ctx := context.Background()
 	repo, _ := NewMemoryRepositoryWithPersistence(tmpPath)
 
-	data := &model.DomainData{
+	data := &model.DomainRecord{
 		Owner:        "alice@example.com",
 		Type:         symgroup.Palindrome,
 		Hostname:     "example.com",

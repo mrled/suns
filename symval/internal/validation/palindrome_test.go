@@ -79,7 +79,7 @@ func TestValidatePalindrome_Success(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data := []*model.DomainData{
+			data := []*model.DomainRecord{
 				{
 					Owner:    "alice@example.com",
 					Type:     symgroup.Palindrome,
@@ -112,7 +112,7 @@ func TestValidatePalindrome_NotPalindrome(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data := []*model.DomainData{
+			data := []*model.DomainRecord{
 				{
 					Owner:    "alice@example.com",
 					Type:     symgroup.Palindrome,
@@ -135,16 +135,16 @@ func TestValidatePalindrome_NotPalindrome(t *testing.T) {
 // Test validatePalindrome expects exactly one domain
 func TestValidatePalindrome_WrongNumberOfDomains(t *testing.T) {
 	tests := []struct {
-		name       string
-		domainData []*model.DomainData
+		name    string
+		records []*model.DomainRecord
 	}{
 		{
 			"zero domains",
-			[]*model.DomainData{},
+			[]*model.DomainRecord{},
 		},
 		{
 			"two domains",
-			[]*model.DomainData{
+			[]*model.DomainRecord{
 				{
 					Owner:    "alice@example.com",
 					Type:     symgroup.Palindrome,
@@ -161,7 +161,7 @@ func TestValidatePalindrome_WrongNumberOfDomains(t *testing.T) {
 		},
 		{
 			"three domains",
-			[]*model.DomainData{
+			[]*model.DomainRecord{
 				{
 					Owner:    "alice@example.com",
 					Type:     symgroup.Palindrome,
@@ -186,9 +186,9 @@ func TestValidatePalindrome_WrongNumberOfDomains(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			valid, err := validatePalindrome(tt.domainData)
+			valid, err := validatePalindrome(tt.records)
 			if err == nil {
-				t.Errorf("Expected error for %d domains, got nil", len(tt.domainData))
+				t.Errorf("Expected error for %d domains, got nil", len(tt.records))
 			}
 			if valid {
 				t.Errorf("Expected valid=false for wrong number of domains")

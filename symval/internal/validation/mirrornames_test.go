@@ -78,7 +78,7 @@ func TestValidateMirrorNames_Success(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data := []*model.DomainData{
+			data := []*model.DomainRecord{
 				{
 					Owner:    "alice@example.com",
 					Type:     symgroup.MirrorNames,
@@ -120,7 +120,7 @@ func TestValidateMirrorNames_NotMirrorPairs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data := []*model.DomainData{
+			data := []*model.DomainRecord{
 				{
 					Owner:    "alice@example.com",
 					Type:     symgroup.MirrorNames,
@@ -149,16 +149,16 @@ func TestValidateMirrorNames_NotMirrorPairs(t *testing.T) {
 // Test validateMirrorNames expects exactly two domains
 func TestValidateMirrorNames_WrongNumberOfDomains(t *testing.T) {
 	tests := []struct {
-		name       string
-		domainData []*model.DomainData
+		name    string
+		records []*model.DomainRecord
 	}{
 		{
 			"zero domains",
-			[]*model.DomainData{},
+			[]*model.DomainRecord{},
 		},
 		{
 			"one domain",
-			[]*model.DomainData{
+			[]*model.DomainRecord{
 				{
 					Owner:    "alice@example.com",
 					Type:     symgroup.MirrorNames,
@@ -169,7 +169,7 @@ func TestValidateMirrorNames_WrongNumberOfDomains(t *testing.T) {
 		},
 		{
 			"three domains",
-			[]*model.DomainData{
+			[]*model.DomainRecord{
 				{
 					Owner:    "alice@example.com",
 					Type:     symgroup.MirrorNames,
@@ -192,7 +192,7 @@ func TestValidateMirrorNames_WrongNumberOfDomains(t *testing.T) {
 		},
 		{
 			"four domains",
-			[]*model.DomainData{
+			[]*model.DomainRecord{
 				{
 					Owner:    "alice@example.com",
 					Type:     symgroup.MirrorNames,
@@ -223,9 +223,9 @@ func TestValidateMirrorNames_WrongNumberOfDomains(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			valid, err := validateMirrorNames(tt.domainData)
+			valid, err := validateMirrorNames(tt.records)
 			if err == nil {
-				t.Errorf("Expected error for %d domains, got nil", len(tt.domainData))
+				t.Errorf("Expected error for %d domains, got nil", len(tt.records))
 			}
 			if valid {
 				t.Errorf("Expected valid=false for wrong number of domains")

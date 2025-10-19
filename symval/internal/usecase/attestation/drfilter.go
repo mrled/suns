@@ -15,11 +15,11 @@ type FilterCriteria struct {
 	GroupID *string
 }
 
-// filterDomainData filters DNS records based on the provided criteria
-// and returns matching DomainData entries. Records are parsed into GroupIDV1
+// filterDomainRecords filters DNS records based on the provided criteria
+// and returns matching DomainRecord structs. Records are parsed into GroupIDV1
 // and filtered by optional Owner, Type, and GroupID values.
-func filterDomainData(hostname string, records []string, criteria FilterCriteria, validateTime time.Time) ([]*model.DomainData, error) {
-	var filtered []*model.DomainData
+func filterDomainRecords(hostname string, records []string, criteria FilterCriteria, validateTime time.Time) ([]*model.DomainRecord, error) {
+	var filtered []*model.DomainRecord
 
 	for _, record := range records {
 		// Parse the record
@@ -55,7 +55,7 @@ func filterDomainData(hostname string, records []string, criteria FilterCriteria
 			}
 		}
 
-		// Create DomainData for this matching record
+		// Create DomainRecord for this matching record
 		var ownerValue string
 		if criteria.Owner != nil {
 			ownerValue = *criteria.Owner
@@ -68,7 +68,7 @@ func filterDomainData(hostname string, records []string, criteria FilterCriteria
 			typeValue = symgroup.SymmetryType(gid.TypeCode)
 		}
 
-		filtered = append(filtered, &model.DomainData{
+		filtered = append(filtered, &model.DomainRecord{
 			Owner:        ownerValue,
 			Type:         typeValue,
 			Hostname:     hostname,

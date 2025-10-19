@@ -25,7 +25,7 @@ func isPalindrome(s string) bool {
 }
 
 // validatePalindrome validates palindrome symmetry
-func validatePalindrome(data []*model.DomainData) (bool, error) {
+func validatePalindrome(data []*model.DomainRecord) (bool, error) {
 	if len(data) != 1 {
 		return false, fmt.Errorf("palindrome validation expects exactly one domain, got %d", len(data))
 	}

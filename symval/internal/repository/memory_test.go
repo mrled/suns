@@ -28,7 +28,7 @@ func TestMemoryRepository_JSONPersistence(t *testing.T) {
 		t.Fatalf("Failed to create repository: %v", err)
 	}
 
-	testData := &model.DomainData{
+	testData := &model.DomainRecord{
 		Owner:        "test-owner",
 		Type:         symgroup.Palindrome,
 		Hostname:     "example.com",
@@ -82,7 +82,7 @@ func TestMemoryRepository_DeletePersistence(t *testing.T) {
 		t.Fatalf("Failed to create repository: %v", err)
 	}
 
-	testData := &model.DomainData{
+	testData := &model.DomainRecord{
 		Owner:        "test-owner",
 		Type:         symgroup.MirrorText,
 		Hostname:     "example.com",
@@ -116,7 +116,7 @@ func TestMemoryRepository_NonPersistent(t *testing.T) {
 	// Create repository in memory-only mode
 	repo := NewMemoryRepository()
 
-	testData := &model.DomainData{
+	testData := &model.DomainRecord{
 		Owner:        "test-owner",
 		Type:         symgroup.Flip180,
 		Hostname:     "example.com",

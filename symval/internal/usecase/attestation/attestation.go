@@ -26,11 +26,11 @@ func NewAttestationUseCase(dnsService *dnsclaims.Service) *AttestationUseCase {
 
 // AttestResult contains the result of an attestation check
 type AttestResult struct {
-	IsValid      bool
-	ExpectedID   string
-	GroupIDs     []groupid.GroupIDV1
-	DomainData   []*model.DomainData
-	ErrorMessage string
+	IsValid       bool
+	ExpectedID    string
+	GroupIDs      []groupid.GroupIDV1
+	DomainRecords []*model.DomainRecord
+	ErrorMessage  string
 }
 
 // Attest verifies a group of domains for consistency and validity
@@ -47,8 +47,8 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 	result.ExpectedID = expectedID
 
 	// Look up DNS records for all domains and filter them
-	var allRecords []string
-	var allDomainData []*model.DomainData
+	var allRawRecords []string
+	var allDomainRecords []*model.DomainRecord
 	validateTime := time.Now()
 
 	// Set up filter criteria using the provided owner and type
@@ -64,7 +64,7 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 		}
 
 		// Filter the records for this domain
-		filteredData, err := filterDomainData(domain, records, criteria, validateTime)
+		filteredData, err := filterDomainRecords(domain, records, criteria, validateTime)
 		if err != nil {
 			return nil, fmt.Errorf("failed to filter records for %s: %w", domain, err)
 		}
@@ -77,21 +77,21 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 		}
 
 		// Use the first matching record for this domain
-		allDomainData = append(allDomainData, filteredData[0])
+		allDomainRecords = append(allDomainRecords, filteredData[0])
 
 		// Collect the group ID for consistency checking
-		allRecords = append(allRecords, filteredData[0].GroupID)
+		allRawRecords = append(allRawRecords, filteredData[0].GroupID)
 	}
 
 	// Parse all records at once using ParseGroupIDv1Slice
-	allGroupIDs, err := groupid.ParseGroupIDv1Slice(allRecords)
+	allGroupIDs, err := groupid.ParseGroupIDv1Slice(allRawRecords)
 	if err != nil {
 		// If any record fails to parse, return error
 		return nil, fmt.Errorf("failed to parse DNS records: %w", err)
 	}
 
 	result.GroupIDs = allGroupIDs
-	result.DomainData = allDomainData
+	result.DomainRecords = allDomainRecords
 
 	// Check for consistency across all group IDs
 	if err := concheck.CheckGroupIdConsistency(allGroupIDs); err != nil {
@@ -101,7 +101,7 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 	}
 
 	// Validate the group
-	isValid, err := validation.Validate(allDomainData)
+	isValid, err := validation.Validate(allDomainRecords)
 	if err != nil {
 		result.IsValid = false
 		result.ErrorMessage = fmt.Sprintf("validation failed: %v", err)

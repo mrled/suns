@@ -6,8 +6,8 @@ import (
 	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
-// DomainData represents domain validation information
-type DomainData struct {
+// DomainRecord represents domain validation information
+type DomainRecord struct {
 	Owner        string
 	Type         symgroup.SymmetryType
 	Hostname     string

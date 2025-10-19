@@ -35,12 +35,11 @@ Arguments:
 			return fmt.Errorf("invalid type %q, must be one of: %s", args[1], getAvailableTypes())
 		}
 
-		// Create DomainData structs from arguments
-		dataList := make([]*model.DomainData, 0, len(hostnames))
+		dataList := make([]*model.DomainRecord, 0, len(hostnames))
 		validateTime := time.Now()
 
 		for _, hostname := range hostnames {
-			data := &model.DomainData{
+			data := &model.DomainRecord{
 				Owner:        owner,
 				Type:         symgroup.SymmetryType(typeCode),
 				Hostname:     hostname,

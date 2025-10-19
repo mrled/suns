@@ -5,7 +5,7 @@ import (
 )
 
 // validateAntonymNames validates antonym names symmetry
-func validateAntonymNames(data []*model.DomainData) (bool, error) {
+func validateAntonymNames(data []*model.DomainRecord) (bool, error) {
 	// Stub implementation - always returns true
 	return true, nil
 }

@@ -15,13 +15,13 @@ var (
 // DomainRepository defines the interface for storing and retrieving domain data
 type DomainRepository interface {
 	// Store saves domain data
-	Store(ctx context.Context, data *model.DomainData) error
+	Store(ctx context.Context, data *model.DomainRecord) error
 
 	// Get retrieves domain data by domain name
-	Get(ctx context.Context, domain string) (*model.DomainData, error)
+	Get(ctx context.Context, domain string) (*model.DomainRecord, error)
 
 	// List retrieves all domain data
-	List(ctx context.Context) ([]*model.DomainData, error)
+	List(ctx context.Context) ([]*model.DomainRecord, error)
 
 	// Delete removes domain data by domain name
 	Delete(ctx context.Context, domain string) error

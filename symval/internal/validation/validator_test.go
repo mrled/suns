@@ -10,7 +10,7 @@ import (
 func TestValidate_Success(t *testing.T) {
 	// Valid group: all fields match and groupID is correct
 	// Using "aba" which is a palindrome
-	data := []*model.DomainData{
+	data := []*model.DomainRecord{
 		{
 			Owner:    "alice@example.com",
 			Type:     symgroup.Palindrome,
@@ -30,7 +30,7 @@ func TestValidate_Success(t *testing.T) {
 
 func TestValidate_MultipleHostnames(t *testing.T) {
 	// Test with MirrorNames type which requires exactly two hostnames that are mirror pairs
-	data := []*model.DomainData{
+	data := []*model.DomainRecord{
 		{
 			Owner:    "alice@example.com",
 			Type:     symgroup.MirrorNames,
@@ -55,7 +55,7 @@ func TestValidate_MultipleHostnames(t *testing.T) {
 }
 
 func TestValidate_EmptyList(t *testing.T) {
-	data := []*model.DomainData{}
+	data := []*model.DomainRecord{}
 
 	valid, err := Validate(data)
 	if err == nil {
@@ -67,7 +67,7 @@ func TestValidate_EmptyList(t *testing.T) {
 }
 
 func TestValidate_OwnerMismatch(t *testing.T) {
-	data := []*model.DomainData{
+	data := []*model.DomainRecord{
 		{
 			Owner:    "alice@example.com",
 			Type:     symgroup.Palindrome,
@@ -92,7 +92,7 @@ func TestValidate_OwnerMismatch(t *testing.T) {
 }
 
 func TestValidate_TypeMismatch(t *testing.T) {
-	data := []*model.DomainData{
+	data := []*model.DomainRecord{
 		{
 			Owner:    "alice@example.com",
 			Type:     symgroup.Palindrome,
@@ -117,7 +117,7 @@ func TestValidate_TypeMismatch(t *testing.T) {
 }
 
 func TestValidate_GroupIDMismatch(t *testing.T) {
-	data := []*model.DomainData{
+	data := []*model.DomainRecord{
 		{
 			Owner:    "alice@example.com",
 			Type:     symgroup.Palindrome,
@@ -143,7 +143,7 @@ func TestValidate_GroupIDMismatch(t *testing.T) {
 
 func TestValidate_InvalidGroupID(t *testing.T) {
 	// GroupID doesn't match the calculated value
-	data := []*model.DomainData{
+	data := []*model.DomainRecord{
 		{
 			Owner:    "alice@example.com",
 			Type:     symgroup.Palindrome,
@@ -162,7 +162,7 @@ func TestValidate_InvalidGroupID(t *testing.T) {
 }
 
 func TestValidateBase_Success(t *testing.T) {
-	data := []*model.DomainData{
+	data := []*model.DomainRecord{
 		{
 			Owner:    "alice@example.com",
 			Type:     symgroup.Palindrome,
@@ -203,9 +203,9 @@ func TestValidate_AllSymmetryTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data := make([]*model.DomainData, len(tt.hostnames))
+			data := make([]*model.DomainRecord, len(tt.hostnames))
 			for i, hostname := range tt.hostnames {
-				data[i] = &model.DomainData{
+				data[i] = &model.DomainRecord{
 					Owner:    "alice@example.com",
 					Type:     tt.symmetryType,
 					Hostname: hostname,
@@ -226,7 +226,7 @@ func TestValidate_AllSymmetryTypes(t *testing.T) {
 
 func TestValidate_UnknownSymmetryType(t *testing.T) {
 	// Use an unknown symmetry type
-	data := []*model.DomainData{
+	data := []*model.DomainRecord{
 		{
 			Owner:    "alice@example.com",
 			Type:     symgroup.SymmetryType("unknown"),

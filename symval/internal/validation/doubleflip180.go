@@ -5,7 +5,7 @@ import (
 )
 
 // validateDoubleFlip180 validates double 180-degree flip symmetry
-func validateDoubleFlip180(data []*model.DomainData) (bool, error) {
+func validateDoubleFlip180(data []*model.DomainRecord) (bool, error) {
 	// Stub implementation - always returns true
 	return true, nil
 }

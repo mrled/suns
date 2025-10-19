@@ -13,7 +13,7 @@ import (
 // MemoryRepository is an in-memory implementation of DomainRepository optionally backed by a JSON file
 type MemoryRepository struct {
 	mu       sync.RWMutex
-	data     map[string]*model.DomainData
+	data     map[string]*model.DomainRecord
 	filePath string
 }
 
@@ -21,7 +21,7 @@ type MemoryRepository struct {
 // Data is stored only in memory and will be lost when the process terminates.
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{
-		data:     make(map[string]*model.DomainData),
+		data:     make(map[string]*model.DomainRecord),
 		filePath: "",
 	}
 }
@@ -31,7 +31,7 @@ func NewMemoryRepository() *MemoryRepository {
 // all changes (Store, Delete) to the file automatically.
 func NewMemoryRepositoryWithPersistence(filePath string) (*MemoryRepository, error) {
 	repo := &MemoryRepository{
-		data:     make(map[string]*model.DomainData),
+		data:     make(map[string]*model.DomainRecord),
 		filePath: filePath,
 	}
 
@@ -60,12 +60,12 @@ func (r *MemoryRepository) load() error {
 		return nil
 	}
 
-	var dataSlice []*model.DomainData
+	var dataSlice []*model.DomainRecord
 	if err := json.NewDecoder(file).Decode(&dataSlice); err != nil {
 		return err
 	}
 
-	r.data = make(map[string]*model.DomainData)
+	r.data = make(map[string]*model.DomainRecord)
 	for _, d := range dataSlice {
 		r.data[d.Hostname] = d
 	}
@@ -81,7 +81,7 @@ func (r *MemoryRepository) save() error {
 		return nil
 	}
 
-	dataSlice := make([]*model.DomainData, 0, len(r.data))
+	dataSlice := make([]*model.DomainRecord, 0, len(r.data))
 	for _, d := range r.data {
 		dataSlice = append(dataSlice, d)
 	}
@@ -98,7 +98,7 @@ func (r *MemoryRepository) save() error {
 }
 
 // Store saves domain data
-func (r *MemoryRepository) Store(ctx context.Context, data *model.DomainData) error {
+func (r *MemoryRepository) Store(ctx context.Context, data *model.DomainRecord) error {
 	if data == nil {
 		return errors.New("domain data cannot be nil")
 	}
@@ -115,7 +115,7 @@ func (r *MemoryRepository) Store(ctx context.Context, data *model.DomainData) er
 }
 
 // Get retrieves domain data by domain name
-func (r *MemoryRepository) Get(ctx context.Context, domain string) (*model.DomainData, error) {
+func (r *MemoryRepository) Get(ctx context.Context, domain string) (*model.DomainRecord, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -128,11 +128,11 @@ func (r *MemoryRepository) Get(ctx context.Context, domain string) (*model.Domai
 }
 
 // List retrieves all domain data
-func (r *MemoryRepository) List(ctx context.Context) ([]*model.DomainData, error) {
+func (r *MemoryRepository) List(ctx context.Context) ([]*model.DomainRecord, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	result := make([]*model.DomainData, 0, len(r.data))
+	result := make([]*model.DomainRecord, 0, len(r.data))
 	for _, data := range r.data {
 		result = append(result, data)
 	}
