@@ -115,7 +115,7 @@ Examples:
 		}
 
 		// Perform revalidation
-		var invalidRecords []*model.DomainRecord
+		var invalidRecords []revalidate.InvalidRecordInfo
 
 		if revalidateDryRun {
 			fmt.Println("\n--- DRY RUN MODE (no changes will be made) ---")
@@ -130,10 +130,10 @@ Examples:
 			}
 		}
 
-		// Create a map of invalid records for quick lookup
-		invalidMap := make(map[string]bool)
-		for _, record := range invalidRecords {
-			invalidMap[record.Hostname] = true
+		// Create a map of invalid records for quick lookup with reasons
+		invalidMap := make(map[string]string)
+		for _, info := range invalidRecords {
+			invalidMap[info.Record.Hostname] = info.Reason
 		}
 
 		// Print status of all records
@@ -144,7 +144,8 @@ Examples:
 
 		for i, record := range candidateRecords {
 			status := "✓ VALID"
-			if invalidMap[record.Hostname] {
+			reason, isInvalid := invalidMap[record.Hostname]
+			if isInvalid {
 				status = "✗ INVALID"
 				invalidCount++
 			} else {
@@ -156,6 +157,9 @@ Examples:
 			fmt.Printf("   Type: %s\n", record.Type)
 			fmt.Printf("   GroupID: %s\n", record.GroupID)
 			fmt.Printf("   ValidateTime: %s\n", record.ValidateTime.Format("2006-01-02 15:04:05"))
+			if isInvalid {
+				fmt.Printf("   Reason: %s\n", reason)
+			}
 			fmt.Println()
 		}
 

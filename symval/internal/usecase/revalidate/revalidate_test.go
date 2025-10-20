@@ -133,8 +133,11 @@ func TestFindInvalid_NoFilters(t *testing.T) {
 		if len(invalid) != 1 {
 			t.Errorf("expected 1 invalid record, got %d", len(invalid))
 		}
-		if len(invalid) > 0 && invalid[0].Hostname != "bad.com" {
-			t.Errorf("expected invalid record to be bad.com, got %s", invalid[0].Hostname)
+		if len(invalid) > 0 && invalid[0].Record.Hostname != "bad.com" {
+			t.Errorf("expected invalid record to be bad.com, got %s", invalid[0].Record.Hostname)
+		}
+		if len(invalid) > 0 && invalid[0].Reason == "" {
+			t.Errorf("expected invalid record to have a reason")
 		}
 	})
 }

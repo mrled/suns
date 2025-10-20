@@ -28,6 +28,12 @@ type FilterOptions struct {
 	GroupIDs []string
 }
 
+// InvalidRecordInfo contains an invalid record along with the reason it's invalid
+type InvalidRecordInfo struct {
+	Record *model.DomainRecord
+	Reason string
+}
+
 // FindInvalid checks all records in the data store for consistency.
 // It does not query DNS - it only validates existing records.
 // For each record, it ensures the record is part of a valid group using Validate.
@@ -35,8 +41,8 @@ type FilterOptions struct {
 //   - owners: checks records for those owners
 //   - domains: checks the record for those domains AND all records in any group that those domains are part of
 //   - groupIDs: checks records for those groups
-// Returns a list of invalid records.
-func (uc *RevalidateUseCase) FindInvalid(ctx context.Context, filters FilterOptions) ([]*model.DomainRecord, error) {
+// Returns a list of invalid records with their validation failure reasons.
+func (uc *RevalidateUseCase) FindInvalid(ctx context.Context, filters FilterOptions) ([]InvalidRecordInfo, error) {
 	// Get all records from repository
 	allRecords, err := uc.repository.List(ctx)
 	if err != nil {
@@ -45,7 +51,7 @@ func (uc *RevalidateUseCase) FindInvalid(ctx context.Context, filters FilterOpti
 
 	// If no records, return empty list
 	if len(allRecords) == 0 {
-		return []*model.DomainRecord{}, nil
+		return []InvalidRecordInfo{}, nil
 	}
 
 	// Apply initial filtering to get candidate records
@@ -60,15 +66,21 @@ func (uc *RevalidateUseCase) FindInvalid(ctx context.Context, filters FilterOpti
 	// Group records by GroupID
 	groupedRecords := groupByGroupID(candidateRecords)
 
-	// Validate each group and collect invalid records
-	var invalidRecords []*model.DomainRecord
+	// Validate each group and collect invalid records with reasons
+	var invalidRecords []InvalidRecordInfo
 
 	for _, groupRecords := range groupedRecords {
 		// Validate the group
 		_, err := validation.Validate(groupRecords)
 		if err != nil {
-			// If validation fails, add all records in this group to invalid list
-			invalidRecords = append(invalidRecords, groupRecords...)
+			// If validation fails, add all records in this group to invalid list with the error reason
+			reason := err.Error()
+			for _, record := range groupRecords {
+				invalidRecords = append(invalidRecords, InvalidRecordInfo{
+					Record: record,
+					Reason: reason,
+				})
+			}
 		}
 	}
 
@@ -76,7 +88,7 @@ func (uc *RevalidateUseCase) FindInvalid(ctx context.Context, filters FilterOpti
 }
 
 // FindInvalidAndDrop finds invalid records and removes them from the repository
-func (uc *RevalidateUseCase) FindInvalidAndDrop(ctx context.Context, filters FilterOptions) ([]*model.DomainRecord, error) {
+func (uc *RevalidateUseCase) FindInvalidAndDrop(ctx context.Context, filters FilterOptions) ([]InvalidRecordInfo, error) {
 	// Find invalid records
 	invalidRecords, err := uc.FindInvalid(ctx, filters)
 	if err != nil {
@@ -84,7 +96,8 @@ func (uc *RevalidateUseCase) FindInvalidAndDrop(ctx context.Context, filters Fil
 	}
 
 	// Delete each invalid record
-	for _, record := range invalidRecords {
+	for _, info := range invalidRecords {
+		record := info.Record
 		if err := uc.repository.Delete(ctx, record.GroupID, record.Hostname); err != nil {
 			// If delete fails, return what we've found so far with an error
 			return invalidRecords, fmt.Errorf("failed to delete record %s (group %s): %w", record.Hostname, record.GroupID, err)
