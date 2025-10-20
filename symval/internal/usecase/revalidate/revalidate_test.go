@@ -432,3 +432,66 @@ func TestFilterHelpers(t *testing.T) {
 		}
 	})
 }
+
+func TestFindInvalid_TwoValidOneInvalid(t *testing.T) {
+	t.Run("load two valid and one invalid record from JSON", func(t *testing.T) {
+		jsonData := `[
+  {
+    "Owner": "https://me.micahrl.com",
+    "Type": "e",
+    "Hostname": "me.micahrl.com",
+    "GroupID": "v1:a:3DOcEA7tFJAbQSbvIQ2d5c6P7k4xu2adw+gL2PYvrng=:US2J6QAgICRh/18mjTdnqM1u15yqy1TPmfU4PqsbEi4=",
+    "ValidateTime": "2025-10-19T15:56:45.938577167-05:00"
+  },
+  {
+    "Owner": "https://me.micahrl.com",
+    "Type": "e",
+    "Hostname": "me.micahrl.com",
+    "GroupID": "v1:e:3DOcEA7tFJAbQSbvIQ2d5c6P7k4xu2adw+gL2PYvrng=:US2J6QAgICRh/18mjTdnqM1u15yqy1TPmfU4PqsbEi4=",
+    "ValidateTime": "2025-10-19T15:56:45.938577167-05:00"
+  },
+  {
+    "Owner": "https://me.micahrl.com",
+    "Type": "e",
+    "Hostname": "com.micahrl.me",
+    "GroupID": "v1:e:3DOcEA7tFJAbQSbvIQ2d5c6P7k4xu2adw+gL2PYvrng=:US2J6QAgICRh/18mjTdnqM1u15yqy1TPmfU4PqsbEi4=",
+    "ValidateTime": "2025-10-19T06:43:41.736436239-05:00"
+  }
+]
+`
+		repo, err := repository.NewMemoryRepositoryFromJsonString(jsonData)
+		uc := NewRevalidateUseCase(repo)
+		ctx := context.Background()
+
+		// Verify all three records are present in the repo
+		allRecords, _ := repo.List(ctx)
+		if len(allRecords) != 3 {
+			t.Errorf("expected 3 total records, found %d", len(allRecords))
+		}
+
+		// Find invalid records
+		invalid, err := uc.FindInvalid(ctx, FilterOptions{})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		// The first record should be marked invalid
+		// The second and third records should be valid
+		// This test expects all 3 records to be valid, but the first one is actually invalid
+		// so this test should fail
+		if len(invalid) == 1 {
+			inv := invalid[0]
+			expectedGid := "v1:a:3DOcEA7tFJAbQSbvIQ2d5c6P7k4xu2adw+gL2PYvrng=:US2J6QAgICRh/18mjTdnqM1u15yqy1TPmfU4PqsbEi4="
+			if !(inv.Record.Type == "e" && inv.Record.Hostname == "me.micahrl.com" && inv.Record.GroupID == expectedGid) {
+				t.Errorf(
+					"expected the first record to be invalid, but instead the invalid record was\n\n%+v\n\nfor reason\n\n%+v\n",
+					inv.Record,
+					inv.Reason,
+				)
+			}
+		} else {
+			t.Errorf("expected 1 invalid record, got %d", len(invalid))
+		}
+
+	})
+}
