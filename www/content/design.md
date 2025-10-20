@@ -47,6 +47,25 @@ Conceptually, we need to track:
 
 These are stored in Dynamo DB.
 
+## Data access patterns
+
+* Present the data to web visitors, one of two options:
+  * Present a list of all owners, to show a membership list
+  * Present a list of all of an owner's domain groups, to have a page specific to each owner
+* Bulk processing
+  * Read through all records and validate them, deleting invalid ones
+
+We plan to show all owners on the homepage with a list of all their domain groups.
+This means that every web request for the homepage will read _every key in the table_.
+
+Later we might paginate this, or show owners' domain groups on owner-specific pages.
+
+## Data storage implementation
+
+Because we need to read every key in the table,
+it's more efficient to update a JSON file in S3 on every change to Dynamo
+than it is to read data out of Dynamo more than once.
+
 This is written to Dynamo DB,
 and sent through Dynamo DB Streams to a Lambda worker
 which builds a JSON file and uploads it to S3.
@@ -59,10 +78,53 @@ The Lambda worker is not concurrent,
 but this is ok be Dynamo has our backpressure.
 It should write to a temp key and then PUT to the final key, because S3 overwrites are atomic and strongly consistent,
 so readers won't see a partial file this way.
+This just uses Dynamo as a way to do concurrent writes,
+sort of like a queue.
 
 Nothing but the builder Lambda ever reads from Dynamo ---
 the web client and the scheduled validation lambda just read from the JSON file in S3.
 This means we aren't worried about primary/secondary keys in Dynamo.
+
+We make they Dynamo PK (partition key) a composite of: **owner + hostname + type + group ID**.
+We could make a new PK concatenating that information with no SK (sorting key).
+But the group ID already incorporates a hash of the owner and the type,
+so we can simplify this by using the group ID as the PK and the hostname as the SK.
+
+* Very simple schema.
+* No GSIs and no mirror keys (mirrors = the same data with a different PK).
+* Fits perfectly for streams or full table scans only.
+* This would be terrible for querying individual records, but we aren't doing that.
+* Doesn't allow for key updates; you have to delete+put because the PK is changing.
+  This is ok, because the only changes we make are to update the validation time (not part of PK)
+  or delete a record as invalid.
+  * If the owner wants to change their URL, they'll set new DNS records, and submit,
+    and the old records will be invalidated on the next scan.
+
+## Dynamo storage costs
+
+* Data storage costs
+    * $0.25/GB
+    * Each record is about 250B
+    * e.g. 4M records would be 1GB and $0.25/mo; 1k records $0.01/mo
+* Webhook adding/updating new records
+    * $0.000000625/write
+    * e.g. with 1000 new members per day, $0.02
+* Bulk process writing to all records:
+    * Update or delete every record once per day
+    * 30 days/mo * $0.000000625 * X records/day
+    * e.g. with a constant 1000 members with avg 5 domains each (updating 5000 records every day, 150,000 records every month), $0.09/mo
+* Reading all records once per day for bulk processing
+    * Read full table every day
+    * $0.000000125/read
+    * e.g. with a constant 1000 members with avg 5 domains each,
+      (reading 5000 records every day, 150,000 records every month), $0.01/mo
+* Web reading records
+    * Assume the member list with all domains each member owns is on the homepage: a FULL TABLE READ for every visitor
+    * e.g. with 10x daily visitors as members:
+      10,000 visitors x 30 days = 300,000 requests,
+      each request 5000 records for 1,500,000,000 records/mo: $6.25/mo
+    * $0.000000125/read
+* The costs don't matter except for reading Dynamo data directly to the web. The smoothest transition is with streaming dynamo->lambda->s3 export.
 
 ## Invalid state
 
