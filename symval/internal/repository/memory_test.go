@@ -158,3 +158,115 @@ func TestMemoryRepository_NonPersistent(t *testing.T) {
 		t.Errorf("Expected ErrNotFound after delete, got %v", err)
 	}
 }
+
+func TestMemoryRepository_FromJsonString(t *testing.T) {
+	ctx := context.Background()
+
+	// Create test data as JSON string
+	// Note: Field names match the Go struct field names (capitalized) as Go's default JSON marshaling is used
+	// Type values are single characters as defined in symgroup package
+	jsonString := `[
+		{
+			"Owner": "alice",
+			"Type": "a",
+			"Hostname": "example.com",
+			"GroupID": "group-123",
+			"ValidateTime": "2025-01-15T10:00:00Z"
+		},
+		{
+			"Owner": "bob",
+			"Type": "d",
+			"Hostname": "test.org",
+			"GroupID": "group-456",
+			"ValidateTime": "2025-01-16T12:00:00Z"
+		}
+	]`
+
+	// Create repository from JSON string
+	repo, err := NewMemoryRepositoryFromJsonString(jsonString)
+	if err != nil {
+		t.Fatalf("Failed to create repository from JSON string: %v", err)
+	}
+
+	// Verify first record
+	record1, err := repo.Get(ctx, "example.com")
+	if err != nil {
+		t.Fatalf("Failed to get example.com: %v", err)
+	}
+	if record1.Owner != "alice" {
+		t.Errorf("Expected owner alice, got %s", record1.Owner)
+	}
+	if record1.Type != symgroup.Palindrome {
+		t.Errorf("Expected type palindrome, got %s", record1.Type)
+	}
+	if record1.GroupID != "group-123" {
+		t.Errorf("Expected groupID group-123, got %s", record1.GroupID)
+	}
+
+	// Verify second record
+	record2, err := repo.Get(ctx, "test.org")
+	if err != nil {
+		t.Fatalf("Failed to get test.org: %v", err)
+	}
+	if record2.Owner != "bob" {
+		t.Errorf("Expected owner bob, got %s", record2.Owner)
+	}
+	if record2.Type != symgroup.MirrorText {
+		t.Errorf("Expected type mirror_text, got %s", record2.Type)
+	}
+
+	// Verify List contains both records
+	allData, err := repo.List(ctx)
+	if err != nil {
+		t.Fatalf("Failed to list data: %v", err)
+	}
+	if len(allData) != 2 {
+		t.Errorf("Expected 2 items, got %d", len(allData))
+	}
+
+	// Verify repository is not persistent (no file path)
+	testData := &model.DomainRecord{
+		Owner:        "charlie",
+		Type:         symgroup.Flip180,
+		Hostname:     "new.com",
+		GroupID:      "group-789",
+		ValidateTime: time.Now(),
+	}
+	if err := repo.Store(ctx, testData); err != nil {
+		t.Fatalf("Failed to store new data: %v", err)
+	}
+
+	// Verify new data is stored in memory
+	retrieved, err := repo.Get(ctx, "new.com")
+	if err != nil {
+		t.Fatalf("Failed to get new.com: %v", err)
+	}
+	if retrieved.Owner != "charlie" {
+		t.Errorf("Expected owner charlie, got %s", retrieved.Owner)
+	}
+}
+
+func TestMemoryRepository_FromJsonString_Empty(t *testing.T) {
+	// Test with empty array
+	repo, err := NewMemoryRepositoryFromJsonString("[]")
+	if err != nil {
+		t.Fatalf("Failed to create repository from empty JSON: %v", err)
+	}
+
+	ctx := context.Background()
+	allData, err := repo.List(ctx)
+	if err != nil {
+		t.Fatalf("Failed to list data: %v", err)
+	}
+	if len(allData) != 0 {
+		t.Errorf("Expected 0 items, got %d", len(allData))
+	}
+}
+
+func TestMemoryRepository_FromJsonString_Invalid(t *testing.T) {
+	// Test with invalid JSON
+	_, err := NewMemoryRepositoryFromJsonString("invalid json")
+	if err == nil {
+		t.Error("Expected error for invalid JSON, got nil")
+	}
+}

@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/mrled/suns/symval/internal/model"
@@ -50,6 +52,38 @@ func NewMemoryRepositoryWithPersistence(filePath string) (*MemoryRepository, err
 	return repo, nil
 }
 
+// NewMemoryRepositoryFromJsonString creates a new in-memory repository initialized with data from a JSON string.
+// The repository will not be backed by a file and will not persist changes.
+// The JSON string should contain an array of DomainRecord objects.
+func NewMemoryRepositoryFromJsonString(jsonString string) (*MemoryRepository, error) {
+	repo := &MemoryRepository{
+		data:     make(map[string]*model.DomainRecord),
+		filePath: "",
+	}
+
+	// Parse JSON from the string
+	if err := repo.loadFromReader(strings.NewReader(jsonString)); err != nil {
+		return nil, err
+	}
+
+	return repo, nil
+}
+
+// loadFromReader reads JSON data from a reader and populates the in-memory data
+func (r *MemoryRepository) loadFromReader(reader io.Reader) error {
+	var dataSlice []*model.DomainRecord
+	if err := json.NewDecoder(reader).Decode(&dataSlice); err != nil {
+		return err
+	}
+
+	r.data = make(map[string]*model.DomainRecord)
+	for _, d := range dataSlice {
+		r.data[d.Hostname] = d
+	}
+
+	return nil
+}
+
 // load reads the JSON file and populates the in-memory data
 func (r *MemoryRepository) load() error {
 	file, err := os.Open(r.filePath)
@@ -67,17 +101,7 @@ func (r *MemoryRepository) load() error {
 		return nil
 	}
 
-	var dataSlice []*model.DomainRecord
-	if err := json.NewDecoder(file).Decode(&dataSlice); err != nil {
-		return err
-	}
-
-	r.data = make(map[string]*model.DomainRecord)
-	for _, d := range dataSlice {
-		r.data[d.Hostname] = d
-	}
-
-	return nil
+	return r.loadFromReader(file)
 }
 
 // save writes the in-memory data to the JSON file
