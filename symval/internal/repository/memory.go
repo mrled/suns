@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -85,6 +86,13 @@ func (r *MemoryRepository) loadFromReader(reader io.Reader) error {
 	r.data = make(map[string]*model.DomainRecord)
 	for _, d := range dataSlice {
 		key := makeKey(d.GroupID, d.Hostname)
+
+		// Print a warning if the key already exists.
+		// This will not be possible in Dynamo, where a PUT with the same PK and SK will overwrite the existing item.
+		if _, exists := r.data[key]; exists {
+			fmt.Fprintf(os.Stderr, "Warning: duplicate entry found for GroupID=%s, Hostname=%s (keeping last occurrence)\n", d.GroupID, d.Hostname)
+		}
+
 		r.data[key] = d
 	}
 
