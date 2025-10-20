@@ -17,12 +17,12 @@ type DomainRepository interface {
 	// Store saves domain data
 	Store(ctx context.Context, data *model.DomainRecord) error
 
-	// Get retrieves domain data by domain name
-	Get(ctx context.Context, domain string) (*model.DomainRecord, error)
+	// Get retrieves domain data by group ID and domain name (the composite key)
+	Get(ctx context.Context, groupID, domain string) (*model.DomainRecord, error)
 
 	// List retrieves all domain data
 	List(ctx context.Context) ([]*model.DomainRecord, error)
 
-	// Delete removes domain data by domain name
-	Delete(ctx context.Context, domain string) error
+	// Delete removes domain data by group ID and domain name (the composite key)
+	Delete(ctx context.Context, groupID, domain string) error
 }

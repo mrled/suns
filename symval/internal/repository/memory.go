@@ -20,6 +20,12 @@ type MemoryRepository struct {
 	filePath string
 }
 
+// makeKey creates a composite key from groupID and hostname
+// This matches the DynamoDB schema where PK=groupID and SK=hostname
+func makeKey(groupID, hostname string) string {
+	return groupID + "#" + hostname
+}
+
 // NewMemoryRepository creates a new in-memory repository without persistence.
 // Data is stored only in memory and will be lost when the process terminates.
 func NewMemoryRepository() *MemoryRepository {
@@ -78,7 +84,8 @@ func (r *MemoryRepository) loadFromReader(reader io.Reader) error {
 
 	r.data = make(map[string]*model.DomainRecord)
 	for _, d := range dataSlice {
-		r.data[d.Hostname] = d
+		key := makeKey(d.GroupID, d.Hostname)
+		r.data[key] = d
 	}
 
 	return nil
@@ -137,20 +144,22 @@ func (r *MemoryRepository) Store(ctx context.Context, data *model.DomainRecord) 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if _, exists := r.data[data.Hostname]; exists {
+	key := makeKey(data.GroupID, data.Hostname)
+	if _, exists := r.data[key]; exists {
 		return ErrAlreadyExists
 	}
 
-	r.data[data.Hostname] = data
+	r.data[key] = data
 	return r.save()
 }
 
-// Get retrieves domain data by domain name
-func (r *MemoryRepository) Get(ctx context.Context, domain string) (*model.DomainRecord, error) {
+// Get retrieves domain data by group ID and domain name
+func (r *MemoryRepository) Get(ctx context.Context, groupID, domain string) (*model.DomainRecord, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	data, exists := r.data[domain]
+	key := makeKey(groupID, domain)
+	data, exists := r.data[key]
 	if !exists {
 		return nil, ErrNotFound
 	}
@@ -171,15 +180,16 @@ func (r *MemoryRepository) List(ctx context.Context) ([]*model.DomainRecord, err
 	return result, nil
 }
 
-// Delete removes domain data by domain name
-func (r *MemoryRepository) Delete(ctx context.Context, domain string) error {
+// Delete removes domain data by group ID and domain name
+func (r *MemoryRepository) Delete(ctx context.Context, groupID, domain string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if _, exists := r.data[domain]; !exists {
+	key := makeKey(groupID, domain)
+	if _, exists := r.data[key]; !exists {
 		return ErrNotFound
 	}
 
-	delete(r.data, domain)
+	delete(r.data, key)
 	return r.save()
 }

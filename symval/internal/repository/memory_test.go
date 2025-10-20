@@ -47,7 +47,7 @@ func TestMemoryRepository_JSONPersistence(t *testing.T) {
 	}
 
 	// Verify data was loaded from file
-	retrieved, err := repo2.Get(ctx, "example.com")
+	retrieved, err := repo2.Get(ctx, "group-123", "example.com")
 	if err != nil {
 		t.Fatalf("Failed to get data: %v", err)
 	}
@@ -94,7 +94,7 @@ func TestMemoryRepository_DeletePersistence(t *testing.T) {
 		t.Fatalf("Failed to store data: %v", err)
 	}
 
-	if err := repo.Delete(ctx, "example.com"); err != nil {
+	if err := repo.Delete(ctx, "group-456", "example.com"); err != nil {
 		t.Fatalf("Failed to delete data: %v", err)
 	}
 
@@ -104,7 +104,7 @@ func TestMemoryRepository_DeletePersistence(t *testing.T) {
 		t.Fatalf("Failed to create second repository: %v", err)
 	}
 
-	_, err = repo2.Get(ctx, "example.com")
+	_, err = repo2.Get(ctx, "group-456", "example.com")
 	if err != ErrNotFound {
 		t.Errorf("Expected ErrNotFound, got %v", err)
 	}
@@ -129,7 +129,7 @@ func TestMemoryRepository_NonPersistent(t *testing.T) {
 	}
 
 	// Verify data is in memory
-	retrieved, err := repo.Get(ctx, "example.com")
+	retrieved, err := repo.Get(ctx, "group-789", "example.com")
 	if err != nil {
 		t.Fatalf("Failed to get data: %v", err)
 	}
@@ -149,11 +149,11 @@ func TestMemoryRepository_NonPersistent(t *testing.T) {
 	}
 
 	// Verify Delete works
-	if err := repo.Delete(ctx, "example.com"); err != nil {
+	if err := repo.Delete(ctx, "group-789", "example.com"); err != nil {
 		t.Fatalf("Failed to delete data: %v", err)
 	}
 
-	_, err = repo.Get(ctx, "example.com")
+	_, err = repo.Get(ctx, "group-789", "example.com")
 	if err != ErrNotFound {
 		t.Errorf("Expected ErrNotFound after delete, got %v", err)
 	}
@@ -189,7 +189,7 @@ func TestMemoryRepository_FromJsonString(t *testing.T) {
 	}
 
 	// Verify first record
-	record1, err := repo.Get(ctx, "example.com")
+	record1, err := repo.Get(ctx, "group-123", "example.com")
 	if err != nil {
 		t.Fatalf("Failed to get example.com: %v", err)
 	}
@@ -204,7 +204,7 @@ func TestMemoryRepository_FromJsonString(t *testing.T) {
 	}
 
 	// Verify second record
-	record2, err := repo.Get(ctx, "test.org")
+	record2, err := repo.Get(ctx, "group-456", "test.org")
 	if err != nil {
 		t.Fatalf("Failed to get test.org: %v", err)
 	}
@@ -237,7 +237,7 @@ func TestMemoryRepository_FromJsonString(t *testing.T) {
 	}
 
 	// Verify new data is stored in memory
-	retrieved, err := repo.Get(ctx, "new.com")
+	retrieved, err := repo.Get(ctx, "group-789", "new.com")
 	if err != nil {
 		t.Fatalf("Failed to get new.com: %v", err)
 	}
