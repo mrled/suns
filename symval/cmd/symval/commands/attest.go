@@ -17,8 +17,9 @@ var (
 )
 
 var attestCmd = &cobra.Command{
-	Use:   "attest <owner> <type> <domain1> [domain2]...",
-	Short: "Attest a group of domains for consistency and validity",
+	Use:     "attest <owner> <type> <domain1> [domain2]...",
+	Short:   "Attest a group of domains for consistency and validity",
+	GroupID: "attestation",
 	Long: `Attest verifies that a group of domains forms a valid symmetric group.
 
 It performs the following checks:

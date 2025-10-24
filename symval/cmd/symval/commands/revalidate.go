@@ -20,8 +20,9 @@ var (
 )
 
 var revalidateCmd = &cobra.Command{
-	Use:   "revalidate",
-	Short: "Revalidate domain records in the data store",
+	Use:     "revalidate",
+	Short:   "Revalidate domain records in the data store",
+	GroupID: "attestation",
 	Long: `Revalidate checks all records in the data store for consistency.
 
 It does not query DNS - it only validates existing records. For each record,

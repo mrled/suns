@@ -12,8 +12,9 @@ import (
 )
 
 var validateCmd = &cobra.Command{
-	Use:   "valgrp <owner> <type> <groupid> <hostname1> [hostname2] [hostname3...]",
-	Short: "Validate passed-in group data",
+	Use:     "valgrp <owner> <type> <groupid> <hostname1> [hostname2] [hostname3...]",
+	Short:   "Validate passed-in group data",
+	GroupID: "attestation",
 	Long: `Validate group data by passing in specified owner, type, group ID, and one or more hostnames.
 
 Arguments:

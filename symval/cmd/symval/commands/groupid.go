@@ -11,8 +11,9 @@ import (
 )
 
 var groupidCmd = &cobra.Command{
-	Use:   "groupid <owner> <type> <hostname1> [hostname2] [hostname3...]",
-	Short: "Calculate a group ID",
+	Use:     "groupid <owner> <type> <hostname1> [hostname2] [hostname3...]",
+	Short:   "Calculate a group ID",
+	GroupID: "attestation",
 	Long: `Calculate a group ID by hashing owner and all hostnames, prepending type and version.
 
 Arguments:

@@ -16,9 +16,19 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.AddCommand(attestCmd)
+	// Disable sorting to preserve command order
+	cobra.EnableCommandSorting = false
+
+	// Add command groups
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "attestation",
+		Title: "Attestation Commands:",
+	})
+
+	// Add commands in the specified order
 	rootCmd.AddCommand(groupidCmd)
 	rootCmd.AddCommand(lookupCmd)
-	rootCmd.AddCommand(revalidateCmd)
 	rootCmd.AddCommand(validateCmd)
+	rootCmd.AddCommand(revalidateCmd)
+	rootCmd.AddCommand(attestCmd)
 }
