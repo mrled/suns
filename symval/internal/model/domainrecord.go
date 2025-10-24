@@ -14,3 +14,14 @@ type DomainRecord struct {
 	GroupID      string
 	ValidateTime time.Time
 }
+
+// GroupByGroupID groups domain records by their GroupID
+func GroupByGroupID(records []*DomainRecord) map[string][]*DomainRecord {
+	grouped := make(map[string][]*DomainRecord)
+
+	for _, record := range records {
+		grouped[record.GroupID] = append(grouped[record.GroupID], record)
+	}
+
+	return grouped
+}

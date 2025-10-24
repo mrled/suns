@@ -64,7 +64,7 @@ func (uc *RevalidateUseCase) FindInvalid(ctx context.Context, filters FilterOpti
 	}
 
 	// Group records by GroupID
-	groupedRecords := groupByGroupID(candidateRecords)
+	groupedRecords := model.GroupByGroupID(candidateRecords)
 
 	// Validate each group and collect invalid records with reasons
 	var invalidRecords []InvalidRecordInfo
@@ -194,15 +194,4 @@ func expandForDomainFilter(allRecords []*model.DomainRecord, candidateRecords []
 	}
 
 	return expanded
-}
-
-// groupByGroupID groups domain records by their GroupID
-func groupByGroupID(records []*model.DomainRecord) map[string][]*model.DomainRecord {
-	grouped := make(map[string][]*model.DomainRecord)
-
-	for _, record := range records {
-		grouped[record.GroupID] = append(grouped[record.GroupID], record)
-	}
-
-	return grouped
 }
