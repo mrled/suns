@@ -27,7 +27,7 @@ Want to join?
 
 Any domain owner can join by creating a palindrome of their domain.
 For instance, if you own `example.institute`,
-create a DNS record for `etutitsni.elpmaxe.example.instutite`.
+create a DNS record for `etutitsni.elpmaxe.example.institute`.
 
 This works fine even for subdomains.
 If you control DNS for a subdomain like `example.com.us`,
