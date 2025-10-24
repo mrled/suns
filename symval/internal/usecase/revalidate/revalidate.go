@@ -40,6 +40,7 @@ type InvalidRecordInfo struct {
 //   - owners: checks records for those owners
 //   - domains: checks the record for those domains AND all records in any group that those domains are part of
 //   - groupIDs: checks records for those groups
+//
 // Returns a list of invalid records with their validation failure reasons.
 func (uc *RevalidateUseCase) FindInvalid(ctx context.Context, filters FilterOptions) ([]InvalidRecordInfo, error) {
 	// Get all records from repository
