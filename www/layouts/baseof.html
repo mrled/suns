@@ -27,6 +27,8 @@
 
     {{- $siteCss := resources.Get "style/site.css" | resources.Fingerprint }}
     <link rel="stylesheet" href="{{ $siteCss.Permalink }}">
+
+    {{ with .Site.Params.FathomSiteCode }}<script src="https://cdn.usefathom.com/script.js" data-site="{{ . }}" defer></script>{{ end }}
   </head>
 
   <body>

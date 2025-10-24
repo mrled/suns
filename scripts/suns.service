@@ -13,7 +13,7 @@ After=network.target
 WorkingDirectory=%h/work/SUNS/www
 Environment=PATH=%h/.bun/bin:%h/.local/bin:/usr/local/bin:/usr/bin
 Restart=always
-ExecStart=%h/.local/bin/hugo server --bind 0.0.0.0 --port 7867 --baseURL https://suns.chineseroom.micahrl.com/ --appendPort=false
+ExecStart=%h/.local/bin/hugo server --bind 0.0.0.0 --port 7867 --baseURL https://suns.chineseroom.micahrl.com/ --appendPort=false --environment development
 
 [Install]
 WantedBy=default.target
