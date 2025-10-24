@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/repository"
+	"github.com/mrled/suns/symval/internal/repository/memrepo"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/usecase/reattest"
 	"github.com/spf13/cobra"
@@ -46,7 +46,7 @@ Examples:
 			return fmt.Errorf("--dynamo flag is not yet implemented")
 		} else if reattestFilePath != "" {
 			// Use JSON file persistence
-			memRepo, err := repository.NewMemoryRepositoryWithPersistence(reattestFilePath)
+			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(reattestFilePath)
 			if err != nil {
 				return fmt.Errorf("failed to create repository: %w", err)
 			}
@@ -54,7 +54,7 @@ Examples:
 			fmt.Printf("Using JSON persistence: %s\n", reattestFilePath)
 		} else {
 			// Use in-memory only (no persistence)
-			repo = repository.NewMemoryRepository()
+			repo = memrepo.NewMemoryRepository()
 			fmt.Println("Using in-memory storage (no persistence)")
 		}
 

@@ -7,13 +7,13 @@ import (
 
 	"github.com/mrled/suns/symval/internal/groupid"
 	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/repository"
+	"github.com/mrled/suns/symval/internal/repository/memrepo"
 	"github.com/mrled/suns/symval/internal/symgroup"
 )
 
 // setupTestRepo creates a memory repository with test data
 func setupTestRepo(t *testing.T, records []*model.DomainRecord) model.DomainRepository {
-	repo := repository.NewMemoryRepository()
+	repo := memrepo.NewMemoryRepository()
 	ctx := context.Background()
 
 	for _, record := range records {
@@ -74,7 +74,7 @@ func createInvalidGroup(t *testing.T, owner string, domains []string) []*model.D
 
 func TestFindInvalid_NoFilters(t *testing.T) {
 	t.Run("empty repository", func(t *testing.T) {
-		repo := repository.NewMemoryRepository()
+		repo := memrepo.NewMemoryRepository()
 		uc := NewRevalidateUseCase(repo)
 		ctx := context.Background()
 
@@ -438,7 +438,7 @@ func TestFindInvalid_TwoValidOneInvalid(t *testing.T) {
   }
 ]
 `
-		repo, err := repository.NewMemoryRepositoryFromJsonString(jsonData)
+		repo, err := memrepo.NewMemoryRepositoryFromJsonString(jsonData)
 		uc := NewRevalidateUseCase(repo)
 		ctx := context.Background()
 

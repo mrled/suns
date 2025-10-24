@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/repository"
+	"github.com/mrled/suns/symval/internal/repository/memrepo"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/symgroup"
 	"github.com/mrled/suns/symval/internal/usecase/attestation"
@@ -69,7 +69,7 @@ Example:
 		var repo model.DomainRepository
 		if attestFilePath != "" {
 			// Use JSON file persistence
-			memRepo, err := repository.NewMemoryRepositoryWithPersistence(attestFilePath)
+			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(attestFilePath)
 			if err != nil {
 				return fmt.Errorf("failed to create repository: %w", err)
 			}
@@ -77,7 +77,7 @@ Example:
 			fmt.Printf("Using JSON persistence: %s\n", attestFilePath)
 		} else {
 			// Use in-memory only (no persistence)
-			repo = repository.NewMemoryRepository()
+			repo = memrepo.NewMemoryRepository()
 		}
 
 		// Create DNS service and attestation use case
