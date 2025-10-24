@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mrled/suns/symval/internal/model"
 	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/symgroup"
@@ -65,7 +66,7 @@ Example:
 		symmetryType := symgroup.SymmetryType(typeCode)
 
 		// Create repository based on persistence flags
-		var repo repository.DomainRepository
+		var repo model.DomainRepository
 		if attestFilePath != "" {
 			// Use JSON file persistence
 			memRepo, err := repository.NewMemoryRepositoryWithPersistence(attestFilePath)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/symgroup"
 	"github.com/mrled/suns/symval/internal/usecase/attestation"
@@ -14,11 +13,11 @@ import (
 // ReattestUseCase handles re-attestation of all groups in the data store
 type ReattestUseCase struct {
 	dnsService *dnsclaims.Service
-	repository repository.DomainRepository
+	repository model.DomainRepository
 }
 
 // NewReattestUseCase creates a new reattest use case
-func NewReattestUseCase(dnsService *dnsclaims.Service, repo repository.DomainRepository) *ReattestUseCase {
+func NewReattestUseCase(dnsService *dnsclaims.Service, repo model.DomainRepository) *ReattestUseCase {
 	return &ReattestUseCase{
 		dnsService: dnsService,
 		repository: repo,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mrled/suns/symval/internal/model"
 	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/usecase/reattest"
@@ -40,7 +41,7 @@ Examples:
   symval reattest --file ./data.json --dry-run`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Create repository based on persistence flags
-		var repo repository.DomainRepository
+		var repo model.DomainRepository
 		if reattestDynamoName != "" {
 			return fmt.Errorf("--dynamo flag is not yet implemented")
 		} else if reattestFilePath != "" {

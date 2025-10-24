@@ -7,7 +7,6 @@ import (
 
 	"github.com/mrled/suns/symval/internal/groupid"
 	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/symgroup"
 	"github.com/mrled/suns/symval/internal/usecase/concheck"
@@ -17,12 +16,12 @@ import (
 // AttestationUseCase handles attestation of domain groups
 type AttestationUseCase struct {
 	dnsService *dnsclaims.Service
-	repository repository.DomainRepository
+	repository model.DomainRepository
 }
 
 // NewAttestationUseCase creates a new attestation use case
 // If repository is nil, attestation results will not be persisted
-func NewAttestationUseCase(dnsService *dnsclaims.Service, repo repository.DomainRepository) *AttestationUseCase {
+func NewAttestationUseCase(dnsService *dnsclaims.Service, repo model.DomainRepository) *AttestationUseCase {
 	return &AttestationUseCase{
 		dnsService: dnsService,
 		repository: repo,

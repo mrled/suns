@@ -12,7 +12,7 @@ import (
 )
 
 // setupTestRepo creates a memory repository with test data
-func setupTestRepo(t *testing.T, records []*model.DomainRecord) repository.DomainRepository {
+func setupTestRepo(t *testing.T, records []*model.DomainRecord) model.DomainRepository {
 	repo := repository.NewMemoryRepository()
 	ctx := context.Background()
 

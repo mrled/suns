@@ -105,8 +105,8 @@ func TestMemoryRepository_DeletePersistence(t *testing.T) {
 	}
 
 	_, err = repo2.Get(ctx, "group-456", "example.com")
-	if err != ErrNotFound {
-		t.Errorf("Expected ErrNotFound, got %v", err)
+	if err != model.ErrNotFound {
+		t.Errorf("Expected model.ErrNotFound, got %v", err)
 	}
 }
 
@@ -154,8 +154,8 @@ func TestMemoryRepository_NonPersistent(t *testing.T) {
 	}
 
 	_, err = repo.Get(ctx, "group-789", "example.com")
-	if err != ErrNotFound {
-		t.Errorf("Expected ErrNotFound after delete, got %v", err)
+	if err != model.ErrNotFound {
+		t.Errorf("Expected model.ErrNotFound after delete, got %v", err)
 	}
 }
 

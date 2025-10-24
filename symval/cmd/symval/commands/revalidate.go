@@ -59,7 +59,7 @@ Examples:
   symval revalidate --file ./data.json -g "v1:a:hash1:hash2"`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Create repository based on persistence flags
-		var repo repository.DomainRepository
+		var repo model.DomainRepository
 		if revalidateDynamoName != "" {
 			return fmt.Errorf("--dynamo flag is not yet implemented")
 		} else if revalidateFilePath != "" {

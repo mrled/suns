@@ -154,7 +154,7 @@ func (r *MemoryRepository) Store(ctx context.Context, data *model.DomainRecord) 
 
 	key := makeKey(data.GroupID, data.Hostname)
 	if _, exists := r.data[key]; exists {
-		return ErrAlreadyExists
+		return model.ErrAlreadyExists
 	}
 
 	r.data[key] = data
@@ -169,7 +169,7 @@ func (r *MemoryRepository) Get(ctx context.Context, groupID, domain string) (*mo
 	key := makeKey(groupID, domain)
 	data, exists := r.data[key]
 	if !exists {
-		return nil, ErrNotFound
+		return nil, model.ErrNotFound
 	}
 
 	return data, nil
@@ -195,7 +195,7 @@ func (r *MemoryRepository) Delete(ctx context.Context, groupID, domain string) e
 
 	key := makeKey(groupID, domain)
 	if _, exists := r.data[key]; !exists {
-		return ErrNotFound
+		return model.ErrNotFound
 	}
 
 	delete(r.data, key)

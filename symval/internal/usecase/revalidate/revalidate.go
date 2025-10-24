@@ -5,17 +5,16 @@ import (
 	"fmt"
 
 	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/validation"
 )
 
 // RevalidateUseCase handles revalidation of domain records in the data store
 type RevalidateUseCase struct {
-	repository repository.DomainRepository
+	repository model.DomainRepository
 }
 
 // NewRevalidateUseCase creates a new revalidate use case
-func NewRevalidateUseCase(repo repository.DomainRepository) *RevalidateUseCase {
+func NewRevalidateUseCase(repo model.DomainRepository) *RevalidateUseCase {
 	return &RevalidateUseCase{
 		repository: repo,
 	}
