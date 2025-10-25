@@ -12,10 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	attestFilePath   string
-	attestDynamoName string
-)
+var attestFlags PersistenceFlags
 
 var attestCmd = &cobra.Command{
 	Use:     "attest <owner> <type> <domain1> [domain2]...",
@@ -44,8 +41,8 @@ Example:
 	Args: cobra.MinimumNArgs(3),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Check for DynamoDB flag (not yet implemented)
-		if attestDynamoName != "" {
-			return fmt.Errorf("--dynamo flag is not yet implemented")
+		if attestFlags.DynamoTable != "" {
+			return fmt.Errorf("--dynamodb-table flag is not yet implemented")
 		}
 
 		owner := args[0]
@@ -67,14 +64,14 @@ Example:
 
 		// Create repository based on persistence flags
 		var repo model.DomainRepository
-		if attestFilePath != "" {
+		if attestFlags.FilePath != "" {
 			// Use JSON file persistence
-			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(attestFilePath)
+			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(attestFlags.FilePath)
 			if err != nil {
 				return fmt.Errorf("failed to create repository: %w", err)
 			}
 			repo = memRepo
-			fmt.Printf("Using JSON persistence: %s\n", attestFilePath)
+			fmt.Printf("Using JSON persistence: %s\n", attestFlags.FilePath)
 		} else {
 			// Use in-memory only (no persistence)
 			repo = memrepo.NewMemoryRepository()
@@ -97,8 +94,8 @@ Example:
 		if result.IsValid {
 			fmt.Println("\n✓ Attestation PASSED")
 			fmt.Println("The domains form a valid symmetric group.")
-			if attestFilePath != "" {
-				fmt.Printf("Results persisted to: %s\n", attestFilePath)
+			if attestFlags.FilePath != "" {
+				fmt.Printf("Results persisted to: %s\n", attestFlags.FilePath)
 			}
 		} else {
 			fmt.Println("\n✗ Attestation FAILED")
@@ -112,6 +109,5 @@ Example:
 }
 
 func init() {
-	attestCmd.Flags().StringVarP(&attestFilePath, "file", "f", "", "Path to JSON file for persistence")
-	attestCmd.Flags().StringVarP(&attestDynamoName, "dynamo", "d", "", "DynamoDB table name for persistence")
+	addPersistenceFlags(attestCmd, &attestFlags)
 }

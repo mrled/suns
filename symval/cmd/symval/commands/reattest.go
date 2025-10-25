@@ -11,11 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	reattestFilePath   string
-	reattestDynamoName string
-	reattestDryRun     bool
-)
+var reattestFlags PersistenceFlags
 
 var reattestCmd = &cobra.Command{
 	Use:     "reattest",
@@ -42,16 +38,16 @@ Examples:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Create repository based on persistence flags
 		var repo model.DomainRepository
-		if reattestDynamoName != "" {
-			return fmt.Errorf("--dynamo flag is not yet implemented")
-		} else if reattestFilePath != "" {
+		if reattestFlags.DynamoTable != "" {
+			return fmt.Errorf("--dynamodb-table flag is not yet implemented")
+		} else if reattestFlags.FilePath != "" {
 			// Use JSON file persistence
-			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(reattestFilePath)
+			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(reattestFlags.FilePath)
 			if err != nil {
 				return fmt.Errorf("failed to create repository: %w", err)
 			}
 			repo = memRepo
-			fmt.Printf("Using JSON persistence: %s\n", reattestFilePath)
+			fmt.Printf("Using JSON persistence: %s\n", reattestFlags.FilePath)
 		} else {
 			// Use in-memory only (no persistence)
 			repo = memrepo.NewMemoryRepository()
@@ -69,7 +65,7 @@ Examples:
 		var results []reattest.GroupAttestResult
 		var err error
 
-		if reattestDryRun {
+		if reattestFlags.DryRun {
 			fmt.Println("\n--- DRY RUN MODE (no changes will be made) ---")
 			results, err = reattestUC.ReattestAll(ctx)
 			if err != nil {
@@ -117,10 +113,10 @@ Examples:
 		fmt.Printf("Summary: %d valid, %d invalid\n", validCount, invalidCount)
 
 		if invalidCount > 0 {
-			if !reattestDryRun {
+			if !reattestFlags.DryRun {
 				fmt.Printf("✓ Removed %d invalid group(s)\n", invalidCount)
-				if reattestFilePath != "" {
-					fmt.Printf("Changes persisted to: %s\n", reattestFilePath)
+				if reattestFlags.FilePath != "" {
+					fmt.Printf("Changes persisted to: %s\n", reattestFlags.FilePath)
 				}
 			} else {
 				fmt.Printf("(No changes made - dry run)\n")
@@ -132,7 +128,5 @@ Examples:
 }
 
 func init() {
-	reattestCmd.Flags().StringVarP(&reattestFilePath, "file", "f", "", "Path to JSON file for persistence")
-	reattestCmd.Flags().StringVarP(&reattestDynamoName, "dynamo", "d", "", "DynamoDB table name for persistence")
-	reattestCmd.Flags().BoolVarP(&reattestDryRun, "dry-run", "r", false, "Show what would be removed without making changes")
+	addPersistenceFlags(reattestCmd, &reattestFlags)
 }
