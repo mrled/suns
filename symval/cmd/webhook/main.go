@@ -14,8 +14,9 @@ import (
 )
 
 var (
-	dynamoURL string
-	repo      model.DomainRepository
+	dynamoURL   string
+	dynamoTable string
+	repo        model.DomainRepository
 )
 
 func init() {
@@ -24,6 +25,12 @@ func init() {
 		log.Fatal("DYNAMO_URL environment variable is required")
 	}
 	log.Printf("Using DynamoDB URL: %s", dynamoURL)
+
+	dynamoTable = os.Getenv("DYNAMO_TABLE")
+	if dynamoTable == "" {
+		log.Fatal("DYNAMO_TABLE environment variable is required")
+	}
+	log.Printf("Using DynamoDB table: %s", dynamoTable)
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -50,21 +57,16 @@ func main() {
 		o.BaseEndpoint = &dynamoURL
 	})
 
-	// Initialize repository (TODO: implement dynamorepo.New())
-	_ = client // Will be used when dynamorepo is implemented
-	repo = nil // Placeholder until dynamorepo.New() is implemented
-	log.Printf("DynamoDB repository stub: %s", dynamorepo.NotImplemented)
+	// Initialize DynamoDB repository
+	repo = dynamorepo.NewDynamoRepository(client, dynamoTable)
+	log.Printf("DynamoDB repository initialized with table: %s", dynamoTable)
 
 	// Stub operation: List records to verify connection
-	if repo != nil {
-		records, err := repo.List(ctx)
-		if err != nil {
-			log.Printf("Warning: Failed to list records: %v", err)
-		} else {
-			log.Printf("Successfully connected to DynamoDB. Found %d records", len(records))
-		}
+	records, err := repo.List(ctx)
+	if err != nil {
+		log.Printf("Warning: Failed to list records: %v", err)
 	} else {
-		log.Printf("Skipping connection test - repository not yet implemented")
+		log.Printf("Successfully connected to DynamoDB. Found %d records", len(records))
 	}
 
 	// Start Lambda handler
