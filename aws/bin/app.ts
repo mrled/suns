@@ -7,6 +7,7 @@ import { CertStack } from '../lib/CertStack';
 import { StorageStack } from '../lib/StorageStack';
 import { EdgeStack } from '../lib/EdgeStack';
 import { DnsStack } from '../lib/DnsStack';
+import { DynamoDbStack } from '../lib/DynamoDbStack';
 
 const app = new cdk.App();
 
@@ -54,5 +55,11 @@ const dnsStack = new DnsStack(app, `${config.stackPrefix}DnsStack`, {
 });
 dnsStack.addDependency(dnsZoneStack);
 dnsStack.addDependency(edgeStack);
+
+// DynamoDB Stack - can be in any region
+const dynamoDbStack = new DynamoDbStack(app, `${config.stackPrefix}DynamoDbStack`, {
+  env: { account, region },
+  description: `DynamoDB table for ${config.domainName}`,
+});
 
 app.synth();
