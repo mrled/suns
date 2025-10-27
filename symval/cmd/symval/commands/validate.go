@@ -12,9 +12,11 @@ import (
 )
 
 var validateCmd = &cobra.Command{
-	Use:     "validate <owner> <type> <groupid> <hostname1> [hostname2] [hostname3...]",
-	Short:   "Validate passed-in group data",
-	GroupID: "attestation",
+	Use:           "validate <owner> <type> <groupid> <hostname1> [hostname2] [hostname3...]",
+	Short:         "Validate passed-in group data",
+	GroupID:       "attestation",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	Long: `Validate group data by passing in specified owner, type, group ID, and one or more hostnames.
 
 Arguments:
@@ -33,6 +35,7 @@ Arguments:
 		// Convert type name to code
 		typeCode, ok := symgroup.TypeNameToCode[typeName]
 		if !ok {
+			cmd.SilenceUsage = false
 			return fmt.Errorf("invalid type %q, must be one of: %s", args[1], getAvailableTypes())
 		}
 

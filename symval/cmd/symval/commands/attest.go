@@ -19,9 +19,11 @@ import (
 var attestFlags PersistenceFlags
 
 var attestCmd = &cobra.Command{
-	Use:     "attest <owner> <type> <domain1> [domain2]...",
-	Short:   "Attest a group of domains for consistency and validity",
-	GroupID: "attestation",
+	Use:           "attest <owner> <type> <domain1> [domain2]...",
+	Short:         "Attest a group of domains for consistency and validity",
+	GroupID:       "attestation",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	Long: `Attest verifies that a group of domains forms a valid symmetric group.
 
 It performs the following checks:
@@ -57,7 +59,9 @@ Example:
 			if _, codeExists := symgroup.TypeCodeToName[typeName]; codeExists {
 				typeCode = typeName
 			} else {
-				return fmt.Errorf("invalid symmetry type: %s\nValid types: palindrome (a), flip180 (b), doubleflip180 (c), mirrortext (d), mirrornames (e), antonymnames (f)", typeName)
+				cmd.SilenceUsage = false
+				validTypesMsg := "Valid types: palindrome (a), flip180 (b), doubleflip180 (c), mirrortext (d), mirrornames (e), antonymnames (f)"
+				return UsageError{fmt.Errorf("invalid symmetry type: %s\n%s", typeName, validTypesMsg)}
 			}
 		}
 
@@ -107,7 +111,7 @@ Example:
 		// Perform attestation
 		result, err := attestUseCase.Attest(owner, symmetryType, domains)
 		if err != nil {
-			return fmt.Errorf("attestation failed: %w", err)
+			return ExitWithCode(1, fmt.Errorf("attestation failed: %w", err))
 		}
 
 		// Print results

@@ -14,9 +14,11 @@ import (
 var reattestFlags PersistenceFlags
 
 var reattestCmd = &cobra.Command{
-	Use:     "reattest",
-	Short:   "Re-attest all groups in the data store",
-	GroupID: "attestation",
+	Use:           "reattest",
+	Short:         "Re-attest all groups in the data store",
+	GroupID:       "attestation",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	Long: `Re-attest loads all groups from the data store and re-attests them by querying DNS.
 
 This command performs a fresh attestation for each group in the datastore, checking

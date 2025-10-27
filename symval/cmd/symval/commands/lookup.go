@@ -13,9 +13,11 @@ var (
 )
 
 var lookupCmd = &cobra.Command{
-	Use:     "lookup <domain> [domain...]",
-	Short:   "Lookup DNS records for one or more domains",
-	GroupID: "attestation",
+	Use:           "lookup <domain> [domain...]",
+	Short:         "Lookup DNS records for one or more domains",
+	GroupID:       "attestation",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	Long: `Query DNS TXT records at _suns.<domain> and display verification records.
 
 Arguments:

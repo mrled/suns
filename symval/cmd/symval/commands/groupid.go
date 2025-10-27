@@ -11,9 +11,11 @@ import (
 )
 
 var groupidCmd = &cobra.Command{
-	Use:     "groupid <owner> <type> <hostname1> [hostname2] [hostname3...]",
-	Short:   "Calculate a group ID",
-	GroupID: "attestation",
+	Use:           "groupid <owner> <type> <hostname1> [hostname2] [hostname3...]",
+	Short:         "Calculate a group ID",
+	GroupID:       "attestation",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	Long: `Calculate a group ID by hashing owner and all hostnames, prepending type and version.
 
 Arguments:
@@ -29,6 +31,7 @@ Arguments:
 		// Convert type name to code
 		typeCode, ok := symgroup.TypeNameToCode[typeName]
 		if !ok {
+			cmd.SilenceUsage = false
 			return fmt.Errorf("invalid type %q, must be one of: %s", args[1], getAvailableTypes())
 		}
 
