@@ -40,15 +40,15 @@ func (r *DynamoRepository) Store(ctx context.Context, data *model.DomainRecord) 
 	}
 
 	// Set the PK and SK explicitly
-	item["PK"] = &types.AttributeValueMemberS{Value: data.GroupID}
-	item["SK"] = &types.AttributeValueMemberS{Value: data.Hostname}
+	item["pk"] = &types.AttributeValueMemberS{Value: data.GroupID}
+	item["sk"] = &types.AttributeValueMemberS{Value: data.Hostname}
 
 	// Use ConditionExpression to ensure the item doesn't already exist
 	// This matches the behavior of MemoryRepository.Store which returns ErrAlreadyExists
 	_, err = r.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName:           aws.String(r.tableName),
 		Item:                item,
-		ConditionExpression: aws.String("attribute_not_exists(PK) AND attribute_not_exists(SK)"),
+		ConditionExpression: aws.String("attribute_not_exists(pk) AND attribute_not_exists(sk)"),
 	})
 
 	if err != nil {
@@ -67,8 +67,8 @@ func (r *DynamoRepository) Get(ctx context.Context, groupID, hostname string) (*
 	result, err := r.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: groupID},
-			"SK": &types.AttributeValueMemberS{Value: hostname},
+			"pk": &types.AttributeValueMemberS{Value: groupID},
+			"sk": &types.AttributeValueMemberS{Value: hostname},
 		},
 	})
 
@@ -120,10 +120,10 @@ func (r *DynamoRepository) Delete(ctx context.Context, groupID, hostname string)
 	_, err := r.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: groupID},
-			"SK": &types.AttributeValueMemberS{Value: hostname},
+			"pk": &types.AttributeValueMemberS{Value: groupID},
+			"sk": &types.AttributeValueMemberS{Value: hostname},
 		},
-		ConditionExpression: aws.String("attribute_exists(PK) AND attribute_exists(SK)"),
+		ConditionExpression: aws.String("attribute_exists(pk) AND attribute_exists(sk)"),
 	})
 
 	if err != nil {
