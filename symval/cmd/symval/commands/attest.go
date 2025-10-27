@@ -1,10 +1,14 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/repository/dynamorepo"
 	"github.com/mrled/suns/symval/internal/repository/memrepo"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/symgroup"
@@ -40,10 +44,7 @@ Example:
   symval attest owner123 mirrortext domain1.com domain2.com domain3.com`,
 	Args: cobra.MinimumNArgs(3),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Check for DynamoDB flag (not yet implemented)
-		if attestFlags.DynamoTable != "" {
-			return fmt.Errorf("--dynamodb-table flag is not yet implemented")
-		}
+		ctx := context.Background()
 
 		owner := args[0]
 		typeName := strings.ToLower(args[1])
@@ -64,7 +65,29 @@ Example:
 
 		// Create repository based on persistence flags
 		var repo model.DomainRepository
-		if attestFlags.FilePath != "" {
+		if attestFlags.DynamoTable != "" {
+			// Use DynamoDB persistence
+			cfg, err := config.LoadDefaultConfig(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to load AWS config: %w", err)
+			}
+
+			// Create DynamoDB client
+			var client *dynamodb.Client
+			if attestFlags.DynamoEndpoint != "" {
+				// Use custom endpoint if specified
+				client = dynamodb.NewFromConfig(cfg, func(o *dynamodb.Options) {
+					o.BaseEndpoint = &attestFlags.DynamoEndpoint
+				})
+				fmt.Printf("Using DynamoDB endpoint: %s\n", attestFlags.DynamoEndpoint)
+			} else {
+				// Use default endpoint discovery
+				client = dynamodb.NewFromConfig(cfg)
+			}
+
+			repo = dynamorepo.NewDynamoRepository(client, attestFlags.DynamoTable)
+			fmt.Printf("Using DynamoDB table: %s\n", attestFlags.DynamoTable)
+		} else if attestFlags.FilePath != "" {
 			// Use JSON file persistence
 			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(attestFlags.FilePath)
 			if err != nil {
@@ -94,7 +117,9 @@ Example:
 		if result.IsValid {
 			fmt.Println("\n✓ Attestation PASSED")
 			fmt.Println("The domains form a valid symmetric group.")
-			if attestFlags.FilePath != "" {
+			if attestFlags.DynamoTable != "" {
+				fmt.Printf("Results persisted to DynamoDB table: %s\n", attestFlags.DynamoTable)
+			} else if attestFlags.FilePath != "" {
 				fmt.Printf("Results persisted to: %s\n", attestFlags.FilePath)
 			}
 		} else {
