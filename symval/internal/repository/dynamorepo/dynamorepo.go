@@ -2,6 +2,7 @@ package dynamorepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -51,9 +52,8 @@ func (r *DynamoRepository) Store(ctx context.Context, data *model.DomainRecord) 
 	})
 
 	if err != nil {
-		// Check if the error is a conditional check failure (item already exists)
 		var ccfe *types.ConditionalCheckFailedException
-		if ok := err.(*types.ConditionalCheckFailedException); ok != nil && ok == ccfe {
+		if errors.As(err, &ccfe) {
 			return model.ErrAlreadyExists
 		}
 		return fmt.Errorf("failed to store domain record: %w", err)
@@ -129,7 +129,7 @@ func (r *DynamoRepository) Delete(ctx context.Context, groupID, hostname string)
 	if err != nil {
 		// Check if the error is a conditional check failure (item doesn't exist)
 		var ccfe *types.ConditionalCheckFailedException
-		if ok := err.(*types.ConditionalCheckFailedException); ok != nil && ok == ccfe {
+		if errors.As(err, &ccfe) {
 			return model.ErrNotFound
 		}
 		return fmt.Errorf("failed to delete domain record: %w", err)
