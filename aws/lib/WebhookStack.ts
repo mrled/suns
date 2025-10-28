@@ -21,7 +21,7 @@ export class WebhookStack extends cdk.Stack {
     // Create Lambda function for webhook
     this.webhookFunction = new lambda.Function(this, 'WebhookFunction', {
       runtime: lambda.Runtime.PROVIDED_AL2023,
-      handler: 'webhook',
+      handler: 'bootstrap',
       architecture: lambda.Architecture.ARM_64, // Graviton2
       code: lambda.Code.fromAsset(path.join(repositoryRoot, 'symval'), {
         bundling: {
@@ -35,7 +35,7 @@ export class WebhookStack extends cdk.Stack {
               'export GOARCH=arm64',
               'export CGO_ENABLED=0',
               'cd /asset-input',
-              'go build -tags netgo -ldflags "-s -w -extldflags -static" -trimpath -o /asset-output/webhook ./cmd/webhook',
+              'go build -tags netgo -ldflags "-s -w -extldflags -static" -trimpath -o /asset-output/bootstrap ./cmd/webhook',
             ].join(' && '),
           ],
           user: 'root',
@@ -96,8 +96,8 @@ export class WebhookStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'AttestEndpoint', {
-      value: `${this.api.apiEndpoint}/attest`,
-      description: 'Full webhook attest endpoint URL',
+      value: `${this.api.apiEndpoint}/v1/attest`,
+      description: 'Direct API Gateway webhook attest endpoint URL',
     });
   }
 }

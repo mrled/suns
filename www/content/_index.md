@@ -35,6 +35,18 @@ create a DNS record for `su.moc.elpmaxe.example.com.us`.
 
 Of course, you can also join with one of the other methods above, like flips or mirrors.
 
+Here's an example submission with curl:
+
+```sh
+curl -X POST https://zq.suns.bz/v1/attest \
+  -H "Content-Type: application/json" \
+  -d '{
+    "owner": "https://me.micahrl.com",
+    "type": "mirrornames",
+    "domains": ["me.micahrl.com", "com.micahrl.me"]
+  }'
+```
+
 ## Members
 
 - <https://me.micahrl.com> / <https://com.micahrl.me>
