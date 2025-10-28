@@ -8,6 +8,7 @@ import { StorageStack } from '../lib/StorageStack';
 import { EdgeStack } from '../lib/EdgeStack';
 import { DnsStack } from '../lib/DnsStack';
 import { DynamoDbStack } from '../lib/DynamoDbStack';
+import { WebhookStack } from '../lib/WebhookStack';
 
 const app = new cdk.App();
 
@@ -61,5 +62,13 @@ const dynamoDbStack = new DynamoDbStack(app, `${config.stackPrefix}DynamoDbStack
   env: { account, region },
   description: `DynamoDB table for ${config.domainName}`,
 });
+
+// Webhook Stack - Lambda + API Gateway for attestation
+const webhookStack = new WebhookStack(app, `${config.stackPrefix}WebhookStack`, {
+  env: { account, region },
+  description: `Webhook Lambda and API Gateway for ${config.domainName}`,
+  table: dynamoDbStack.table,
+});
+webhookStack.addDependency(dynamoDbStack);
 
 app.synth();

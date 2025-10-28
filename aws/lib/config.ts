@@ -8,3 +8,5 @@ export const config = {
   // Prefix for stack names
   stackPrefix: 'Suns',
 } as const;
+
+export const repositoryRoot = __dirname + '/../../';
