@@ -5,9 +5,9 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "cdk": "cdk",
-    "deploy": "cdk deploy --all",
-    "synth": "cdk synth"
+    "cdk": "sh -c 'if command -v podman >/dev/null 2>&1; then CDK_DOCKER=podman exec cdk \"$@\"; else exec cdk \"$@\"; fi' --",
+    "deploy": "npm run cdk -- deploy --all",
+    "synth": "npm run cdk -- synth"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
