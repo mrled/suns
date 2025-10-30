@@ -23,6 +23,7 @@ export class WebhookStack extends cdk.Stack {
       runtime: lambda.Runtime.PROVIDED_AL2023,
       handler: 'bootstrap',
       architecture: lambda.Architecture.ARM_64, // Graviton2
+      functionName: `${config.stackPrefix}ApiFunction`,
       code: lambda.Code.fromAsset(path.join(repositoryRoot, 'symval'), {
         bundling: {
           image: lambda.Runtime.PROVIDED_AL2023.bundlingImage,
