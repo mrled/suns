@@ -66,22 +66,33 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	// Log the incoming request path for debugging
-	log.Printf("Incoming request: %s %s", request.HTTPMethod, request.Path)
+	// Log the incoming request details for debugging
+	log.Printf("Incoming request: Method=%s, Path=%s, Resource=%s, PathParameters=%+v",
+		request.HTTPMethod, request.Path, request.Resource, request.PathParameters)
+
+	// When coming through API Gateway with {proxy+}, the path might be in PathParameters["proxy"]
+	// or it might be the full path including /api/
+	path := request.Path
+	if proxyPath, ok := request.PathParameters["proxy"]; ok && proxyPath != "" {
+		// If we have a proxy path parameter, use it
+		path = "/" + proxyPath
+		log.Printf("Using proxy path: %s", path)
+	}
 
 	// Route based on the path
-	// The path will be something like /api/v1/attest when coming through the {proxy+} parameter
-	// This router can be extended to support additional endpoints in the future
+	// The path should be something like /v1/attest or /api/v1/attest
+	// We check for both patterns to handle different routing scenarios
 	switch {
-	case strings.HasSuffix(request.Path, "/v1/attest"):
+	case strings.HasSuffix(path, "/v1/attest") || path == "/v1/attest":
 		return handleAttest(ctx, request)
 	// Add more endpoints here as needed, for example:
-	// case strings.HasSuffix(request.Path, "/v1/verify"):
+	// case strings.HasSuffix(path, "/v1/verify") || path == "/v1/verify":
 	//	return handleVerify(ctx, request)
-	// case strings.HasSuffix(request.Path, "/v1/health"):
+	// case strings.HasSuffix(path, "/v1/health") || path == "/v1/health":
 	//	return handleHealth(ctx, request)
 	default:
-		return errorResponse(404, fmt.Sprintf("Unknown endpoint: %s", request.Path))
+		log.Printf("Path not matched. Full request details: %+v", request)
+		return errorResponse(404, fmt.Sprintf("Unknown endpoint: %s", path))
 	}
 }
 
