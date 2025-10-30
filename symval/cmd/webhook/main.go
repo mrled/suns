@@ -65,23 +65,25 @@ func init() {
 	log.Printf("Using DynamoDB table: %s", dynamoTable)
 }
 
-func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	// Log the incoming request details for debugging
-	log.Printf("Incoming request: Method=%s, Path=%s, Resource=%s, PathParameters=%+v",
-		request.HTTPMethod, request.Path, request.Resource, request.PathParameters)
+	// API Gateway v2 uses different field names
+	log.Printf("Incoming request: Method=%s, Path=%s, RawPath=%s, PathParameters=%+v",
+		request.RequestContext.HTTP.Method, request.RequestContext.HTTP.Path,
+		request.RawPath, request.PathParameters)
 
-	// When coming through API Gateway with {proxy+}, the path might be in PathParameters["proxy"]
-	// or it might be the full path including /api/
-	path := request.Path
-	if proxyPath, ok := request.PathParameters["proxy"]; ok && proxyPath != "" {
-		// If we have a proxy path parameter, use it
-		path = "/" + proxyPath
-		log.Printf("Using proxy path: %s", path)
+	// For API Gateway v2, the path is in RequestContext.HTTP.Path
+	path := request.RequestContext.HTTP.Path
+	if path == "" {
+		path = request.RawPath
 	}
 
+	// Remove the /api prefix if present since we're matching on the API path
+	path = strings.TrimPrefix(path, "/api")
+	log.Printf("Processing path: %s", path)
+
 	// Route based on the path
-	// The path should be something like /v1/attest or /api/v1/attest
-	// We check for both patterns to handle different routing scenarios
+	// The path should be something like /v1/attest after removing /api prefix
 	switch {
 	case strings.HasSuffix(path, "/v1/attest") || path == "/v1/attest":
 		return handleAttest(ctx, request)
@@ -92,31 +94,36 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	//	return handleHealth(ctx, request)
 	default:
 		log.Printf("Path not matched. Full request details: %+v", request)
-		return errorResponse(404, fmt.Sprintf("Unknown endpoint: %s", path))
+		return errorResponseV2(404, fmt.Sprintf("Unknown endpoint: %s", path))
 	}
 }
 
-func handleAttest(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleAttest(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	// Log the HTTP method for debugging
+	httpMethod := request.RequestContext.HTTP.Method
+	log.Printf("handleAttest: Method='%s', Path='%s'", httpMethod, request.RequestContext.HTTP.Path)
+
 	// Validate HTTP method
-	if request.HTTPMethod != "POST" {
-		return errorResponse(405, "Method not allowed. Only POST is supported for this endpoint")
+	if httpMethod != "POST" {
+		log.Printf("Method validation failed. Received method: %s", httpMethod)
+		return errorResponseV2(405, fmt.Sprintf("Method not allowed. Only POST is supported for this endpoint (received: %s)", httpMethod))
 	}
 
 	// Parse the request body
 	var attestReq AttestRequest
 	if err := json.Unmarshal([]byte(request.Body), &attestReq); err != nil {
-		return errorResponse(400, fmt.Sprintf("Invalid request body: %v", err))
+		return errorResponseV2(400, fmt.Sprintf("Invalid request body: %v", err))
 	}
 
 	// Validate required fields
 	if attestReq.Owner == "" {
-		return errorResponse(400, "owner field is required")
+		return errorResponseV2(400, "owner field is required")
 	}
 	if attestReq.Type == "" {
-		return errorResponse(400, "type field is required")
+		return errorResponseV2(400, "type field is required")
 	}
 	if len(attestReq.Domains) < 1 {
-		return errorResponse(400, "at least one domain is required")
+		return errorResponseV2(400, "at least one domain is required")
 	}
 
 	// Convert type name to type code (similar to attest command)
@@ -127,7 +134,7 @@ func handleAttest(ctx context.Context, request events.APIGatewayProxyRequest) (e
 		if _, codeExists := symgroup.TypeCodeToName[typeName]; codeExists {
 			typeCode = typeName
 		} else {
-			return errorResponse(400, "invalid symmetry type. Valid types: palindrome (a), flip180 (b), doubleflip180 (c), mirrortext (d), mirrornames (e), antonymnames (f)")
+			return errorResponseV2(400, "invalid symmetry type. Valid types: palindrome (a), flip180 (b), doubleflip180 (c), mirrortext (d), mirrornames (e), antonymnames (f)")
 		}
 	}
 
@@ -137,7 +144,7 @@ func handleAttest(ctx context.Context, request events.APIGatewayProxyRequest) (e
 	result, err := attestUseCase.Attest(attestReq.Owner, symmetryType, attestReq.Domains)
 	if err != nil {
 		log.Printf("Attestation failed: %v", err)
-		return errorResponse(500, fmt.Sprintf("attestation failed: %v", err))
+		return errorResponseV2(500, fmt.Sprintf("attestation failed: %v", err))
 	}
 
 	// Build response
@@ -158,10 +165,10 @@ func handleAttest(ctx context.Context, request events.APIGatewayProxyRequest) (e
 	responseBody, err := json.Marshal(response)
 	if err != nil {
 		log.Printf("Failed to marshal response: %v", err)
-		return errorResponse(500, "failed to generate response")
+		return errorResponseV2(500, "failed to generate response")
 	}
 
-	return events.APIGatewayProxyResponse{
+	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
 		Body:       string(responseBody),
 		Headers: map[string]string{
@@ -170,14 +177,14 @@ func handleAttest(ctx context.Context, request events.APIGatewayProxyRequest) (e
 	}, nil
 }
 
-// errorResponse creates a standardized error response
-func errorResponse(statusCode int, message string) (events.APIGatewayProxyResponse, error) {
+// errorResponseV2 creates a standardized error response for API Gateway v2
+func errorResponseV2(statusCode int, message string) (events.APIGatewayV2HTTPResponse, error) {
 	errorBody := map[string]string{
 		"error": message,
 	}
 	body, _ := json.Marshal(errorBody)
 
-	return events.APIGatewayProxyResponse{
+	return events.APIGatewayV2HTTPResponse{
 		StatusCode: statusCode,
 		Body:       string(body),
 		Headers: map[string]string{
