@@ -66,6 +66,31 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	// Log the incoming request path for debugging
+	log.Printf("Incoming request: %s %s", request.HTTPMethod, request.Path)
+
+	// Route based on the path
+	// The path will be something like /api/v1/attest when coming through the {proxy+} parameter
+	// This router can be extended to support additional endpoints in the future
+	switch {
+	case strings.HasSuffix(request.Path, "/v1/attest"):
+		return handleAttest(ctx, request)
+	// Add more endpoints here as needed, for example:
+	// case strings.HasSuffix(request.Path, "/v1/verify"):
+	//	return handleVerify(ctx, request)
+	// case strings.HasSuffix(request.Path, "/v1/health"):
+	//	return handleHealth(ctx, request)
+	default:
+		return errorResponse(404, fmt.Sprintf("Unknown endpoint: %s", request.Path))
+	}
+}
+
+func handleAttest(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	// Validate HTTP method
+	if request.HTTPMethod != "POST" {
+		return errorResponse(405, "Method not allowed. Only POST is supported for this endpoint")
+	}
+
 	// Parse the request body
 	var attestReq AttestRequest
 	if err := json.Unmarshal([]byte(request.Body), &attestReq); err != nil {

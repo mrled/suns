@@ -38,7 +38,7 @@ Of course, you can also join with one of the other methods above, like flips or 
 Here's an example submission with curl:
 
 ```sh
-curl -X POST https://zq.suns.bz/v1/attest \
+curl -X POST https://zq.suns.bz/api/v1/attest \
   -H "Content-Type: application/json" \
   -d '{
     "owner": "https://me.micahrl.com",

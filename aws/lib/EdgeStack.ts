@@ -36,13 +36,13 @@ export class EdgeStack extends cdk.Stack {
 
     const apiOrigin = new origins.HttpOrigin(apiDomainName, {
       protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
-      // No origin path needed since the API already has /v1/attest route
+      // No origin path needed since the API Gateway handles routing internally
     });
 
     // Additional behaviors for API Gateway
     const additionalBehaviors: Record<string, cloudfront.BehaviorOptions> = {
-      // Also catch any other /v1/* paths for future expansion
-      '/v1/*': {
+      // Route all /api/* paths to the API Gateway Lambda
+      '/api/*': {
         origin: apiOrigin,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
@@ -87,7 +87,7 @@ export class EdgeStack extends cdk.Stack {
       minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
       httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
-      comment: `CloudFront distribution for ${config.domainName} and zq.${config.domainName} with API Gateway at /v1/attest and /v1/*`,
+      comment: `CloudFront distribution for ${config.domainName} and zq.${config.domainName} with API Gateway at /api/*`,
     });
 
     new cdk.CfnOutput(this, 'DistributionId', {
@@ -103,7 +103,7 @@ export class EdgeStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'WebhookEndpointViaCDN', {
-      value: `https://${config.domainName}/v1/attest`,
+      value: `https://${config.domainName}/api/v1/attest`,
       description: 'Webhook attest endpoint via CloudFront CDN',
     });
   }

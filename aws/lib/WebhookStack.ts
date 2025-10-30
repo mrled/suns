@@ -58,7 +58,13 @@ export class WebhookStack extends cdk.Stack {
       description: 'HTTP API for SUNS webhook attestation',
       corsPreflight: {
         allowOrigins: ['*'],
-        allowMethods: [apigateway.CorsHttpMethod.POST],
+        allowMethods: [
+          apigateway.CorsHttpMethod.GET,
+          apigateway.CorsHttpMethod.POST,
+          apigateway.CorsHttpMethod.PUT,
+          apigateway.CorsHttpMethod.DELETE,
+          apigateway.CorsHttpMethod.PATCH,
+        ],
         allowHeaders: ['Content-Type', 'Authorization'],
       },
     });
@@ -69,10 +75,17 @@ export class WebhookStack extends cdk.Stack {
       this.webhookFunction
     );
 
-    // Add POST /attest route
+    // Add route for all /api/* paths - this will proxy all requests to Lambda
+    // The Lambda function will handle routing internally
     this.api.addRoutes({
-      path: '/v1/attest',
-      methods: [apigateway.HttpMethod.POST],
+      path: '/api/{proxy+}',
+      methods: [
+        apigateway.HttpMethod.GET,
+        apigateway.HttpMethod.POST,
+        apigateway.HttpMethod.PUT,
+        apigateway.HttpMethod.DELETE,
+        apigateway.HttpMethod.PATCH,
+      ],
       integration: lambdaIntegration,
     });
 
@@ -96,7 +109,7 @@ export class WebhookStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'AttestEndpoint', {
-      value: `${this.api.apiEndpoint}/v1/attest`,
+      value: `${this.api.apiEndpoint}/api/v1/attest`,
       description: 'Direct API Gateway webhook attest endpoint URL',
     });
   }

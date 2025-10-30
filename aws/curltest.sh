@@ -1,9 +1,9 @@
 #!/bin/sh
 
 if test -z "$1" || test "$1" = "suns"; then
-    endpoint="https://suns.bz/v1/attest"
+    endpoint="https://suns.bz/api/v1/attest"
 else
-    endpoint="https://pz39hzelmj.execute-api.us-east-2.amazonaws.com/v1/attest"
+    endpoint="https://pz39hzelmj.execute-api.us-east-2.amazonaws.com/api/v1/attest"
 fi
 
 set -x
