@@ -1,4 +1,4 @@
-baseURL = 'https://zq.suns.bz'
+baseURL = 'https://zq.suns.bz/'
 languageCode = 'en-us'
 title = 'SUNS'
 
@@ -7,7 +7,7 @@ disableKinds = ["taxonomy", "term"]
 [deployment]
 [[deployment.targets]]
 name = "production"
-URL = "s3://suns-bz-content-690528115207?region=us-east-2"
+URL = "s3://suns-bz-content-690528115207?region=us-east-2&prefix=www/"
 
 [[deployment.matchers]]
 # Cache static assets with a cache-control header of 1 year

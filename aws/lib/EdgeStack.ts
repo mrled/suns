@@ -22,10 +22,12 @@ export class EdgeStack extends cdk.Stack {
     // Create CloudFront Distribution with S3 website endpoint
     // Using website endpoint instead of OAC to avoid cyclic dependency
     // (since bucket is already publicly accessible)
+    // This origin points to the /www prefix in S3 for Hugo site content
     const websiteOrigin = new origins.HttpOrigin(
       props.contentBucket.bucketWebsiteDomainName,
       {
         protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+        originPath: '/www',  // Serve Hugo content from /www prefix in S3
       }
     );
 
