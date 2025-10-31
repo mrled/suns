@@ -6,6 +6,8 @@
 
 ## Interacting with AWS
 
+Always use `npm run synth ...`, never `npx cdk synth ...`, because the NPM script properly handles podman.
+
 Never try to use the AWS API yourself, just tell the user if you need to deploy with CDK or run the `aws` commandline.
 
 Feel free to use `curl` to talk to the endpoint we're building in AWS, though. It doesn't require authentication.
