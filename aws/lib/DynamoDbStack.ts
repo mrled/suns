@@ -26,6 +26,7 @@ export class DynamoDbStack extends cdk.Stack {
         pointInTimeRecoveryEnabled: true,
       },
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
     });
 
     new cdk.CfnOutput(this, 'TableName', {

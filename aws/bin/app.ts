@@ -9,6 +9,7 @@ import { EdgeStack } from '../lib/EdgeStack';
 import { DnsStack } from '../lib/DnsStack';
 import { DynamoDbStack } from '../lib/DynamoDbStack';
 import { WebhookStack } from '../lib/WebhookStack';
+import { StreamerStack } from '../lib/StreamerStack';
 
 const app = new cdk.App();
 
@@ -49,6 +50,14 @@ const webhookStack = new WebhookStack(app, `${config.stackPrefix}WebhookStack`, 
   table: dynamoDbStack.table,
 });
 webhookStack.addDependency(dynamoDbStack);
+
+// Streamer Stack - Lambda for DynamoDB Streams processing
+const streamerStack = new StreamerStack(app, `${config.stackPrefix}StreamerStack`, {
+  env: { account, region },
+  description: `DynamoDB Streams processor Lambda for ${config.domainName}`,
+  table: dynamoDbStack.table,
+});
+streamerStack.addDependency(dynamoDbStack);
 
 // Edge Stack - can be in any region (CloudFront is global)
 const edgeStack = new EdgeStack(app, `${config.stackPrefix}EdgeStack`, {
