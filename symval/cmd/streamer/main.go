@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/mrled/suns/symval/internal/model"
 	"github.com/mrled/suns/symval/internal/repository/dynamorepo"
 )
@@ -19,7 +20,10 @@ import (
 var (
 	dynamoEndpoint string
 	dynamoTable    string
+	s3BucketName   string
+	s3DataKey      string
 	repo           model.DomainRepository
+	s3Client       *s3.Client
 )
 
 func init() {
@@ -42,126 +46,78 @@ func init() {
 		log.Fatal("DYNAMODB_TABLE environment variable is required")
 	}
 	log.Printf("Using DynamoDB table: %s", dynamoTable)
+
+	s3BucketName = os.Getenv("S3_BUCKET")
+	if s3BucketName == "" {
+		log.Fatal("S3_BUCKET environment variable is required")
+	}
+	log.Printf("Using S3 bucket: %s", s3BucketName)
+
+	// Use S3_DATA_KEY from environment or default to records/domains.json
+	s3DataKey = os.Getenv("S3_DATA_KEY")
+	if s3DataKey == "" {
+		s3DataKey = "records/domains.json"
+	}
+	log.Printf("Using S3 key: %s", s3DataKey)
 }
 
-// StreamRecord represents a processed record from the stream
-type StreamRecord struct {
-	EventName string
-	Keys      map[string]types.AttributeValue
-	NewImage  map[string]types.AttributeValue
-	OldImage  map[string]types.AttributeValue
-}
 
 func handler(ctx context.Context, event events.DynamoDBEvent) error {
 	log.Printf("Processing batch of %d records from DynamoDB stream", len(event.Records))
 
+	// Process each record
 	for _, record := range event.Records {
-		// Log the event details
 		log.Printf("Processing record: EventID=%s, EventName=%s, EventSource=%s",
 			record.EventID, record.EventName, record.EventSourceArn)
-
-		// Process based on event type
-		switch record.EventName {
-		case "INSERT":
-			if err := handleInsert(ctx, record); err != nil {
-				log.Printf("Error handling INSERT event: %v", err)
-				// Return error to fail the batch and retry
-				return fmt.Errorf("failed to handle INSERT: %w", err)
-			}
-
-		case "MODIFY":
-			if err := handleModify(ctx, record); err != nil {
-				log.Printf("Error handling MODIFY event: %v", err)
-				// Return error to fail the batch and retry
-				return fmt.Errorf("failed to handle MODIFY: %w", err)
-			}
-
-		case "REMOVE":
-			if err := handleRemove(ctx, record); err != nil {
-				log.Printf("Error handling REMOVE event: %v", err)
-				// Return error to fail the batch and retry
-				return fmt.Errorf("failed to handle REMOVE: %w", err)
-			}
-
-		default:
-			log.Printf("Unknown event type: %s", record.EventName)
-		}
 	}
 
-	log.Printf("Successfully processed %d records", len(event.Records))
+	// After processing the stream events, fetch all current records from DynamoDB
+	// and save them to S3 in memrepo format
+	if err := updateS3DataFile(ctx); err != nil {
+		log.Printf("Error updating S3 data file: %v", err)
+		return fmt.Errorf("failed to update S3 data file: %w", err)
+	}
+
+	log.Printf("Successfully processed %d stream records and updated S3 data file", len(event.Records))
 	return nil
 }
 
-func handleInsert(ctx context.Context, record events.DynamoDBEventRecord) error {
-	// Extract key attributes
-	pk := extractStringAttribute(record.Change.Keys, "pk")
-	sk := extractStringAttribute(record.Change.Keys, "sk")
-
-	log.Printf("INSERT: pk=%s, sk=%s", pk, sk)
-
-	// Extract and log new image data
-	if record.Change.NewImage != nil {
-		newImageJSON, _ := json.Marshal(record.Change.NewImage)
-		log.Printf("New image: %s", string(newImageJSON))
-
-		// Here you can add custom logic for handling inserts
-		// For example, sending notifications, updating caches, etc.
+// updateS3DataFile fetches all records from DynamoDB and saves them to S3 in memrepo format
+func updateS3DataFile(ctx context.Context) error {
+	// Fetch all records from DynamoDB
+	records, err := repo.List(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to list records from DynamoDB: %w", err)
 	}
 
+	log.Printf("Found %d records in DynamoDB", len(records))
+
+	// Marshal to JSON in memrepo format (array of DomainRecord)
+	jsonData, err := json.MarshalIndent(records, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal records: %w", err)
+	}
+
+	// Upload to S3 with appropriate headers for public access
+	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:       &s3BucketName,
+		Key:          &s3DataKey,
+		Body:         bytes.NewReader(jsonData),
+		ContentType:  stringPtr("application/json"),
+		CacheControl: stringPtr("max-age=60"), // Cache for 1 minute
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to upload to S3: %w", err)
+	}
+
+	log.Printf("Successfully updated data file at %s/%s with %d records", s3BucketName, s3DataKey, len(records))
 	return nil
 }
 
-func handleModify(ctx context.Context, record events.DynamoDBEventRecord) error {
-	// Extract key attributes
-	pk := extractStringAttribute(record.Change.Keys, "pk")
-	sk := extractStringAttribute(record.Change.Keys, "sk")
-
-	log.Printf("MODIFY: pk=%s, sk=%s", pk, sk)
-
-	// Log old and new images for comparison
-	if record.Change.OldImage != nil {
-		oldImageJSON, _ := json.Marshal(record.Change.OldImage)
-		log.Printf("Old image: %s", string(oldImageJSON))
-	}
-
-	if record.Change.NewImage != nil {
-		newImageJSON, _ := json.Marshal(record.Change.NewImage)
-		log.Printf("New image: %s", string(newImageJSON))
-
-		// Here you can add custom logic for handling modifications
-		// For example, detecting specific changes and triggering actions
-	}
-
-	return nil
-}
-
-func handleRemove(ctx context.Context, record events.DynamoDBEventRecord) error {
-	// Extract key attributes
-	pk := extractStringAttribute(record.Change.Keys, "pk")
-	sk := extractStringAttribute(record.Change.Keys, "sk")
-
-	log.Printf("REMOVE: pk=%s, sk=%s", pk, sk)
-
-	// Log old image data before deletion
-	if record.Change.OldImage != nil {
-		oldImageJSON, _ := json.Marshal(record.Change.OldImage)
-		log.Printf("Removed image: %s", string(oldImageJSON))
-
-		// Here you can add custom logic for handling deletions
-		// For example, archiving data, cleaning up related resources, etc.
-	}
-
-	return nil
-}
-
-// extractStringAttribute extracts a string value from DynamoDB attribute map
-func extractStringAttribute(attrs map[string]events.DynamoDBAttributeValue, key string) string {
-	if attr, ok := attrs[key]; ok {
-		if attr.DataType() == events.DataTypeString {
-			return attr.String()
-		}
-	}
-	return ""
+// stringPtr returns a pointer to a string
+func stringPtr(s string) *string {
+	return &s
 }
 
 func main() {
@@ -191,7 +147,11 @@ func main() {
 	repo = dynamorepo.NewDynamoRepository(client, dynamoTable)
 	log.Printf("DynamoDB repository initialized with table: %s", dynamoTable)
 
+	// Initialize S3 client
+	s3Client = s3.NewFromConfig(cfg)
+	log.Printf("S3 client initialized for bucket: %s", s3BucketName)
+
 	// Start Lambda handler
-	log.Printf("Starting DynamoDB Streams Lambda handler...")
+	log.Printf("Starting DynamoDB Streams Lambda handler with S3 persistence...")
 	lambda.Start(handler)
 }

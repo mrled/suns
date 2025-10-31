@@ -7,6 +7,8 @@ export const config = {
   domainName: 'suns.bz',
   // Prefix for stack names
   stackPrefix: 'Suns',
+  // S3 key for the domains JSON file
+  domainsDataKey: 'records/domains.json',
 } as const;
 
 export const repositoryRoot = __dirname + '/../../';

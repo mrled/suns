@@ -56,8 +56,10 @@ const streamerStack = new StreamerStack(app, `${config.stackPrefix}StreamerStack
   env: { account, region },
   description: `DynamoDB Streams processor Lambda for ${config.domainName}`,
   table: dynamoDbStack.table,
+  contentBucket: storageStack.contentBucket, // Use the existing content bucket
 });
 streamerStack.addDependency(dynamoDbStack);
+streamerStack.addDependency(storageStack);
 
 // Edge Stack - can be in any region (CloudFront is global)
 const edgeStack = new EdgeStack(app, `${config.stackPrefix}EdgeStack`, {

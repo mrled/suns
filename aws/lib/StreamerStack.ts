@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Construct } from 'constructs';
 import { config, repositoryRoot } from './config';
@@ -8,6 +9,7 @@ import * as path from 'path';
 
 export interface StreamerStackProps extends cdk.StackProps {
   table: dynamodb.ITable;
+  contentBucket: s3.IBucket; // Required: the content bucket to write domains data to
 }
 
 export class StreamerStack extends cdk.Stack {
@@ -42,6 +44,8 @@ export class StreamerStack extends cdk.Stack {
       }),
       environment: {
         DYNAMODB_TABLE: props.table.tableName,
+        S3_BUCKET: props.contentBucket.bucketName,
+        S3_DATA_KEY: config.domainsDataKey, // Pass the key path as an env var
       },
       timeout: cdk.Duration.seconds(30), // Longer timeout for stream processing
       memorySize: 256, // More memory for stream processing
@@ -51,6 +55,9 @@ export class StreamerStack extends cdk.Stack {
     // Grant DynamoDB permissions
     props.table.grantReadWriteData(this.streamerFunction);
     props.table.grantStreamRead(this.streamerFunction);
+
+    // Grant S3 permissions to write to the content bucket
+    props.contentBucket.grantWrite(this.streamerFunction);
 
     // Add DynamoDB Streams event source
     // We need to cast the table to Table type to access streams
@@ -77,6 +84,11 @@ export class StreamerStack extends cdk.Stack {
       value: this.streamerFunction.functionName,
       description: 'DynamoDB Streams Lambda Function Name',
       exportName: `${config.stackPrefix}StreamerFunctionName`,
+    });
+
+    new cdk.CfnOutput(this, 'DomainsDataUrl', {
+      value: `https://${config.domainName}/${config.domainsDataKey}`,
+      description: 'URL to fetch domains data JSON file',
     });
   }
 }
