@@ -61,3 +61,10 @@ Dependencies: DNS Zone → Cert + DNS Records → Edge → Storage
 - S3 bucket is public for CloudFront access
 - HTTPS enforced, TLS 1.2+ minimum
 - Route53 costs ~$0.50/month, CloudFront/S3 pay-as-you-go, ACM free
+
+## CloudWatch logs
+
+```sh
+# Read logs from the function that backs the /api URL path
+aws logs tail /aws/lambda/SunsApiFunction --region us-east-2
+```
