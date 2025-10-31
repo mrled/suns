@@ -28,6 +28,7 @@ func NewDynamoRepository(client *dynamodb.Client, tableName string) *DynamoRepos
 
 // Store saves domain data to DynamoDB
 // Uses group ID as the PK and hostname as the SK
+// If the record already exists, it updates the timestamp
 func (r *DynamoRepository) Store(ctx context.Context, data *model.DomainRecord) error {
 	if data == nil {
 		return fmt.Errorf("domain data cannot be nil")
@@ -43,19 +44,13 @@ func (r *DynamoRepository) Store(ctx context.Context, data *model.DomainRecord) 
 	item["pk"] = &types.AttributeValueMemberS{Value: data.GroupID}
 	item["sk"] = &types.AttributeValueMemberS{Value: data.Hostname}
 
-	// Use ConditionExpression to ensure the item doesn't already exist
-	// This matches the behavior of MemoryRepository.Store which returns ErrAlreadyExists
+	// Use PutItem without condition to allow overwrites (updating timestamp)
 	_, err = r.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName:           aws.String(r.tableName),
-		Item:                item,
-		ConditionExpression: aws.String("attribute_not_exists(pk) AND attribute_not_exists(sk)"),
+		TableName: aws.String(r.tableName),
+		Item:      item,
 	})
 
 	if err != nil {
-		var ccfe *types.ConditionalCheckFailedException
-		if errors.As(err, &ccfe) {
-			return model.ErrAlreadyExists
-		}
 		return fmt.Errorf("failed to store domain record: %w", err)
 	}
 

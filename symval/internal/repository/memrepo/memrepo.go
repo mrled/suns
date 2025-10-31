@@ -144,6 +144,7 @@ func (r *MemoryRepository) save() error {
 }
 
 // Store saves domain data
+// If the record already exists, it updates the timestamp
 func (r *MemoryRepository) Store(ctx context.Context, data *model.DomainRecord) error {
 	if data == nil {
 		return errors.New("domain data cannot be nil")
@@ -153,10 +154,7 @@ func (r *MemoryRepository) Store(ctx context.Context, data *model.DomainRecord) 
 	defer r.mu.Unlock()
 
 	key := makeKey(data.GroupID, data.Hostname)
-	if _, exists := r.data[key]; exists {
-		return model.ErrAlreadyExists
-	}
-
+	// Update existing record or store new one
 	r.data[key] = data
 	return r.save()
 }
