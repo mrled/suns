@@ -3,6 +3,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
+import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import { config, repositoryRoot } from "./config";
 import * as path from "path";
@@ -24,6 +25,7 @@ export class StreamerStack extends cdk.Stack {
       handler: "bootstrap",
       architecture: lambda.Architecture.ARM_64, // Graviton2
       functionName: `${config.stackPrefix}StreamerFunction`,
+      logRetention: logs.RetentionDays.ONE_WEEK,
       code: lambda.Code.fromAsset(path.join(repositoryRoot, "symval"), {
         bundling: {
           image: lambda.Runtime.PROVIDED_AL2023.bundlingImage,

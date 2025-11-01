@@ -102,7 +102,8 @@ export class MonitoringStack extends cdk.Stack {
     streamerErrorAlarm.addAlarmAction(alarmAction);
 
     // Structured JSON Logs Alarm with notify=true
-    // Create a metric filter for the webhook function logs
+    // Import existing log group for the webhook function
+    // Note: Lambda automatically creates log groups on first invocation
     const webhookLogGroup = logs.LogGroup.fromLogGroupName(
       this,
       "WebhookLogGroup",
@@ -141,7 +142,8 @@ export class MonitoringStack extends cdk.Stack {
     );
     webhookNotifyAlarm.addAlarmAction(alarmAction);
 
-    // Create a metric filter for the streamer function logs
+    // Import existing log group for the streamer function
+    // Note: Lambda automatically creates log groups on first invocation
     const streamerLogGroup = logs.LogGroup.fromLogGroupName(
       this,
       "StreamerLogGroup",
