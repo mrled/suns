@@ -17,6 +17,7 @@ type DynamoDTO struct {
 	Owner        string                `dynamodbav:"Owner"`
 	Type         symgroup.SymmetryType `dynamodbav:"Type"`
 	ValidateTime time.Time             `dynamodbav:"ValidateTime"`
+	Rev          int64                 `dynamodbav:"Rev"` // Monotonically increasing revision number
 }
 
 // ToDomain converts a DynamoDTO to a domain model DomainRecord
@@ -27,6 +28,7 @@ func (dto *DynamoDTO) ToDomain() *model.DomainRecord {
 		Hostname:     dto.SK,
 		GroupID:      dto.PK,
 		ValidateTime: dto.ValidateTime,
+		Rev:          dto.Rev,
 	}
 }
 
@@ -38,6 +40,7 @@ func FromDomain(record *model.DomainRecord) *DynamoDTO {
 		Owner:        record.Owner,
 		Type:         record.Type,
 		ValidateTime: record.ValidateTime,
+		Rev:          record.Rev,
 	}
 }
 

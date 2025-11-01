@@ -143,20 +143,84 @@ func (r *MemoryRepository) save() error {
 	return encoder.Encode(dataSlice)
 }
 
-// Store saves domain data
-// If the record already exists, it updates the timestamp
-func (r *MemoryRepository) Store(ctx context.Context, data *model.DomainRecord) error {
+// UnconditionalStore saves domain data unconditionally. Returns new rev.
+func (r *MemoryRepository) UnconditionalStore(ctx context.Context, data *model.DomainRecord) (int64, error) {
 	if data == nil {
-		return errors.New("domain data cannot be nil")
+		return 0, errors.New("domain data cannot be nil")
 	}
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	key := makeKey(data.GroupID, data.Hostname)
-	// Update existing record or store new one
+	// Increment revision
+	if existing, exists := r.data[key]; exists {
+		data.Rev = existing.Rev + 1
+	} else {
+		data.Rev = 1
+	}
+
+	// Store the record
 	r.data[key] = data
-	return r.save()
+	if err := r.save(); err != nil {
+		return 0, err
+	}
+	return data.Rev, nil
+}
+
+// Upsert saves domain data with automatic revision increment. Returns new rev.
+func (r *MemoryRepository) Upsert(ctx context.Context, data *model.DomainRecord) (int64, error) {
+	if data == nil {
+		return 0, errors.New("domain data cannot be nil")
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	key := makeKey(data.GroupID, data.Hostname)
+	// Increment revision
+	if existing, exists := r.data[key]; exists {
+		data.Rev = existing.Rev + 1
+	} else {
+		data.Rev = 1
+	}
+
+	// Store the record
+	r.data[key] = data
+	if err := r.save(); err != nil {
+		return 0, err
+	}
+	return data.Rev, nil
+}
+
+// SetValidationIfUnchanged updates validation time only if revision matches. Returns new rev.
+func (r *MemoryRepository) SetValidationIfUnchanged(ctx context.Context, data *model.DomainRecord, snapshotRev int64) (int64, error) {
+	if data == nil {
+		return 0, errors.New("domain data cannot be nil")
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	key := makeKey(data.GroupID, data.Hostname)
+	existing, exists := r.data[key]
+	if !exists {
+		return 0, model.ErrNotFound
+	}
+
+	// Check revision match
+	if existing.Rev != snapshotRev {
+		return 0, model.ErrRevConflict
+	}
+
+	// Update only validation time and increment revision
+	existing.ValidateTime = data.ValidateTime
+	existing.Rev = snapshotRev + 1
+
+	if err := r.save(); err != nil {
+		return 0, err
+	}
+	return existing.Rev, nil
 }
 
 // Get retrieves domain data by group ID and domain name
@@ -186,14 +250,34 @@ func (r *MemoryRepository) List(ctx context.Context) ([]*model.DomainRecord, err
 	return result, nil
 }
 
-// Delete removes domain data by group ID and domain name
-func (r *MemoryRepository) Delete(ctx context.Context, groupID, domain string) error {
+// UnconditionalDelete removes domain data by group ID and domain name unconditionally
+func (r *MemoryRepository) UnconditionalDelete(ctx context.Context, groupID, domain string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	key := makeKey(groupID, domain)
 	if _, exists := r.data[key]; !exists {
 		return model.ErrNotFound
+	}
+
+	delete(r.data, key)
+	return r.save()
+}
+
+// DeleteIfUnchanged removes domain data only if revision matches
+func (r *MemoryRepository) DeleteIfUnchanged(ctx context.Context, groupID, domain string, snapshotRev int64) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	key := makeKey(groupID, domain)
+	existing, exists := r.data[key]
+	if !exists {
+		return model.ErrNotFound
+	}
+
+	// Check revision match
+	if existing.Rev != snapshotRev {
+		return model.ErrRevConflict
 	}
 
 	delete(r.data, key)

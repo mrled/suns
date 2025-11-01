@@ -98,7 +98,7 @@ func (uc *RevalidateUseCase) FindInvalidAndDrop(ctx context.Context, filters Fil
 	// Delete each invalid record
 	for _, info := range invalidRecords {
 		record := info.Record
-		if err := uc.repository.Delete(ctx, record.GroupID, record.Hostname); err != nil {
+		if err := uc.repository.UnconditionalDelete(ctx, record.GroupID, record.Hostname); err != nil {
 			// If delete fails, return what we've found so far with an error
 			return invalidRecords, fmt.Errorf("failed to delete record %s (group %s): %w", record.Hostname, record.GroupID, err)
 		}

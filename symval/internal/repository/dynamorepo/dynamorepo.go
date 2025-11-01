@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -26,12 +28,23 @@ func NewDynamoRepository(client *dynamodb.Client, tableName string) *DynamoRepos
 	}
 }
 
-// Store saves domain data to DynamoDB
-// Uses group ID as the PK and hostname as the SK
-// If the record already exists, it updates the timestamp
-func (r *DynamoRepository) Store(ctx context.Context, data *model.DomainRecord) error {
+// UnconditionalStore saves domain data to DynamoDB unconditionally. Returns new rev.
+func (r *DynamoRepository) UnconditionalStore(ctx context.Context, data *model.DomainRecord) (int64, error) {
 	if data == nil {
-		return fmt.Errorf("domain data cannot be nil")
+		return 0, fmt.Errorf("domain data cannot be nil")
+	}
+
+	// Get existing record to determine the new revision
+	existing, err := r.Get(ctx, data.GroupID, data.Hostname)
+	if err != nil && err != model.ErrNotFound {
+		return 0, fmt.Errorf("failed to get existing record: %w", err)
+	}
+
+	// Set revision
+	if existing != nil {
+		data.Rev = existing.Rev + 1
+	} else {
+		data.Rev = 1
 	}
 
 	// Convert domain model to DTO
@@ -40,20 +53,118 @@ func (r *DynamoRepository) Store(ctx context.Context, data *model.DomainRecord) 
 	// Marshal the DTO into DynamoDB attribute values
 	item, err := attributevalue.MarshalMap(dto)
 	if err != nil {
-		return fmt.Errorf("failed to marshal domain record: %w", err)
+		return 0, fmt.Errorf("failed to marshal domain record: %w", err)
 	}
 
-	// Use PutItem without condition to allow overwrites (updating timestamp)
+	// Use PutItem without condition to allow overwrites
 	_, err = r.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: aws.String(r.tableName),
 		Item:      item,
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to store domain record: %w", err)
+		return 0, fmt.Errorf("failed to store domain record: %w", err)
 	}
 
-	return nil
+	return data.Rev, nil
+}
+
+// Upsert saves domain data with automatic revision increment using UpdateItem. Returns new rev.
+func (r *DynamoRepository) Upsert(ctx context.Context, data *model.DomainRecord) (int64, error) {
+	if data == nil {
+		return 0, fmt.Errorf("domain data cannot be nil")
+	}
+
+	// Use UpdateItem with SET to atomically increment revision
+	result, err := r.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(r.tableName),
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: data.GroupID},
+			"sk": &types.AttributeValueMemberS{Value: data.Hostname},
+		},
+		UpdateExpression: aws.String("SET #owner = :owner, #type = :type, #validateTime = :validateTime, #rev = if_not_exists(#rev, :zero) + :one"),
+		ExpressionAttributeNames: map[string]string{
+			"#owner":        "Owner",
+			"#type":         "Type",
+			"#validateTime": "ValidateTime",
+			"#rev":          "Rev",
+		},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":owner":        &types.AttributeValueMemberS{Value: data.Owner},
+			":type":         &types.AttributeValueMemberS{Value: string(data.Type)},
+			":validateTime": &types.AttributeValueMemberS{Value: data.ValidateTime.Format(time.RFC3339Nano)},
+			":zero":         &types.AttributeValueMemberN{Value: "0"},
+			":one":          &types.AttributeValueMemberN{Value: "1"},
+		},
+		ReturnValues: types.ReturnValueUpdatedNew,
+	})
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to upsert domain record: %w", err)
+	}
+
+	// Extract the new revision from the returned item
+	if revAttr, ok := result.Attributes["Rev"]; ok {
+		if revNum, ok := revAttr.(*types.AttributeValueMemberN); ok {
+			rev, err := strconv.ParseInt(revNum.Value, 10, 64)
+			if err != nil {
+				return 0, fmt.Errorf("failed to parse revision: %w", err)
+			}
+			return rev, nil
+		}
+	}
+
+	return 0, fmt.Errorf("failed to get revision from response")
+}
+
+// SetValidationIfUnchanged updates validation time only if revision matches. Returns new rev.
+func (r *DynamoRepository) SetValidationIfUnchanged(ctx context.Context, data *model.DomainRecord, snapshotRev int64) (int64, error) {
+	if data == nil {
+		return 0, fmt.Errorf("domain data cannot be nil")
+	}
+
+	// Use UpdateItem with condition expression to check revision
+	result, err := r.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(r.tableName),
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: data.GroupID},
+			"sk": &types.AttributeValueMemberS{Value: data.Hostname},
+		},
+		UpdateExpression:    aws.String("SET #validateTime = :validateTime, #rev = #rev + :one"),
+		ConditionExpression: aws.String("#rev = :snapshotRev"),
+		ExpressionAttributeNames: map[string]string{
+			"#validateTime": "ValidateTime",
+			"#rev":          "Rev",
+		},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":validateTime": &types.AttributeValueMemberS{Value: data.ValidateTime.Format(time.RFC3339Nano)},
+			":snapshotRev":  &types.AttributeValueMemberN{Value: strconv.FormatInt(snapshotRev, 10)},
+			":one":          &types.AttributeValueMemberN{Value: "1"},
+		},
+		ReturnValues: types.ReturnValueAllNew,
+	})
+
+	if err != nil {
+		// Check if the error is a conditional check failure
+		var ccfe *types.ConditionalCheckFailedException
+		if errors.As(err, &ccfe) {
+			return 0, model.ErrRevConflict
+		}
+		return 0, fmt.Errorf("failed to update validation: %w", err)
+	}
+
+	// Extract the new revision from the returned item
+	if revAttr, ok := result.Attributes["Rev"]; ok {
+		if revNum, ok := revAttr.(*types.AttributeValueMemberN); ok {
+			rev, err := strconv.ParseInt(revNum.Value, 10, 64)
+			if err != nil {
+				return 0, fmt.Errorf("failed to parse revision: %w", err)
+			}
+			return rev, nil
+		}
+	}
+
+	return 0, fmt.Errorf("failed to get revision from response")
 }
 
 // Get retrieves domain data by group ID and hostname from DynamoDB
@@ -106,8 +217,8 @@ func (r *DynamoRepository) List(ctx context.Context) ([]*model.DomainRecord, err
 	return ToDomainList(dtos), nil
 }
 
-// Delete removes domain data by group ID and hostname from DynamoDB
-func (r *DynamoRepository) Delete(ctx context.Context, groupID, hostname string) error {
+// UnconditionalDelete removes domain data by group ID and hostname from DynamoDB unconditionally
+func (r *DynamoRepository) UnconditionalDelete(ctx context.Context, groupID, hostname string) error {
 	// Use ConditionExpression to ensure the item exists before deleting
 	// This matches the behavior of MemoryRepository.Delete which returns ErrNotFound
 	_, err := r.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
@@ -124,6 +235,46 @@ func (r *DynamoRepository) Delete(ctx context.Context, groupID, hostname string)
 		var ccfe *types.ConditionalCheckFailedException
 		if errors.As(err, &ccfe) {
 			return model.ErrNotFound
+		}
+		return fmt.Errorf("failed to delete domain record: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteIfUnchanged removes domain data only if revision matches
+func (r *DynamoRepository) DeleteIfUnchanged(ctx context.Context, groupID, hostname string, snapshotRev int64) error {
+	// Use ConditionExpression to check both existence and revision
+	_, err := r.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: aws.String(r.tableName),
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: groupID},
+			"sk": &types.AttributeValueMemberS{Value: hostname},
+		},
+		ConditionExpression: aws.String("attribute_exists(pk) AND attribute_exists(sk) AND #rev = :snapshotRev"),
+		ExpressionAttributeNames: map[string]string{
+			"#rev": "Rev",
+		},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":snapshotRev": &types.AttributeValueMemberN{Value: strconv.FormatInt(snapshotRev, 10)},
+		},
+	})
+
+	if err != nil {
+		// Check if the error is a conditional check failure
+		var ccfe *types.ConditionalCheckFailedException
+		if errors.As(err, &ccfe) {
+			// Need to check if it's because the item doesn't exist or revision mismatch
+			// Try to get the item to distinguish between the two
+			existing, getErr := r.Get(ctx, groupID, hostname)
+			if getErr == model.ErrNotFound {
+				return model.ErrNotFound
+			}
+			if existing != nil && existing.Rev != snapshotRev {
+				return model.ErrRevConflict
+			}
+			// If we can't determine, return the original error
+			return fmt.Errorf("conditional check failed: %w", err)
 		}
 		return fmt.Errorf("failed to delete domain record: %w", err)
 	}

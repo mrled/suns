@@ -36,7 +36,7 @@ func TestMemoryRepository_JSONPersistence(t *testing.T) {
 		ValidateTime: time.Now(),
 	}
 
-	if err := repo1.Store(ctx, testData); err != nil {
+	if _, err := repo1.UnconditionalStore(ctx, testData); err != nil {
 		t.Fatalf("Failed to store data: %v", err)
 	}
 
@@ -90,11 +90,11 @@ func TestMemoryRepository_DeletePersistence(t *testing.T) {
 		ValidateTime: time.Now(),
 	}
 
-	if err := repo.Store(ctx, testData); err != nil {
+	if _, err := repo.UnconditionalStore(ctx, testData); err != nil {
 		t.Fatalf("Failed to store data: %v", err)
 	}
 
-	if err := repo.Delete(ctx, "group-456", "example.com"); err != nil {
+	if err := repo.UnconditionalDelete(ctx, "group-456", "example.com"); err != nil {
 		t.Fatalf("Failed to delete data: %v", err)
 	}
 
@@ -124,7 +124,7 @@ func TestMemoryRepository_NonPersistent(t *testing.T) {
 		ValidateTime: time.Now(),
 	}
 
-	if err := repo.Store(ctx, testData); err != nil {
+	if _, err := repo.UnconditionalStore(ctx, testData); err != nil {
 		t.Fatalf("Failed to store data: %v", err)
 	}
 
@@ -149,7 +149,7 @@ func TestMemoryRepository_NonPersistent(t *testing.T) {
 	}
 
 	// Verify Delete works
-	if err := repo.Delete(ctx, "group-789", "example.com"); err != nil {
+	if err := repo.UnconditionalDelete(ctx, "group-789", "example.com"); err != nil {
 		t.Fatalf("Failed to delete data: %v", err)
 	}
 
@@ -232,7 +232,7 @@ func TestMemoryRepository_FromJsonString(t *testing.T) {
 		GroupID:      "group-789",
 		ValidateTime: time.Now(),
 	}
-	if err := repo.Store(ctx, testData); err != nil {
+	if _, err := repo.UnconditionalStore(ctx, testData); err != nil {
 		t.Fatalf("Failed to store new data: %v", err)
 	}
 

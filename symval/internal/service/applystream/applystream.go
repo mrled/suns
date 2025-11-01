@@ -112,8 +112,8 @@ func (s *Service) handleInsertOrModify(ctx context.Context, repo model.DomainRep
 		return fmt.Errorf("failed to convert stream record: %w", err)
 	}
 
-	// Store the record in the repository
-	if err := repo.Store(ctx, domainRecord); err != nil {
+	// Store the record in the repository using UnconditionalStore (stream is the source of truth)
+	if _, err := repo.UnconditionalStore(ctx, domainRecord); err != nil {
 		return fmt.Errorf("failed to store record: %w", err)
 	}
 
@@ -133,8 +133,8 @@ func (s *Service) handleRemove(ctx context.Context, repo model.DomainRepository,
 		return fmt.Errorf("missing required keys: pk=%s, sk=%s", pk, sk)
 	}
 
-	// Delete the record from the repository
-	if err := repo.Delete(ctx, pk, sk); err != nil {
+	// Delete the record from the repository using UnconditionalDelete (stream is the source of truth)
+	if err := repo.UnconditionalDelete(ctx, pk, sk); err != nil {
 		if err != model.ErrNotFound {
 			return fmt.Errorf("failed to delete record: %w", err)
 		}

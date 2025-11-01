@@ -27,7 +27,7 @@ func ExampleMemoryRepository() {
 		ValidateTime: time.Date(2025, 10, 17, 12, 0, 0, 0, time.UTC),
 	}
 
-	repo.Store(ctx, data)
+	repo.UnconditionalStore(ctx, data)
 
 	// Read the JSON file to show format
 	content, _ := os.ReadFile(tmpPath)
@@ -40,7 +40,8 @@ func ExampleMemoryRepository() {
 	//     "Type": "a",
 	//     "Hostname": "example.com",
 	//     "GroupID": "abc123",
-	//     "ValidateTime": "2025-10-17T12:00:00Z"
+	//     "ValidateTime": "2025-10-17T12:00:00Z",
+	//     "Rev": 1
 	//   }
 	// ]
 }

@@ -115,7 +115,7 @@ func (uc *ReattestUseCase) ReattestAllAndDrop(ctx context.Context) ([]GroupAttes
 		if !result.IsValid {
 			// Delete all records in this group
 			for _, domain := range result.Domains {
-				if err := uc.repository.Delete(ctx, result.GroupID, domain); err != nil {
+				if err := uc.repository.UnconditionalDelete(ctx, result.GroupID, domain); err != nil {
 					// If delete fails, return what we've processed so far with an error
 					return results, fmt.Errorf("failed to delete record %s (group %s): %w", domain, result.GroupID, err)
 				}

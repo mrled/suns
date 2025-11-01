@@ -142,13 +142,21 @@ func handler(ctx context.Context, event map[string]interface{}) error {
 			groupLogger.Info("Group attestation succeeded, updating records")
 
 			for _, record := range groupRecords {
+				// Keep the snapshot revision for conditional update
+				snapshotRev := record.Rev
 				record.ValidateTime = time.Now()
-				if err := dynamoRepo.Store(ctx, record); err != nil {
-					groupLogger.Error("Failed to update record in DynamoDB",
-						slog.Bool("notify", true),
-						slog.String("hostname", record.Hostname),
-						slog.String("error", err.Error()))
-					failureCount++
+				if _, err := dynamoRepo.SetValidationIfUnchanged(ctx, record, snapshotRev); err != nil {
+					if err == model.ErrRevConflict {
+						groupLogger.Warn("Record changed during validation, skipping",
+							slog.String("hostname", record.Hostname))
+						skipCount++
+					} else {
+						groupLogger.Error("Failed to update record in DynamoDB",
+							slog.Bool("notify", true),
+							slog.String("hostname", record.Hostname),
+							slog.String("error", err.Error()))
+						failureCount++
+					}
 				} else {
 					successCount++
 				}
@@ -175,12 +183,18 @@ func handler(ctx context.Context, event map[string]interface{}) error {
 					slog.Int("grace_period_hours", gracePeriodHours))
 
 				for _, record := range groupRecords {
-					if err := dynamoRepo.Delete(ctx, result.GroupID, record.Hostname); err != nil {
-						groupLogger.Error("Failed to delete record from DynamoDB",
-							slog.Bool("notify", true),
-							slog.String("hostname", record.Hostname),
-							slog.String("error", err.Error()))
-						failureCount++
+					if err := dynamoRepo.DeleteIfUnchanged(ctx, result.GroupID, record.Hostname, record.Rev); err != nil {
+						if err == model.ErrRevConflict {
+							groupLogger.Warn("Record changed during deletion, skipping",
+								slog.String("hostname", record.Hostname))
+							skipCount++
+						} else {
+							groupLogger.Error("Failed to delete record from DynamoDB",
+								slog.Bool("notify", true),
+								slog.String("hostname", record.Hostname),
+								slog.String("error", err.Error()))
+							failureCount++
+						}
 					} else {
 						deleteCount++
 					}

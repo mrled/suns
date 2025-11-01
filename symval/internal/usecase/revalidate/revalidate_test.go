@@ -19,7 +19,7 @@ func setupTestRepo(t *testing.T, records []*model.DomainRecord) model.DomainRepo
 	for _, record := range records {
 		// Store the test records in the repository
 		// Store now allows updates (overwrites existing records with same key)
-		if err := repo.Store(ctx, record); err != nil {
+		if _, err := repo.UnconditionalStore(ctx, record); err != nil {
 			t.Fatalf("failed to setup test data: %v", err)
 		}
 	}

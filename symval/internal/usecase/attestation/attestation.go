@@ -118,7 +118,7 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 	if result.IsValid && uc.repository != nil {
 		ctx := context.Background()
 		for _, record := range allDomainRecords {
-			if err := uc.repository.Store(ctx, record); err != nil {
+			if _, err := uc.repository.Upsert(ctx, record); err != nil {
 				// Log and exit with error
 				fmt.Printf("Warning: failed to store record for %s: %v\n", record.Hostname, err)
 				return nil, fmt.Errorf("failed to store record for %s: %w", record.Hostname, err)
