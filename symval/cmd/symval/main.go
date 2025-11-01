@@ -3,10 +3,23 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/mrled/suns/symval/cmd/symval/commands"
+	"github.com/mrled/suns/symval/internal/logger"
 )
+
+var log *slog.Logger
+
+func init() {
+	// Initialize the logger with default configuration from environment variables
+	log = logger.NewDefaultLogger()
+	// Add the executable name for filtering in log aggregation
+	log = logger.WithExecutable(log, "symval")
+	// Set as the default logger for any packages that use slog directly
+	logger.SetDefault(log)
+}
 
 // Main entry point
 //
