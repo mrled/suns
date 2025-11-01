@@ -38,11 +38,11 @@ type AttestRequest struct {
 
 // AttestResponse represents the JSON response for attestation
 type AttestResponse struct {
-	IsValid      bool     `json:"isValid"`
-	ExpectedID   string   `json:"expectedId"`
-	GroupIDCount int      `json:"groupIdCount"`
-	ErrorMessage string   `json:"errorMessage,omitempty"`
-	Message      string   `json:"message,omitempty"`
+	IsValid      bool   `json:"isValid"`
+	ExpectedID   string `json:"expectedId"`
+	GroupIDCount int    `json:"groupIdCount"`
+	ErrorMessage string `json:"errorMessage,omitempty"`
+	Message      string `json:"message,omitempty"`
 }
 
 func init() {

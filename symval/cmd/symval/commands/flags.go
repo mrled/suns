@@ -6,10 +6,10 @@ import (
 
 // PersistenceFlags holds flags related to persistence and data storage options
 type PersistenceFlags struct {
-	FilePath        string
-	DynamoTable     string
-	DynamoEndpoint  string
-	DryRun          bool
+	FilePath       string
+	DynamoTable    string
+	DynamoEndpoint string
+	DryRun         bool
 }
 
 // addPersistenceFlags adds common persistence-related flags to a command

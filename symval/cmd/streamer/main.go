@@ -17,13 +17,13 @@ import (
 )
 
 var (
-	dynamoEndpoint   string
-	dynamoTable      string
-	s3BucketName     string
-	s3DataKey        string
-	s3Client         *s3.Client
-	streamerService  *applystream.Service
-	log              *slog.Logger
+	dynamoEndpoint  string
+	dynamoTable     string
+	s3BucketName    string
+	s3DataKey       string
+	s3Client        *s3.Client
+	streamerService *applystream.Service
+	log             *slog.Logger
 )
 
 func init() {
@@ -69,7 +69,6 @@ func init() {
 	log.Info("Using S3 key", slog.String("key", s3DataKey))
 }
 
-
 func handler(ctx context.Context, event events.DynamoDBEvent) error {
 	// Delegate all processing to the applystream service
 	err := streamerService.ProcessStreamBatch(ctx, event.Records)
@@ -80,7 +79,6 @@ func handler(ctx context.Context, event events.DynamoDBEvent) error {
 	}
 	return err
 }
-
 
 func main() {
 	ctx := context.Background()

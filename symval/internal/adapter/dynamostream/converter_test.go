@@ -11,11 +11,11 @@ import (
 
 func TestConvertToDomainRecord(t *testing.T) {
 	tests := []struct {
-		name      string
-		fixture   string
-		wantErr   bool
+		name        string
+		fixture     string
+		wantErr     bool
 		errContains string
-		validate  func(t *testing.T, record *events.DynamoDBEventRecord)
+		validate    func(t *testing.T, record *events.DynamoDBEventRecord)
 	}{
 		{
 			name: "full happy path - all fields present and valid",
@@ -72,7 +72,7 @@ func TestConvertToDomainRecord(t *testing.T) {
 					}
 				}
 			}`,
-			wantErr: true,
+			wantErr:     true,
 			errContains: "missing required field: Owner",
 			validate: func(t *testing.T, record *events.DynamoDBEventRecord) {
 				result, err := ConvertToDomainRecord(record.Change.NewImage)
@@ -98,7 +98,7 @@ func TestConvertToDomainRecord(t *testing.T) {
 					}
 				}
 			}`,
-			wantErr: true,
+			wantErr:     true,
 			errContains: "missing required field: Type",
 			validate: func(t *testing.T, record *events.DynamoDBEventRecord) {
 				result, err := ConvertToDomainRecord(record.Change.NewImage)
@@ -124,7 +124,7 @@ func TestConvertToDomainRecord(t *testing.T) {
 					}
 				}
 			}`,
-			wantErr: true,
+			wantErr:     true,
 			errContains: "missing required field: ValidateTime",
 			validate: func(t *testing.T, record *events.DynamoDBEventRecord) {
 				result, err := ConvertToDomainRecord(record.Change.NewImage)
@@ -151,7 +151,7 @@ func TestConvertToDomainRecord(t *testing.T) {
 					}
 				}
 			}`,
-			wantErr: true,
+			wantErr:     true,
 			errContains: "invalid ValidateTime format",
 			validate: func(t *testing.T, record *events.DynamoDBEventRecord) {
 				result, err := ConvertToDomainRecord(record.Change.NewImage)
@@ -175,7 +175,7 @@ func TestConvertToDomainRecord(t *testing.T) {
 					}
 				}
 			}`,
-			wantErr: true,
+			wantErr:     true,
 			errContains: "newImage is nil",
 			validate: func(t *testing.T, record *events.DynamoDBEventRecord) {
 				result, err := ConvertToDomainRecord(record.Change.NewImage)
@@ -201,7 +201,7 @@ func TestConvertToDomainRecord(t *testing.T) {
 					}
 				}
 			}`,
-			wantErr: true,
+			wantErr:     true,
 			errContains: "missing required field: GroupID",
 			validate: func(t *testing.T, record *events.DynamoDBEventRecord) {
 				result, err := ConvertToDomainRecord(record.Change.NewImage)
@@ -227,7 +227,7 @@ func TestConvertToDomainRecord(t *testing.T) {
 					}
 				}
 			}`,
-			wantErr: true,
+			wantErr:     true,
 			errContains: "missing required field: Hostname",
 			validate: func(t *testing.T, record *events.DynamoDBEventRecord) {
 				result, err := ConvertToDomainRecord(record.Change.NewImage)
@@ -254,7 +254,7 @@ func TestConvertToDomainRecord(t *testing.T) {
 					}
 				}
 			}`,
-			wantErr: true,
+			wantErr:     true,
 			errContains: "missing required field: GroupID",
 			validate: func(t *testing.T, record *events.DynamoDBEventRecord) {
 				result, err := ConvertToDomainRecord(record.Change.NewImage)
@@ -281,7 +281,7 @@ func TestConvertToDomainRecord(t *testing.T) {
 					}
 				}
 			}`,
-			wantErr: true,
+			wantErr:     true,
 			errContains: "missing required field: Hostname",
 			validate: func(t *testing.T, record *events.DynamoDBEventRecord) {
 				result, err := ConvertToDomainRecord(record.Change.NewImage)
