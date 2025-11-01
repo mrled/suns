@@ -34,15 +34,14 @@ func (r *DynamoRepository) Store(ctx context.Context, data *model.DomainRecord) 
 		return fmt.Errorf("domain data cannot be nil")
 	}
 
-	// Marshal the domain record into DynamoDB attribute values
-	item, err := attributevalue.MarshalMap(data)
+	// Convert domain model to DTO
+	dto := FromDomain(data)
+
+	// Marshal the DTO into DynamoDB attribute values
+	item, err := attributevalue.MarshalMap(dto)
 	if err != nil {
 		return fmt.Errorf("failed to marshal domain record: %w", err)
 	}
-
-	// Set the PK and SK explicitly
-	item["pk"] = &types.AttributeValueMemberS{Value: data.GroupID}
-	item["sk"] = &types.AttributeValueMemberS{Value: data.Hostname}
 
 	// Use PutItem without condition to allow overwrites (updating timestamp)
 	_, err = r.client.PutItem(ctx, &dynamodb.PutItemInput{
@@ -75,18 +74,16 @@ func (r *DynamoRepository) Get(ctx context.Context, groupID, hostname string) (*
 		return nil, model.ErrNotFound
 	}
 
-	var record model.DomainRecord
-	if err := attributevalue.UnmarshalMap(result.Item, &record); err != nil {
+	var dto DynamoDTO
+	if err := attributevalue.UnmarshalMap(result.Item, &dto); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal domain record: %w", err)
 	}
 
-	return &record, nil
+	return dto.ToDomain(), nil
 }
 
 // List retrieves all domain data from DynamoDB
 func (r *DynamoRepository) List(ctx context.Context) ([]*model.DomainRecord, error) {
-	var records []*model.DomainRecord
-
 	// Use Scan to retrieve all items
 	// Note: For production use with large tables, consider using pagination
 	result, err := r.client.Scan(ctx, &dynamodb.ScanInput{
@@ -97,15 +94,16 @@ func (r *DynamoRepository) List(ctx context.Context) ([]*model.DomainRecord, err
 		return nil, fmt.Errorf("failed to scan domain records: %w", err)
 	}
 
+	var dtos []*DynamoDTO
 	for _, item := range result.Items {
-		var record model.DomainRecord
-		if err := attributevalue.UnmarshalMap(item, &record); err != nil {
+		var dto DynamoDTO
+		if err := attributevalue.UnmarshalMap(item, &dto); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal domain record: %w", err)
 		}
-		records = append(records, &record)
+		dtos = append(dtos, &dto)
 	}
 
-	return records, nil
+	return ToDomainList(dtos), nil
 }
 
 // Delete removes domain data by group ID and hostname from DynamoDB
