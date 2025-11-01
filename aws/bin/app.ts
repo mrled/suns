@@ -10,6 +10,7 @@ import { DnsStack } from '../lib/DnsStack';
 import { DynamoDbStack } from '../lib/DynamoDbStack';
 import { WebhookStack } from '../lib/WebhookStack';
 import { StreamerStack } from '../lib/StreamerStack';
+import { MonitoringStack } from '../lib/MonitoringStack';
 
 const app = new cdk.App();
 
@@ -83,5 +84,15 @@ const dnsStack = new DnsStack(app, `${config.stackPrefix}DnsStack`, {
 });
 dnsStack.addDependency(dnsZoneStack);
 dnsStack.addDependency(edgeStack);
+
+// Monitoring Stack - CloudWatch alarms and SNS alerts
+const monitoringStack = new MonitoringStack(app, `${config.stackPrefix}MonitoringStack`, {
+  env: { account, region },
+  description: `Monitoring and alerting for ${config.domainName}`,
+  webhookFunction: webhookStack.webhookFunction,
+  streamerFunction: streamerStack.streamerFunction,
+});
+monitoringStack.addDependency(webhookStack);
+monitoringStack.addDependency(streamerStack);
 
 app.synth();

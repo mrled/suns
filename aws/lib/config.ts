@@ -9,6 +9,8 @@ export const config = {
   stackPrefix: 'Suns',
   // S3 key for the domains JSON file
   domainsDataKey: 'records/domains.json',
+  // Where alerts are sent
+  alertEmail: 'me+suns-alerts@micahrl.com',
 } as const;
 
 export const repositoryRoot = __dirname + '/../../';
