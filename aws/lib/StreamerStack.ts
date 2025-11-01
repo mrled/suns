@@ -71,6 +71,7 @@ export class StreamerStack extends cdk.Stack {
         startingPosition: lambda.StartingPosition.LATEST,
         batchSize: 10, // Process up to 10 records at once
         bisectBatchOnError: true, // Split the batch on error to isolate bad records
+        // maxBatchingWindow: cdk.Duration.seconds(10), // Wait up to 10 seconds to gather a full batch
         retryAttempts: 3, // Retry failed batches up to 3 times
         reportBatchItemFailures: true, // Report individual item failures
         parallelizationFactor: 1, // Process one shard at a time (since we have concurrency=1)
