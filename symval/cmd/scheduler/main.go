@@ -12,8 +12,9 @@ import (
 var log *slog.Logger
 
 func init() {
-	// Initialize logger
+	// Initialize logger with executable name for filtering
 	log = logger.NewDefaultLogger()
+	log = logger.WithExecutable(log, "scheduler")
 	logger.SetDefault(log)
 }
 

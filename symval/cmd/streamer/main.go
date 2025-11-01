@@ -27,8 +27,9 @@ var (
 )
 
 func init() {
-	// Initialize logger
+	// Initialize logger with executable name for filtering
 	log = logger.NewDefaultLogger()
+	log = logger.WithExecutable(log, "streamer")
 	logger.SetDefault(log)
 
 	// Optional endpoint override for local development or testing

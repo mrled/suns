@@ -92,6 +92,11 @@ func WithService(logger *slog.Logger, serviceName string) *slog.Logger {
 	return logger.With(slog.String("service", serviceName))
 }
 
+// WithExecutable adds executable name to a logger for filtering by program
+func WithExecutable(logger *slog.Logger, executableName string) *slog.Logger {
+	return logger.With(slog.String("executable", executableName))
+}
+
 // getEnvOrDefault returns environment variable value or default if not set
 func getEnvOrDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
