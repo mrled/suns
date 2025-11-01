@@ -160,19 +160,13 @@
         "iam:UntagRole",
         "iam:UpdateAssumeRolePolicy"
       ],
-      "Resource": [
-        "arn:aws:iam::*:role/cdk-*"
-      ]
+      "Resource": ["arn:aws:iam::*:role/cdk-*"]
     },
     {
       "Sid": "STSAssumeRole",
       "Effect": "Allow",
-      "Action": [
-        "sts:AssumeRole"
-      ],
-      "Resource": [
-        "arn:aws:iam::*:role/cdk-*"
-      ]
+      "Action": ["sts:AssumeRole"],
+      "Resource": ["arn:aws:iam::*:role/cdk-*"]
     },
     {
       "Sid": "ReadOnlyAccess",

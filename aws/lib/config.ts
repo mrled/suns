@@ -1,16 +1,16 @@
 export const config = {
   // Deployment region for most resources
-  deployRegion: 'us-east-2',
+  deployRegion: "us-east-2",
   // ACM certificates must be in us-east-1 for CloudFront
-  acmRegion: 'us-east-1',
+  acmRegion: "us-east-1",
   // The domain name we're using
-  domainName: 'suns.bz',
+  domainName: "suns.bz",
   // Prefix for stack names
-  stackPrefix: 'Suns',
+  stackPrefix: "Suns",
   // S3 key for the domains JSON file
-  domainsDataKey: 'records/domains.json',
+  domainsDataKey: "records/domains.json",
   // Where alerts are sent
-  alertEmail: 'me+suns-alerts@micahrl.com',
+  alertEmail: "me+suns-alerts@micahrl.com",
 } as const;
 
-export const repositoryRoot = __dirname + '/../../';
+export const repositoryRoot = __dirname + "/../../";

@@ -1,11 +1,11 @@
-import * as cdk from 'aws-cdk-lib';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources';
-import { Construct } from 'constructs';
-import { config, repositoryRoot } from './config';
-import * as path from 'path';
+import * as cdk from "aws-cdk-lib";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as s3 from "aws-cdk-lib/aws-s3";
+import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
+import { Construct } from "constructs";
+import { config, repositoryRoot } from "./config";
+import * as path from "path";
 
 export interface StreamerStackProps extends cdk.StackProps {
   table: dynamodb.ITable;
@@ -19,27 +19,27 @@ export class StreamerStack extends cdk.Stack {
     super(scope, id, props);
 
     // Create Lambda function for DynamoDB Streams processing
-    this.streamerFunction = new lambda.Function(this, 'StreamerFunction', {
+    this.streamerFunction = new lambda.Function(this, "StreamerFunction", {
       runtime: lambda.Runtime.PROVIDED_AL2023,
-      handler: 'bootstrap',
+      handler: "bootstrap",
       architecture: lambda.Architecture.ARM_64, // Graviton2
       functionName: `${config.stackPrefix}StreamerFunction`,
-      code: lambda.Code.fromAsset(path.join(repositoryRoot, 'symval'), {
+      code: lambda.Code.fromAsset(path.join(repositoryRoot, "symval"), {
         bundling: {
           image: lambda.Runtime.PROVIDED_AL2023.bundlingImage,
           command: [
-            'sh',
-            '-c',
+            "sh",
+            "-c",
             [
-              'dnf install -y golang',
-              'export GOOS=linux',
-              'export GOARCH=arm64',
-              'export CGO_ENABLED=0',
-              'cd /asset-input',
+              "dnf install -y golang",
+              "export GOOS=linux",
+              "export GOARCH=arm64",
+              "export CGO_ENABLED=0",
+              "cd /asset-input",
               'go build -tags netgo -ldflags "-s -w -extldflags -static" -trimpath -o /asset-output/bootstrap ./cmd/streamer',
-            ].join(' && '),
+            ].join(" && "),
           ],
-          user: 'root',
+          user: "root",
         },
       }),
       environment: {
@@ -64,31 +64,33 @@ export class StreamerStack extends cdk.Stack {
     const table = props.table as dynamodb.Table;
 
     // Add the DynamoDB Streams event source to the Lambda function
-    this.streamerFunction.addEventSource(new lambdaEventSources.DynamoEventSource(table, {
-      startingPosition: lambda.StartingPosition.LATEST,
-      batchSize: 10, // Process up to 10 records at once
-      bisectBatchOnError: true, // Split the batch on error to isolate bad records
-      retryAttempts: 3, // Retry failed batches up to 3 times
-      reportBatchItemFailures: true, // Report individual item failures
-      parallelizationFactor: 1, // Process one shard at a time (since we have concurrency=1)
-    }));
+    this.streamerFunction.addEventSource(
+      new lambdaEventSources.DynamoEventSource(table, {
+        startingPosition: lambda.StartingPosition.LATEST,
+        batchSize: 10, // Process up to 10 records at once
+        bisectBatchOnError: true, // Split the batch on error to isolate bad records
+        retryAttempts: 3, // Retry failed batches up to 3 times
+        reportBatchItemFailures: true, // Report individual item failures
+        parallelizationFactor: 1, // Process one shard at a time (since we have concurrency=1)
+      }),
+    );
 
     // Outputs
-    new cdk.CfnOutput(this, 'StreamerFunctionArn', {
+    new cdk.CfnOutput(this, "StreamerFunctionArn", {
       value: this.streamerFunction.functionArn,
-      description: 'DynamoDB Streams Lambda Function ARN',
+      description: "DynamoDB Streams Lambda Function ARN",
       exportName: `${config.stackPrefix}StreamerFunctionArn`,
     });
 
-    new cdk.CfnOutput(this, 'StreamerFunctionName', {
+    new cdk.CfnOutput(this, "StreamerFunctionName", {
       value: this.streamerFunction.functionName,
-      description: 'DynamoDB Streams Lambda Function Name',
+      description: "DynamoDB Streams Lambda Function Name",
       exportName: `${config.stackPrefix}StreamerFunctionName`,
     });
 
-    new cdk.CfnOutput(this, 'DomainsDataUrl', {
+    new cdk.CfnOutput(this, "DomainsDataUrl", {
       value: `https://${config.domainName}/${config.domainsDataKey}`,
-      description: 'URL to fetch domains data JSON file',
+      description: "URL to fetch domains data JSON file",
     });
   }
 }

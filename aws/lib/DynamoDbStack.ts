@@ -1,7 +1,7 @@
-import * as cdk from 'aws-cdk-lib';
-import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import { Construct } from 'constructs';
-import { config } from './config';
+import * as cdk from "aws-cdk-lib";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import { Construct } from "constructs";
+import { config } from "./config";
 
 export class DynamoDbStack extends cdk.Stack {
   public readonly table: dynamodb.ITable;
@@ -13,11 +13,11 @@ export class DynamoDbStack extends cdk.Stack {
     this.table = new dynamodb.Table(this, "ApplicationTable", {
       tableName: `suns-prod-application-table`,
       partitionKey: {
-        name: 'pk',
+        name: "pk",
         type: dynamodb.AttributeType.STRING,
       },
       sortKey: {
-        name: 'sk',
+        name: "sk",
         type: dynamodb.AttributeType.STRING,
       },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -29,15 +29,15 @@ export class DynamoDbStack extends cdk.Stack {
       stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
     });
 
-    new cdk.CfnOutput(this, 'TableName', {
+    new cdk.CfnOutput(this, "TableName", {
       value: this.table.tableName,
-      description: 'DynamoDB Table Name',
+      description: "DynamoDB Table Name",
       exportName: `ApplicationTableName`,
     });
 
-    new cdk.CfnOutput(this, 'TableArn', {
+    new cdk.CfnOutput(this, "TableArn", {
       value: this.table.tableArn,
-      description: 'DynamoDB Table ARN',
+      description: "DynamoDB Table ARN",
       exportName: `ApplicationTableArn`,
     });
   }

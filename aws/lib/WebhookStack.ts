@@ -1,11 +1,11 @@
-import * as cdk from 'aws-cdk-lib';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigatewayv2';
-import * as apigatewayIntegrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import { Construct } from 'constructs';
-import { config, repositoryRoot } from './config';
-import * as path from 'path';
+import * as cdk from "aws-cdk-lib";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as apigateway from "aws-cdk-lib/aws-apigatewayv2";
+import * as apigatewayIntegrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import { Construct } from "constructs";
+import { config, repositoryRoot } from "./config";
+import * as path from "path";
 
 export interface WebhookStackProps extends cdk.StackProps {
   table: dynamodb.ITable;
@@ -19,27 +19,27 @@ export class WebhookStack extends cdk.Stack {
     super(scope, id, props);
 
     // Create Lambda function for webhook
-    this.webhookFunction = new lambda.Function(this, 'WebhookFunction', {
+    this.webhookFunction = new lambda.Function(this, "WebhookFunction", {
       runtime: lambda.Runtime.PROVIDED_AL2023,
-      handler: 'bootstrap',
+      handler: "bootstrap",
       architecture: lambda.Architecture.ARM_64, // Graviton2
       functionName: `${config.stackPrefix}ApiFunction`,
-      code: lambda.Code.fromAsset(path.join(repositoryRoot, 'symval'), {
+      code: lambda.Code.fromAsset(path.join(repositoryRoot, "symval"), {
         bundling: {
           image: lambda.Runtime.PROVIDED_AL2023.bundlingImage,
           command: [
-            'sh',
-            '-c',
+            "sh",
+            "-c",
             [
-              'dnf install -y golang',
-              'export GOOS=linux',
-              'export GOARCH=arm64',
-              'export CGO_ENABLED=0',
-              'cd /asset-input',
+              "dnf install -y golang",
+              "export GOOS=linux",
+              "export GOARCH=arm64",
+              "export CGO_ENABLED=0",
+              "cd /asset-input",
               'go build -tags netgo -ldflags "-s -w -extldflags -static" -trimpath -o /asset-output/bootstrap ./cmd/webhook',
-            ].join(' && '),
+            ].join(" && "),
           ],
-          user: 'root',
+          user: "root",
         },
       }),
       environment: {
@@ -54,11 +54,11 @@ export class WebhookStack extends cdk.Stack {
     props.table.grantReadWriteData(this.webhookFunction);
 
     // Create HTTP API Gateway
-    this.api = new apigateway.HttpApi(this, 'WebhookApi', {
+    this.api = new apigateway.HttpApi(this, "WebhookApi", {
       apiName: `${config.stackPrefix}WebhookApi`,
-      description: 'HTTP API for SUNS webhook attestation',
+      description: "HTTP API for SUNS webhook attestation",
       corsPreflight: {
-        allowOrigins: ['*'],
+        allowOrigins: ["*"],
         allowMethods: [
           apigateway.CorsHttpMethod.GET,
           apigateway.CorsHttpMethod.POST,
@@ -66,20 +66,20 @@ export class WebhookStack extends cdk.Stack {
           apigateway.CorsHttpMethod.DELETE,
           apigateway.CorsHttpMethod.PATCH,
         ],
-        allowHeaders: ['Content-Type', 'Authorization'],
+        allowHeaders: ["Content-Type", "Authorization"],
       },
     });
 
     // Create Lambda integration
     const lambdaIntegration = new apigatewayIntegrations.HttpLambdaIntegration(
-      'WebhookIntegration',
-      this.webhookFunction
+      "WebhookIntegration",
+      this.webhookFunction,
     );
 
     // Add route for all /api/* paths - this will proxy all requests to Lambda
     // The Lambda function will handle routing internally
     this.api.addRoutes({
-      path: '/api/{proxy+}',
+      path: "/api/{proxy+}",
       methods: [
         apigateway.HttpMethod.GET,
         apigateway.HttpMethod.POST,
@@ -91,27 +91,27 @@ export class WebhookStack extends cdk.Stack {
     });
 
     // Outputs
-    new cdk.CfnOutput(this, 'ApiUrl', {
+    new cdk.CfnOutput(this, "ApiUrl", {
       value: this.api.apiEndpoint,
-      description: 'Webhook API Gateway URL',
+      description: "Webhook API Gateway URL",
       exportName: `${config.stackPrefix}WebhookApiUrl`,
     });
 
-    new cdk.CfnOutput(this, 'ApiId', {
+    new cdk.CfnOutput(this, "ApiId", {
       value: this.api.apiId,
-      description: 'Webhook API Gateway ID',
+      description: "Webhook API Gateway ID",
       exportName: `${config.stackPrefix}WebhookApiId`,
     });
 
-    new cdk.CfnOutput(this, 'FunctionArn', {
+    new cdk.CfnOutput(this, "FunctionArn", {
       value: this.webhookFunction.functionArn,
-      description: 'Webhook Lambda Function ARN',
+      description: "Webhook Lambda Function ARN",
       exportName: `${config.stackPrefix}WebhookFunctionArn`,
     });
 
-    new cdk.CfnOutput(this, 'AttestEndpoint', {
+    new cdk.CfnOutput(this, "AttestEndpoint", {
       value: `${this.api.apiEndpoint}/api/v1/attest`,
-      description: 'Direct API Gateway webhook attest endpoint URL',
+      description: "Direct API Gateway webhook attest endpoint URL",
     });
   }
 }

@@ -46,7 +46,7 @@ npm run watch                   # Watch mode
 ## Stack Architecture
 
 1. SunsDnsZoneStack - Route53 hosted zone for suns.bz
-2. SunsCertStack - ACM certificate for suns.bz and *.suns.bz (us-east-1 only)
+2. SunsCertStack - ACM certificate for suns.bz and \*.suns.bz (us-east-1 only)
 3. SunsStorageStack - S3 bucket for static content
 4. SunsEdgeStack - CloudFront distribution serving from S3
 5. SunsDnsStack - A/AAAA records pointing to CloudFront
