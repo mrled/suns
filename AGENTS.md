@@ -1,7 +1,9 @@
 # suns project AGENTS.md
 
 * AWS CDK is in `/aws`
+    * If you change any code in here, always run `prettier -w .`
 * A Go project with a command line for local use, Lambdas, etc is in `/symval`
+    * If you change any code in here, always run `go fmt ./...`
 * A Hugo static website is in `/www`
 
 ## Interacting with AWS
