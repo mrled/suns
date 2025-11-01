@@ -3,7 +3,7 @@ package applystream
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/mrled/suns/symval/internal/adapter/dynamostream"
@@ -33,7 +33,7 @@ func New(s3View *s3materializedview.S3MaterializedView) *Service {
 // IMPORTANT: This assumes reservedConcurrentExecutions=1 in Lambda configuration
 // to ensure only one instance runs at a time, making read-modify-write safe
 func (s *Service) ProcessStreamBatch(ctx context.Context, records []events.DynamoDBEventRecord) error {
-	log.Printf("Processing batch of %d records from DynamoDB stream", len(records))
+	slog.Info("Processing batch from DynamoDB stream", slog.Int("record_count", len(records)))
 
 	// Load current data from S3 into memory repository
 	memRepo, err := s.loadRepository(ctx)
@@ -46,7 +46,9 @@ func (s *Service) ProcessStreamBatch(ctx context.Context, records []events.Dynam
 	for _, record := range records {
 		if err := s.processRecord(ctx, memRepo, record); err != nil {
 			// Log error but continue processing other records
-			log.Printf("Error processing record %s: %v", record.EventID, err)
+			slog.Error("Error processing record",
+				slog.String("event_id", record.EventID),
+				slog.String("error", err.Error()))
 			continue
 		}
 		processedCount++
@@ -59,8 +61,10 @@ func (s *Service) ProcessStreamBatch(ctx context.Context, records []events.Dynam
 
 	// Log final statistics
 	allRecords, _ := memRepo.List(ctx)
-	log.Printf("Successfully processed %d/%d stream records, S3 file now contains %d records",
-		processedCount, len(records), len(allRecords))
+	slog.Info("Successfully processed stream batch",
+		slog.Int("processed", processedCount),
+		slog.Int("total", len(records)),
+		slog.Int("s3_record_count", len(allRecords)))
 
 	return nil
 }
@@ -69,9 +73,9 @@ func (s *Service) ProcessStreamBatch(ctx context.Context, records []events.Dynam
 func (s *Service) loadRepository(ctx context.Context) (*memrepo.MemoryRepository, error) {
 	memRepo, err := s.s3View.Load(ctx)
 	if err != nil {
-		log.Printf("Error loading repository from S3: %v", err)
+		slog.Warn("Error loading repository from S3", slog.String("error", err.Error()))
 		// If file doesn't exist or error occurs, start with empty repository
-		log.Printf("Starting with empty repository")
+		slog.Info("Starting with empty repository")
 		return memrepo.NewMemoryRepository(), nil
 	}
 	return memRepo, nil
@@ -79,7 +83,9 @@ func (s *Service) loadRepository(ctx context.Context) (*memrepo.MemoryRepository
 
 // processRecord processes a single DynamoDB stream record
 func (s *Service) processRecord(ctx context.Context, repo model.DomainRepository, record events.DynamoDBEventRecord) error {
-	log.Printf("Processing record: EventID=%s, EventName=%s", record.EventID, record.EventName)
+	slog.Debug("Processing record",
+		slog.String("event_id", record.EventID),
+		slog.String("event_name", record.EventName))
 
 	switch record.EventName {
 	case "INSERT", "MODIFY":
@@ -87,7 +93,7 @@ func (s *Service) processRecord(ctx context.Context, repo model.DomainRepository
 	case "REMOVE":
 		return s.handleRemove(ctx, repo, record)
 	default:
-		log.Printf("Unknown event type: %s", record.EventName)
+		slog.Warn("Unknown event type", slog.String("event_name", record.EventName))
 		return fmt.Errorf("unknown event type: %s", record.EventName)
 	}
 }
@@ -105,7 +111,9 @@ func (s *Service) handleInsertOrModify(ctx context.Context, repo model.DomainRep
 		return fmt.Errorf("failed to store record: %w", err)
 	}
 
-	log.Printf("Stored/Updated record: GroupID=%s, Hostname=%s", domainRecord.GroupID, domainRecord.Hostname)
+	slog.Debug("Stored/Updated record",
+		slog.String("group_id", domainRecord.GroupID),
+		slog.String("hostname", domainRecord.Hostname))
 	return nil
 }
 
@@ -125,9 +133,13 @@ func (s *Service) handleRemove(ctx context.Context, repo model.DomainRepository,
 			return fmt.Errorf("failed to delete record: %w", err)
 		}
 		// Record not found is not an error for delete operations
-		log.Printf("Record not found for deletion: GroupID=%s, Hostname=%s", pk, sk)
+		slog.Debug("Record not found for deletion",
+			slog.String("group_id", pk),
+			slog.String("hostname", sk))
 	} else {
-		log.Printf("Removed record: GroupID=%s, Hostname=%s", pk, sk)
+		slog.Debug("Removed record",
+			slog.String("group_id", pk),
+			slog.String("hostname", sk))
 	}
 
 	return nil

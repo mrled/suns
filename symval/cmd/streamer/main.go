@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/mrled/suns/symval/internal/adapter/s3materializedview"
+	"github.com/mrled/suns/symval/internal/logger"
 	"github.com/mrled/suns/symval/internal/repository/dynamorepo"
 	"github.com/mrled/suns/symval/internal/service/applystream"
 )
@@ -22,41 +23,49 @@ var (
 	s3DataKey        string
 	s3Client         *s3.Client
 	streamerService  *applystream.Service
+	log              *slog.Logger
 )
 
 func init() {
+	// Initialize logger
+	log = logger.NewDefaultLogger()
+	logger.SetDefault(log)
+
 	// Optional endpoint override for local development or testing
 	dynamoEndpoint = os.Getenv("DYNAMODB_ENDPOINT")
 	if dynamoEndpoint != "" {
-		log.Printf("Using custom DynamoDB endpoint: %s", dynamoEndpoint)
+		log.Info("Using custom DynamoDB endpoint", slog.String("endpoint", dynamoEndpoint))
 	} else {
 		// When not using a custom endpoint, AWS_REGION is required
 		awsRegion := os.Getenv("AWS_REGION")
 		if awsRegion == "" {
-			log.Fatal("AWS_REGION environment variable is required when DYNAMODB_ENDPOINT is not set")
+			log.Error("AWS_REGION environment variable is required when DYNAMODB_ENDPOINT is not set")
+			os.Exit(1)
 		}
-		log.Printf("Using AWS region: %s", awsRegion)
-		log.Printf("Using default DynamoDB endpoint discovery")
+		log.Info("Using AWS region", slog.String("region", awsRegion))
+		log.Info("Using default DynamoDB endpoint discovery")
 	}
 
 	dynamoTable = os.Getenv("DYNAMODB_TABLE")
 	if dynamoTable == "" {
-		log.Fatal("DYNAMODB_TABLE environment variable is required")
+		log.Error("DYNAMODB_TABLE environment variable is required")
+		os.Exit(1)
 	}
-	log.Printf("Using DynamoDB table: %s", dynamoTable)
+	log.Info("Using DynamoDB table", slog.String("table", dynamoTable))
 
 	s3BucketName = os.Getenv("S3_BUCKET")
 	if s3BucketName == "" {
-		log.Fatal("S3_BUCKET environment variable is required")
+		log.Error("S3_BUCKET environment variable is required")
+		os.Exit(1)
 	}
-	log.Printf("Using S3 bucket: %s", s3BucketName)
+	log.Info("Using S3 bucket", slog.String("bucket", s3BucketName))
 
 	// Use S3_DATA_KEY from environment or default to records/domains.json
 	s3DataKey = os.Getenv("S3_DATA_KEY")
 	if s3DataKey == "" {
 		s3DataKey = "records/domains.json"
 	}
-	log.Printf("Using S3 key: %s", s3DataKey)
+	log.Info("Using S3 key", slog.String("key", s3DataKey))
 }
 
 
@@ -72,7 +81,8 @@ func main() {
 	// Load AWS configuration
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		log.Fatalf("Failed to load AWS config: %v", err)
+		log.Error("Failed to load AWS config", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
 	// Create DynamoDB client
@@ -82,32 +92,34 @@ func main() {
 		client = dynamodb.NewFromConfig(cfg, func(o *dynamodb.Options) {
 			o.BaseEndpoint = &dynamoEndpoint
 		})
-		log.Printf("DynamoDB client configured with custom endpoint: %s", dynamoEndpoint)
+		log.Info("DynamoDB client configured", slog.String("endpoint", dynamoEndpoint))
 	} else {
 		// Use default endpoint discovery
 		client = dynamodb.NewFromConfig(cfg)
-		log.Printf("DynamoDB client configured with default endpoint discovery")
+		log.Info("DynamoDB client configured with default endpoint discovery")
 	}
 
 	// Note: DynamoDB repository is created but not actively used in the streamer
 	// It's kept here for potential future use or debugging purposes
 	repo := dynamorepo.NewDynamoRepository(client, dynamoTable)
-	log.Printf("DynamoDB repository initialized with table: %s (for reference only)", dynamoTable)
+	log.Info("DynamoDB repository initialized (for reference only)", slog.String("table", dynamoTable))
 	_ = repo // Suppress unused variable warning
 
 	// Initialize S3 client
 	s3Client = s3.NewFromConfig(cfg)
-	log.Printf("S3 client initialized for bucket: %s", s3BucketName)
+	log.Info("S3 client initialized", slog.String("bucket", s3BucketName))
 
 	// Initialize S3 materialized view adapter
 	s3View := s3materializedview.New(s3Client, s3BucketName, s3DataKey)
-	log.Printf("S3 materialized view initialized for %s/%s", s3BucketName, s3DataKey)
+	log.Info("S3 materialized view initialized",
+		slog.String("bucket", s3BucketName),
+		slog.String("key", s3DataKey))
 
 	// Initialize the applystream service
 	streamerService = applystream.New(s3View)
-	log.Printf("Stream processing service initialized")
+	log.Info("Stream processing service initialized")
 
 	// Start Lambda handler
-	log.Printf("Starting DynamoDB Streams Lambda handler with S3 persistence...")
+	log.Info("Starting DynamoDB Streams Lambda handler with S3 persistence")
 	lambda.Start(handler)
 }

@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/mrled/suns/symval/internal/repository/memrepo"
@@ -88,7 +88,10 @@ func (s *S3MaterializedView) Save(ctx context.Context, repo *memrepo.MemoryRepos
 		return fmt.Errorf("failed to upload to S3: %w", err)
 	}
 
-	log.Printf("Successfully updated data file at %s/%s with %d records", s.bucketName, s.key, len(records))
+	slog.Info("Successfully updated S3 data file",
+		slog.String("bucket", s.bucketName),
+		slog.String("key", s.key),
+		slog.Int("record_count", len(records)))
 	return nil
 }
 

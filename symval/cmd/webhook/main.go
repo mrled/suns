@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/mrled/suns/symval/internal/logger"
 	"github.com/mrled/suns/symval/internal/model"
 	"github.com/mrled/suns/symval/internal/repository/dynamorepo"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
@@ -25,6 +26,7 @@ var (
 	repo           model.DomainRepository
 	dnsService     *dnsclaims.Service
 	attestUseCase  *attestation.AttestationUseCase
+	log            *slog.Logger
 )
 
 // AttestRequest represents the expected JSON payload for attestation
@@ -44,33 +46,47 @@ type AttestResponse struct {
 }
 
 func init() {
+	// Initialize logger
+	log = logger.NewDefaultLogger()
+	logger.SetDefault(log)
+
 	// Optional endpoint override for local development or testing
 	dynamoEndpoint = os.Getenv("DYNAMODB_ENDPOINT")
 	if dynamoEndpoint != "" {
-		log.Printf("Using custom DynamoDB endpoint: %s", dynamoEndpoint)
+		log.Info("Using custom DynamoDB endpoint", slog.String("endpoint", dynamoEndpoint))
 	} else {
 		// When not using a custom endpoint, AWS_REGION is required
 		awsRegion := os.Getenv("AWS_REGION")
 		if awsRegion == "" {
-			log.Fatal("AWS_REGION environment variable is required when DYNAMODB_ENDPOINT is not set")
+			log.Error("AWS_REGION environment variable is required when DYNAMODB_ENDPOINT is not set")
+			os.Exit(1)
 		}
-		log.Printf("Using AWS region: %s", awsRegion)
-		log.Printf("Using default DynamoDB endpoint discovery")
+		log.Info("Using AWS region", slog.String("region", awsRegion))
+		log.Info("Using default DynamoDB endpoint discovery")
 	}
 
 	dynamoTable = os.Getenv("DYNAMODB_TABLE")
 	if dynamoTable == "" {
-		log.Fatal("DYNAMODB_TABLE environment variable is required")
+		log.Error("DYNAMODB_TABLE environment variable is required")
+		os.Exit(1)
 	}
-	log.Printf("Using DynamoDB table: %s", dynamoTable)
+	log.Info("Using DynamoDB table", slog.String("table", dynamoTable))
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	// Create a logger with Lambda context
+	requestLogger := logger.WithLambda(log,
+		os.Getenv("AWS_LAMBDA_FUNCTION_NAME"),
+		os.Getenv("AWS_LAMBDA_FUNCTION_VERSION"),
+		request.RequestContext.RequestID)
+
 	// Log the incoming request details for debugging
 	// API Gateway v2 uses different field names
-	log.Printf("Incoming request: Method=%s, Path=%s, RawPath=%s, PathParameters=%+v",
-		request.RequestContext.HTTP.Method, request.RequestContext.HTTP.Path,
-		request.RawPath, request.PathParameters)
+	requestLogger.Info("Incoming request",
+		slog.String("method", request.RequestContext.HTTP.Method),
+		slog.String("path", request.RequestContext.HTTP.Path),
+		slog.String("raw_path", request.RawPath),
+		slog.Any("path_parameters", request.PathParameters))
 
 	// For API Gateway v2, the path is in RequestContext.HTTP.Path
 	path := request.RequestContext.HTTP.Path
@@ -80,7 +96,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 
 	// Remove the /api prefix if present since we're matching on the API path
 	path = strings.TrimPrefix(path, "/api")
-	log.Printf("Processing path: %s", path)
+	requestLogger.Debug("Processing path", slog.String("path", path))
 
 	// Route based on the path
 	// The path should be something like /v1/attest after removing /api prefix
@@ -93,19 +109,27 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	// case strings.HasSuffix(path, "/v1/health") || path == "/v1/health":
 	//	return handleHealth(ctx, request)
 	default:
-		log.Printf("Path not matched. Full request details: %+v", request)
+		requestLogger.Warn("Path not matched", slog.Any("request", request))
 		return errorResponseV2(404, fmt.Sprintf("Unknown endpoint: %s", path))
 	}
 }
 
 func handleAttest(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	// Create a logger with Lambda context for this request
+	requestLogger := logger.WithLambda(log,
+		os.Getenv("AWS_LAMBDA_FUNCTION_NAME"),
+		os.Getenv("AWS_LAMBDA_FUNCTION_VERSION"),
+		request.RequestContext.RequestID)
+
 	// Log the HTTP method for debugging
 	httpMethod := request.RequestContext.HTTP.Method
-	log.Printf("handleAttest: Method='%s', Path='%s'", httpMethod, request.RequestContext.HTTP.Path)
+	requestLogger.Debug("handleAttest called",
+		slog.String("method", httpMethod),
+		slog.String("path", request.RequestContext.HTTP.Path))
 
 	// Validate HTTP method
 	if httpMethod != "POST" {
-		log.Printf("Method validation failed. Received method: %s", httpMethod)
+		requestLogger.Warn("Method validation failed", slog.String("received_method", httpMethod))
 		return errorResponseV2(405, fmt.Sprintf("Method not allowed. Only POST is supported for this endpoint (received: %s)", httpMethod))
 	}
 
@@ -143,7 +167,7 @@ func handleAttest(ctx context.Context, request events.APIGatewayV2HTTPRequest) (
 	// Perform attestation
 	result, err := attestUseCase.Attest(attestReq.Owner, symmetryType, attestReq.Domains)
 	if err != nil {
-		log.Printf("Attestation failed: %v", err)
+		requestLogger.Error("Attestation failed", slog.String("error", err.Error()))
 		return errorResponseV2(500, fmt.Sprintf("attestation failed: %v", err))
 	}
 
@@ -164,7 +188,7 @@ func handleAttest(ctx context.Context, request events.APIGatewayV2HTTPRequest) (
 	// Marshal response to JSON
 	responseBody, err := json.Marshal(response)
 	if err != nil {
-		log.Printf("Failed to marshal response: %v", err)
+		requestLogger.Error("Failed to marshal response", slog.String("error", err.Error()))
 		return errorResponseV2(500, "failed to generate response")
 	}
 
@@ -199,7 +223,8 @@ func main() {
 	// Load AWS configuration
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		log.Fatalf("Failed to load AWS config: %v", err)
+		log.Error("Failed to load AWS config", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
 	// Create DynamoDB client
@@ -209,34 +234,34 @@ func main() {
 		client = dynamodb.NewFromConfig(cfg, func(o *dynamodb.Options) {
 			o.BaseEndpoint = &dynamoEndpoint
 		})
-		log.Printf("DynamoDB client configured with custom endpoint: %s", dynamoEndpoint)
+		log.Info("DynamoDB client configured", slog.String("endpoint", dynamoEndpoint))
 	} else {
 		// Use default endpoint discovery
 		client = dynamodb.NewFromConfig(cfg)
-		log.Printf("DynamoDB client configured with default endpoint discovery")
+		log.Info("DynamoDB client configured with default endpoint discovery")
 	}
 
 	// Initialize DynamoDB repository
 	repo = dynamorepo.NewDynamoRepository(client, dynamoTable)
-	log.Printf("DynamoDB repository initialized with table: %s", dynamoTable)
+	log.Info("DynamoDB repository initialized", slog.String("table", dynamoTable))
 
 	// Initialize DNS service
 	dnsService = dnsclaims.NewService()
-	log.Printf("DNS claims service initialized")
+	log.Info("DNS claims service initialized")
 
 	// Initialize attestation use case with DNS service and repository
 	attestUseCase = attestation.NewAttestationUseCase(dnsService, repo)
-	log.Printf("Attestation use case initialized")
+	log.Info("Attestation use case initialized")
 
 	// Verify DynamoDB connection
 	records, err := repo.List(ctx)
 	if err != nil {
-		log.Printf("Warning: Failed to list records during startup: %v", err)
+		log.Warn("Failed to list records during startup", slog.String("error", err.Error()))
 	} else {
-		log.Printf("Successfully connected to DynamoDB. Found %d records", len(records))
+		log.Info("Successfully connected to DynamoDB", slog.Int("record_count", len(records)))
 	}
 
 	// Start Lambda handler
-	log.Printf("Starting Lambda handler...")
+	log.Info("Starting Lambda handler")
 	lambda.Start(handler)
 }
