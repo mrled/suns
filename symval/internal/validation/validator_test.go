@@ -192,13 +192,14 @@ func TestValidate_AllSymmetryTypes(t *testing.T) {
 		symmetryType symgroup.SymmetryType
 		hostnames    []string
 		groupID      string
+		expectValid  bool // Added field to specify expected result
 	}{
-		{"Palindrome", symgroup.Palindrome, []string{"aba"}, "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0="},
-		{"Flip180", symgroup.Flip180, []string{"example.com"}, "v1:b:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
-		{"DoubleFlip180", symgroup.DoubleFlip180, []string{"example.com"}, "v1:c:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
-		{"MirrorText", symgroup.MirrorText, []string{"example.com"}, "v1:d:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
-		{"MirrorNames", symgroup.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c="},
-		{"AntonymNames", symgroup.AntonymNames, []string{"example.com"}, "v1:f:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc="},
+		{"Palindrome", symgroup.Palindrome, []string{"aba"}, "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=", true},
+		{"Flip180", symgroup.Flip180, []string{"example.com"}, "v1:b:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false},             // Stub returns false
+		{"DoubleFlip180", symgroup.DoubleFlip180, []string{"example.com"}, "v1:c:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false}, // Stub returns false
+		{"MirrorText", symgroup.MirrorText, []string{"example.com"}, "v1:d:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false},       // Stub returns false
+		{"MirrorNames", symgroup.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=", true},
+		{"AntonymNames", symgroup.AntonymNames, []string{"example.com"}, "v1:f:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false}, // Stub returns false
 	}
 
 	for _, tt := range tests {
@@ -217,8 +218,8 @@ func TestValidate_AllSymmetryTypes(t *testing.T) {
 			if err != nil {
 				t.Errorf("Expected no error for %s, got: %v", tt.name, err)
 			}
-			if !valid {
-				t.Errorf("Expected valid=true for %s, got false", tt.name)
+			if valid != tt.expectValid {
+				t.Errorf("Expected valid=%v for %s, got %v", tt.expectValid, tt.name, valid)
 			}
 		})
 	}

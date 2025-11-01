@@ -6,6 +6,6 @@ import (
 
 // validateMirrorText validates mirror text symmetry
 func validateMirrorText(data []*model.DomainRecord) (bool, error) {
-	// Stub implementation - always returns true
-	return true, nil
+	// Stub implementation - always returns false
+	return false, nil
 }
