@@ -31,6 +31,15 @@ export class EdgeStack extends cdk.Stack {
       },
     );
 
+    // Create an origin for the records data (no /www prefix, serves from bucket root)
+    const recordsOrigin = new origins.HttpOrigin(
+      props.contentBucket.bucketWebsiteDomainName,
+      {
+        protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+        // No origin path - serve directly from bucket root to access /records/*
+      },
+    );
+
     // Extract the domain from the API endpoint URL
     // API endpoint format: https://xxxxx.execute-api.region.amazonaws.com
     // We need to extract just the domain part
@@ -44,7 +53,7 @@ export class EdgeStack extends cdk.Stack {
       // No origin path needed since the API Gateway handles routing internally
     });
 
-    // Additional behaviors for API Gateway
+    // Additional behaviors for API Gateway and records
     const additionalBehaviors: Record<string, cloudfront.BehaviorOptions> = {
       // Route all /api/* paths to the API Gateway Lambda
       "/api/*": {
@@ -58,6 +67,23 @@ export class EdgeStack extends cdk.Stack {
         // (ALL_VIEWER forwards Host header which causes API Gateway to return 403)
         originRequestPolicy:
           cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      },
+      // Route /records/* paths to the S3 bucket root (for domains.json and future records)
+      "/records/*": {
+        origin: recordsOrigin,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD_OPTIONS,
+        compress: true,
+        // Cache for a short duration since this data updates periodically
+        cachePolicy: new cloudfront.CachePolicy(this, "RecordsCachePolicy", {
+          cachePolicyName: `${config.stackPrefix}RecordsCachePolicy`,
+          defaultTtl: cdk.Duration.minutes(5),
+          maxTtl: cdk.Duration.hours(1),
+          minTtl: cdk.Duration.seconds(0),
+          enableAcceptEncodingGzip: true,
+          enableAcceptEncodingBrotli: true,
+        }),
       },
     };
 
@@ -97,7 +123,7 @@ export class EdgeStack extends cdk.Stack {
         minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
         httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
         priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
-        comment: `CloudFront distribution for ${config.domainName} and zq.${config.domainName} with API Gateway at /api/*`,
+        comment: `CloudFront distribution for ${config.domainName} and zq.${config.domainName} with API Gateway at /api/* and records at /records/*`,
       },
     );
 
@@ -116,6 +142,11 @@ export class EdgeStack extends cdk.Stack {
     new cdk.CfnOutput(this, "WebhookEndpointViaCDN", {
       value: `https://${config.domainName}/api/v1/attest`,
       description: "Webhook attest endpoint via CloudFront CDN",
+    });
+
+    new cdk.CfnOutput(this, "DomainsDataEndpoint", {
+      value: `https://${config.domainName}/${config.domainsDataKey}`,
+      description: "Domains data JSON endpoint via CloudFront CDN",
     });
   }
 }
