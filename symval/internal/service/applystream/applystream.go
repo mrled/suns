@@ -48,7 +48,8 @@ func (s *Service) ProcessStreamBatch(ctx context.Context, records []events.Dynam
 			// Log error but continue processing other records
 			slog.Error("Error processing record",
 				slog.String("event_id", record.EventID),
-				slog.String("error", err.Error()))
+				slog.String("error", err.Error()),
+				slog.Bool("notify", true))
 			continue
 		}
 		processedCount++
@@ -56,6 +57,9 @@ func (s *Service) ProcessStreamBatch(ctx context.Context, records []events.Dynam
 
 	// Save updated repository back to S3
 	if err := s.s3View.Save(ctx, memRepo); err != nil {
+		slog.Error("Failed to save repository to S3",
+			slog.String("error", err.Error()),
+			slog.Bool("notify", true))
 		return fmt.Errorf("failed to save repository to S3: %w", err)
 	}
 
@@ -73,7 +77,9 @@ func (s *Service) ProcessStreamBatch(ctx context.Context, records []events.Dynam
 func (s *Service) loadRepository(ctx context.Context) (*memrepo.MemoryRepository, error) {
 	memRepo, err := s.s3View.Load(ctx)
 	if err != nil {
-		slog.Warn("Error loading repository from S3", slog.String("error", err.Error()))
+		slog.Error("Error loading repository from S3",
+			slog.String("error", err.Error()),
+			slog.Bool("notify", true))
 		// If file doesn't exist or error occurs, start with empty repository
 		slog.Info("Starting with empty repository")
 		return memrepo.NewMemoryRepository(), nil

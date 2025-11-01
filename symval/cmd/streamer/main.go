@@ -71,7 +71,13 @@ func init() {
 
 func handler(ctx context.Context, event events.DynamoDBEvent) error {
 	// Delegate all processing to the applystream service
-	return streamerService.ProcessStreamBatch(ctx, event.Records)
+	err := streamerService.ProcessStreamBatch(ctx, event.Records)
+	if err != nil {
+		log.Error("Stream processing failed",
+			slog.String("error", err.Error()),
+			slog.Bool("notify", true))
+	}
+	return err
 }
 
 
