@@ -10,7 +10,7 @@ import { config } from "./config";
 export interface EdgeStackProps extends cdk.StackProps {
   contentBucket: s3.IBucket;
   certificate: acm.ICertificate;
-  webhookApi: apigateway.IHttpApi;
+  httpApi: apigateway.IHttpApi;
 }
 
 export class EdgeStack extends cdk.Stack {
@@ -45,7 +45,7 @@ export class EdgeStack extends cdk.Stack {
     // We need to extract just the domain part
     const apiDomainName = cdk.Fn.select(
       2,
-      cdk.Fn.split("/", props.webhookApi.apiEndpoint),
+      cdk.Fn.split("/", props.httpApi.apiEndpoint),
     );
 
     const apiOrigin = new origins.HttpOrigin(apiDomainName, {

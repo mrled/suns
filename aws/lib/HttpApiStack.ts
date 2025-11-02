@@ -8,19 +8,19 @@ import { Construct } from "constructs";
 import { config, repositoryRoot } from "./config";
 import * as path from "path";
 
-export interface WebhookStackProps extends cdk.StackProps {
+export interface HttpApiStackProps extends cdk.StackProps {
   table: dynamodb.ITable;
 }
 
-export class WebhookStack extends cdk.Stack {
+export class HttpApiStack extends cdk.Stack {
   public readonly api: apigateway.HttpApi;
-  public readonly webhookFunction: lambda.Function;
+  public readonly apiFunction: lambda.Function;
 
-  constructor(scope: Construct, id: string, props: WebhookStackProps) {
+  constructor(scope: Construct, id: string, props: HttpApiStackProps) {
     super(scope, id, props);
 
-    // Create Lambda function for webhook
-    this.webhookFunction = new lambda.Function(this, "WebhookFunction", {
+    // Create Lambda function for HTTP API
+    this.apiFunction = new lambda.Function(this, "HttpApiFunction", {
       runtime: lambda.Runtime.PROVIDED_AL2023,
       handler: "bootstrap",
       architecture: lambda.Architecture.ARM_64, // Graviton2
@@ -53,12 +53,12 @@ export class WebhookStack extends cdk.Stack {
     });
 
     // Grant DynamoDB permissions
-    props.table.grantReadWriteData(this.webhookFunction);
+    props.table.grantReadWriteData(this.apiFunction);
 
     // Create HTTP API Gateway
-    this.api = new apigateway.HttpApi(this, "WebhookApi", {
-      apiName: `${config.stackPrefix}WebhookApi`,
-      description: "HTTP API for SUNS webhook attestation",
+    this.api = new apigateway.HttpApi(this, "HttpApi", {
+      apiName: `${config.stackPrefix}HttpApi`,
+      description: "HTTP API for SUNS attestation",
       corsPreflight: {
         allowOrigins: ["*"],
         allowMethods: [
@@ -74,8 +74,8 @@ export class WebhookStack extends cdk.Stack {
 
     // Create Lambda integration
     const lambdaIntegration = new apigatewayIntegrations.HttpLambdaIntegration(
-      "WebhookIntegration",
-      this.webhookFunction,
+      "HttpApiIntegration",
+      this.apiFunction,
     );
 
     // Add route for all /api/* paths - this will proxy all requests to Lambda
@@ -95,25 +95,25 @@ export class WebhookStack extends cdk.Stack {
     // Outputs
     new cdk.CfnOutput(this, "ApiUrl", {
       value: this.api.apiEndpoint,
-      description: "Webhook API Gateway URL",
-      exportName: `${config.stackPrefix}WebhookApiUrl`,
+      description: "HTTP API Gateway URL",
+      exportName: `${config.stackPrefix}HttpApiUrl`,
     });
 
     new cdk.CfnOutput(this, "ApiId", {
       value: this.api.apiId,
-      description: "Webhook API Gateway ID",
-      exportName: `${config.stackPrefix}WebhookApiId`,
+      description: "HTTP API Gateway ID",
+      exportName: `${config.stackPrefix}HttpApiId`,
     });
 
     new cdk.CfnOutput(this, "FunctionArn", {
-      value: this.webhookFunction.functionArn,
-      description: "Webhook Lambda Function ARN",
-      exportName: `${config.stackPrefix}WebhookFunctionArn`,
+      value: this.apiFunction.functionArn,
+      description: "HTTP API Lambda Function ARN",
+      exportName: `${config.stackPrefix}HttpApiFunctionArn`,
     });
 
     new cdk.CfnOutput(this, "AttestEndpoint", {
       value: `${this.api.apiEndpoint}/api/v1/attest`,
-      description: "Direct API Gateway webhook attest endpoint URL",
+      description: "Direct API Gateway attest endpoint URL",
     });
   }
 }

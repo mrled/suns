@@ -9,7 +9,7 @@ import { Construct } from "constructs";
 import { config } from "./config";
 
 export interface MonitoringStackProps extends cdk.StackProps {
-  webhookFunction: lambda.IFunction;
+  apiFunction: lambda.IFunction;
   streamerFunction: lambda.IFunction;
 }
 
@@ -55,15 +55,15 @@ export class MonitoringStack extends cdk.Stack {
     });
     iteratorAgeAlarm.addAlarmAction(alarmAction);
 
-    // Lambda Invocation Errors Alarm for Webhook Function
-    const webhookErrorAlarm = new cloudwatch.Alarm(this, "WebhookErrorAlarm", {
-      alarmName: `${config.stackPrefix}-WebhookInvocationErrors`,
-      alarmDescription: "Alert on webhook Lambda function invocation errors",
+    // Lambda Invocation Errors Alarm for HTTP API Function
+    const apiErrorAlarm = new cloudwatch.Alarm(this, "ApiErrorAlarm", {
+      alarmName: `${config.stackPrefix}-ApiInvocationErrors`,
+      alarmDescription: "Alert on HTTP API Lambda function invocation errors",
       metric: new cloudwatch.Metric({
         namespace: "AWS/Lambda",
         metricName: "Errors",
         dimensionsMap: {
-          FunctionName: props.webhookFunction.functionName,
+          FunctionName: props.apiFunction.functionName,
         },
         statistic: "Sum",
         period: cdk.Duration.minutes(5),
@@ -74,7 +74,7 @@ export class MonitoringStack extends cdk.Stack {
       comparisonOperator:
         cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
     });
-    webhookErrorAlarm.addAlarmAction(alarmAction);
+    apiErrorAlarm.addAlarmAction(alarmAction);
 
     // Lambda Invocation Errors Alarm for Streamer Function
     const streamerErrorAlarm = new cloudwatch.Alarm(
@@ -102,45 +102,37 @@ export class MonitoringStack extends cdk.Stack {
     streamerErrorAlarm.addAlarmAction(alarmAction);
 
     // Structured JSON Logs Alarm with notify=true
-    // Import existing log group for the webhook function
+    // Import existing log group for the API function
     // Note: Lambda automatically creates log groups on first invocation
-    const webhookLogGroup = logs.LogGroup.fromLogGroupName(
+    const apiLogGroup = logs.LogGroup.fromLogGroupName(
       this,
-      "WebhookLogGroup",
-      `/aws/lambda/${props.webhookFunction.functionName}`,
+      "ApiLogGroup",
+      `/aws/lambda/${props.apiFunction.functionName}`,
     );
 
-    const webhookNotifyMetric = new logs.MetricFilter(
-      this,
-      "WebhookNotifyMetric",
-      {
-        logGroup: webhookLogGroup,
-        metricNamespace: `${config.stackPrefix}/Logs`,
-        metricName: "WebhookNotifyMessages",
-        filterPattern: logs.FilterPattern.literal("{ $.notify = true }"),
-        metricValue: "1",
-        defaultValue: 0,
-      },
-    );
+    const apiNotifyMetric = new logs.MetricFilter(this, "ApiNotifyMetric", {
+      logGroup: apiLogGroup,
+      metricNamespace: `${config.stackPrefix}/Logs`,
+      metricName: "ApiNotifyMessages",
+      filterPattern: logs.FilterPattern.literal("{ $.notify = true }"),
+      metricValue: "1",
+      defaultValue: 0,
+    });
 
-    const webhookNotifyAlarm = new cloudwatch.Alarm(
-      this,
-      "WebhookNotifyAlarm",
-      {
-        alarmName: `${config.stackPrefix}-WebhookNotifyMessages`,
-        alarmDescription: "Alert when webhook logs contain notify=true",
-        metric: webhookNotifyMetric.metric({
-          statistic: "Sum",
-          period: cdk.Duration.minutes(1),
-        }),
-        threshold: 1,
-        evaluationPeriods: 1,
-        treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
-        comparisonOperator:
-          cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-      },
-    );
-    webhookNotifyAlarm.addAlarmAction(alarmAction);
+    const apiNotifyAlarm = new cloudwatch.Alarm(this, "ApiNotifyAlarm", {
+      alarmName: `${config.stackPrefix}-ApiNotifyMessages`,
+      alarmDescription: "Alert when API logs contain notify=true",
+      metric: apiNotifyMetric.metric({
+        statistic: "Sum",
+        period: cdk.Duration.minutes(1),
+      }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+      comparisonOperator:
+        cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+    });
+    apiNotifyAlarm.addAlarmAction(alarmAction);
 
     // Import existing log group for the streamer function
     // Note: Lambda automatically creates log groups on first invocation
@@ -182,30 +174,25 @@ export class MonitoringStack extends cdk.Stack {
     );
     streamerNotifyAlarm.addAlarmAction(alarmAction);
 
-    // Webhook Lambda throttle alarm
-    const webhookThrottleAlarm = new cloudwatch.Alarm(
-      this,
-      "WebhookThrottleAlarm",
-      {
-        alarmName: `${config.stackPrefix}-WebhookThrottles`,
-        alarmDescription: "Alert on webhook Lambda function throttles",
-        metric: new cloudwatch.Metric({
-          namespace: "AWS/Lambda",
-          metricName: "Throttles",
-          dimensionsMap: {
-            FunctionName: props.webhookFunction.functionName,
-          },
-          statistic: "Sum",
-          period: cdk.Duration.minutes(5),
-        }),
-        threshold: 5,
-        evaluationPeriods: 1,
-        treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
-        comparisonOperator:
-          cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-      },
-    );
-    webhookThrottleAlarm.addAlarmAction(alarmAction);
+    // API Lambda throttle alarm
+    const apiThrottleAlarm = new cloudwatch.Alarm(this, "ApiThrottleAlarm", {
+      alarmName: `${config.stackPrefix}-ApiThrottles`,
+      alarmDescription: "Alert on API Lambda function throttles",
+      metric: new cloudwatch.Metric({
+        namespace: "AWS/Lambda",
+        metricName: "Throttles",
+        dimensionsMap: {
+          FunctionName: props.apiFunction.functionName,
+        },
+        statistic: "Sum",
+        period: cdk.Duration.minutes(5),
+      }),
+      threshold: 5,
+      evaluationPeriods: 1,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+    });
+    apiThrottleAlarm.addAlarmAction(alarmAction);
 
     // Streamer Lambda throttle alarm
     const streamerThrottleAlarm = new cloudwatch.Alarm(
@@ -248,11 +235,11 @@ export class MonitoringStack extends cdk.Stack {
     new cdk.CfnOutput(this, "AlarmsConfigured", {
       value: JSON.stringify({
         iteratorAge: iteratorAgeAlarm.alarmName,
-        webhookErrors: webhookErrorAlarm.alarmName,
+        apiErrors: apiErrorAlarm.alarmName,
         streamerErrors: streamerErrorAlarm.alarmName,
-        webhookNotify: webhookNotifyAlarm.alarmName,
+        apiNotify: apiNotifyAlarm.alarmName,
         streamerNotify: streamerNotifyAlarm.alarmName,
-        webhookThrottles: webhookThrottleAlarm.alarmName,
+        apiThrottles: apiThrottleAlarm.alarmName,
         streamerThrottles: streamerThrottleAlarm.alarmName,
       }),
       description: "List of configured alarms",

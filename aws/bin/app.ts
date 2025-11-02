@@ -8,7 +8,7 @@ import { StorageStack } from "../lib/StorageStack";
 import { EdgeStack } from "../lib/EdgeStack";
 import { DnsStack } from "../lib/DnsStack";
 import { DynamoDbStack } from "../lib/DynamoDbStack";
-import { WebhookStack } from "../lib/WebhookStack";
+import { HttpApiStack } from "../lib/HttpApiStack";
 import { StreamerStack } from "../lib/StreamerStack";
 import { MonitoringStack } from "../lib/MonitoringStack";
 
@@ -56,17 +56,17 @@ const dynamoDbStack = new DynamoDbStack(
   },
 );
 
-// Webhook Stack - Lambda + API Gateway for attestation
-const webhookStack = new WebhookStack(
+// HTTP API Stack - Lambda + API Gateway for attestation
+const httpApiStack = new HttpApiStack(
   app,
-  `${config.stackPrefix}WebhookStack`,
+  `${config.stackPrefix}HttpApiStack`,
   {
     env: { account, region },
-    description: `Webhook Lambda and API Gateway for ${config.domainName}`,
+    description: `HTTP API Lambda and API Gateway for ${config.domainName}`,
     table: dynamoDbStack.table,
   },
 );
-webhookStack.addDependency(dynamoDbStack);
+httpApiStack.addDependency(dynamoDbStack);
 
 // Streamer Stack - Lambda for DynamoDB Streams processing
 const streamerStack = new StreamerStack(
@@ -88,12 +88,12 @@ const edgeStack = new EdgeStack(app, `${config.stackPrefix}EdgeStack`, {
   description: `CloudFront distribution for ${config.domainName}`,
   contentBucket: storageStack.contentBucket,
   certificate: certStack.certificate,
-  webhookApi: webhookStack.api,
+  httpApi: httpApiStack.api,
   crossRegionReferences: true,
 });
 edgeStack.addDependency(storageStack);
 edgeStack.addDependency(certStack);
-edgeStack.addDependency(webhookStack);
+edgeStack.addDependency(httpApiStack);
 
 // DNS Records Stack - must be in same region as hosted zone
 const dnsStack = new DnsStack(app, `${config.stackPrefix}DnsStack`, {
@@ -112,11 +112,11 @@ const monitoringStack = new MonitoringStack(
   {
     env: { account, region },
     description: `Monitoring and alerting for ${config.domainName}`,
-    webhookFunction: webhookStack.webhookFunction,
+    apiFunction: httpApiStack.apiFunction,
     streamerFunction: streamerStack.streamerFunction,
   },
 );
-monitoringStack.addDependency(webhookStack);
+monitoringStack.addDependency(httpApiStack);
 monitoringStack.addDependency(streamerStack);
 
 app.synth();
