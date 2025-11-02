@@ -1,0 +1,16 @@
+[
+  {
+    "Owner": "https://me.micahrl.com",
+    "Type": "e",
+    "Hostname": "me.micahrl.com",
+    "GroupID": "v1:e:3DOcEA7tFJAbQSbvIQ2d5c6P7k4xu2adw+gL2PYvrng=:US2J6QAgICRh/18mjTdnqM1u15yqy1TPmfU4PqsbEi4=",
+    "ValidateTime": "2025-11-01T16:07:20.972821344Z"
+  },
+  {
+    "Owner": "https://me.micahrl.com",
+    "Type": "e",
+    "Hostname": "com.micahrl.me",
+    "GroupID": "v1:e:3DOcEA7tFJAbQSbvIQ2d5c6P7k4xu2adw+gL2PYvrng=:US2J6QAgICRh/18mjTdnqM1u15yqy1TPmfU4PqsbEi4=",
+    "ValidateTime": "2025-11-01T16:07:20.972821344Z"
+  }
+]

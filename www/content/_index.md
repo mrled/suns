@@ -50,3 +50,6 @@ curl -X POST https://zq.suns.bz/api/v1/attest \
 ## Members
 
 - <https://me.micahrl.com> / <https://com.micahrl.me>
+
+<script src="/domain-records.js"></script>
+<domain-records></domain-records>

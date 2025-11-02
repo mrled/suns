@@ -109,7 +109,7 @@ This Lambda has `reservedConcurrentExecutions: 1` to only allow one to run at a 
 which acts as a lock on writes to the JSON file.
 This Lambda is the only writer to the JSON file.
 
-There is a scheduler Lambda that is run every day that re-attests every record in the JSON file,
+There is a `reattestbatch` Lambda that is run every day that re-attests every record in the JSON file,
 updating Dynamo with new validation time or deleting recordds that fail attestation.
 (There is a grace period to prevent intermittent errors from removing actually valid records.)
 

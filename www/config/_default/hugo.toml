@@ -4,6 +4,11 @@ title = 'SUNS'
 
 disableKinds = ["taxonomy", "term"]
 
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
 [deployment]
 [[deployment.targets]]
 name = "production"
