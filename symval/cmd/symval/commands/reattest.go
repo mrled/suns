@@ -26,16 +26,18 @@ that the DNS records are still valid and consistent. Unlike 'revalidate' which o
 checks stored records without querying DNS, 'reattest' performs a full DNS lookup
 and validation for each group.
 
-By default, invalid groups are removed from the data store. Use --dry-run to see
-what would be removed without actually removing anything.
+For valid groups, the validation timestamp is updated. For invalid groups, they are
+removed from the data store only after a grace period (default 72 hours) has elapsed
+since the last successful validation. Use --dry-run to see what would happen without
+making any changes.
 
 Invalid groups are always printed in both regular and dry-run modes.
 
 Examples:
-  # Re-attest all groups and remove invalid ones
+  # Re-attest all groups, update valid ones, and remove invalid ones past grace period
   symval reattest --file ./data.json
 
-  # Dry run to see what would be removed
+  # Dry run to see what would happen
   symval reattest --file ./data.json --dry-run`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Create repository based on persistence flags
@@ -65,6 +67,7 @@ Examples:
 
 		// Perform re-attestation
 		var results []reattest.GroupAttestResult
+		var stats reattest.UpdateStats
 		var err error
 
 		if reattestFlags.DryRun {
@@ -74,9 +77,19 @@ Examples:
 				return fmt.Errorf("re-attestation failed: %w", err)
 			}
 		} else {
-			results, err = reattestUC.ReattestAllAndDrop(ctx)
+			results, stats, err = reattestUC.ReattestAllAndUpdate(ctx)
 			if err != nil {
 				return fmt.Errorf("re-attestation failed: %w", err)
+			}
+			// Log statistics if applicable
+			if stats.RecordsUpdated > 0 || stats.RecordsDeleted > 0 {
+				fmt.Printf("\nUpdate Statistics:\n")
+				fmt.Printf("  Records Updated: %d\n", stats.RecordsUpdated)
+				fmt.Printf("  Records Deleted: %d\n", stats.RecordsDeleted)
+				fmt.Printf("  Records Skipped: %d\n", stats.RecordsSkipped)
+				if stats.Errors > 0 {
+					fmt.Printf("  Errors: %d\n", stats.Errors)
+				}
 			}
 		}
 
@@ -114,13 +127,15 @@ Examples:
 		// Print summary
 		fmt.Printf("Summary: %d valid, %d invalid\n", validCount, invalidCount)
 
-		if invalidCount > 0 {
-			if !reattestFlags.DryRun {
-				fmt.Printf("✓ Removed %d invalid group(s)\n", invalidCount)
-				if reattestFlags.FilePath != "" {
-					fmt.Printf("Changes persisted to: %s\n", reattestFlags.FilePath)
-				}
-			} else {
+		if !reattestFlags.DryRun {
+			if invalidCount > 0 && stats.RecordsDeleted > 0 {
+				fmt.Printf("✓ Removed %d invalid group(s) (that exceeded grace period)\n", stats.RecordsDeleted)
+			}
+			if reattestFlags.FilePath != "" && (stats.RecordsUpdated > 0 || stats.RecordsDeleted > 0) {
+				fmt.Printf("Changes persisted to: %s\n", reattestFlags.FilePath)
+			}
+		} else {
+			if invalidCount > 0 {
 				fmt.Printf("(No changes made - dry run)\n")
 			}
 		}
