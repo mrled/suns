@@ -25,7 +25,6 @@ export class StreamerStack extends cdk.Stack {
       handler: "bootstrap",
       architecture: lambda.Architecture.ARM_64, // Graviton2
       functionName: `${config.stackPrefix}StreamerFunction`,
-      logRetention: logs.RetentionDays.ONE_WEEK,
       code: lambda.Code.fromAsset(path.join(repositoryRoot, "symval"), {
         bundling: {
           image: lambda.Runtime.PROVIDED_AL2023.bundlingImage,
@@ -60,6 +59,12 @@ export class StreamerStack extends cdk.Stack {
 
     // Grant S3 permissions to write to the content bucket
     props.contentBucket.grantWrite(this.streamerFunction);
+
+    // Set log retention on the auto-created log group
+    new logs.LogRetention(this, "StreamerFunctionLogRetention", {
+      logGroupName: `/aws/lambda/${this.streamerFunction.functionName}`,
+      retention: logs.RetentionDays.ONE_WEEK,
+    });
 
     // Add DynamoDB Streams event source
     // We need to cast the table to Table type to access streams

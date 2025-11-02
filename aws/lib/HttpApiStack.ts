@@ -24,8 +24,7 @@ export class HttpApiStack extends cdk.Stack {
       runtime: lambda.Runtime.PROVIDED_AL2023,
       handler: "bootstrap",
       architecture: lambda.Architecture.ARM_64, // Graviton2
-      functionName: `${config.stackPrefix}ApiFunction`,
-      logRetention: logs.RetentionDays.ONE_WEEK,
+      // functionName: `${config.stackPrefix}ApiFunction`,
       code: lambda.Code.fromAsset(path.join(repositoryRoot, "symval"), {
         bundling: {
           image: lambda.Runtime.PROVIDED_AL2023.bundlingImage,
@@ -54,6 +53,12 @@ export class HttpApiStack extends cdk.Stack {
 
     // Grant DynamoDB permissions
     props.table.grantReadWriteData(this.apiFunction);
+
+    // Set log retention on the auto-created log group
+    new logs.LogRetention(this, "HttpApiFunctionLogRetention", {
+      logGroupName: `/aws/lambda/${this.apiFunction.functionName}`,
+      retention: logs.RetentionDays.ONE_WEEK,
+    });
 
     // Create HTTP API Gateway
     this.api = new apigateway.HttpApi(this, "HttpApi", {
