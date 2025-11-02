@@ -95,11 +95,15 @@ func (uc *RevalidateUseCase) FindInvalidAndDrop(ctx context.Context, filters Fil
 		return nil, fmt.Errorf("failed to find invalid records: %w", err)
 	}
 
-	// Delete each invalid record
+	// Delete each invalid record using its snapshot revision
 	for _, info := range invalidRecords {
 		record := info.Record
-		if err := uc.repository.UnconditionalDelete(ctx, record.GroupID, record.Hostname); err != nil {
-			// If delete fails, return what we've found so far with an error
+		if err := uc.repository.DeleteIfUnchanged(ctx, record.GroupID, record.Hostname, record.Rev); err != nil {
+			if err == model.ErrRevConflict {
+				// Record was modified, skip deletion
+				continue
+			}
+			// If delete fails for other reasons, return what we've found so far with an error
 			return invalidRecords, fmt.Errorf("failed to delete record %s (group %s): %w", record.Hostname, record.GroupID, err)
 		}
 	}

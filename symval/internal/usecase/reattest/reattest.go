@@ -30,6 +30,7 @@ type GroupAttestResult struct {
 	Owner        string
 	Type         string
 	Domains      []string
+	Records      []*model.DomainRecord // Include full records with revision info
 	IsValid      bool
 	ErrorMessage string
 }
@@ -78,6 +79,7 @@ func (uc *ReattestUseCase) ReattestAll(ctx context.Context) ([]GroupAttestResult
 				Owner:        owner,
 				Type:         string(symmetryType),
 				Domains:      domains,
+				Records:      groupRecords,
 				IsValid:      false,
 				ErrorMessage: fmt.Sprintf("attestation error: %v", err),
 			}
@@ -91,6 +93,7 @@ func (uc *ReattestUseCase) ReattestAll(ctx context.Context) ([]GroupAttestResult
 			Owner:        owner,
 			Type:         string(symmetryType),
 			Domains:      domains,
+			Records:      groupRecords,
 			IsValid:      attestResult.IsValid,
 			ErrorMessage: attestResult.ErrorMessage,
 		}
@@ -113,11 +116,15 @@ func (uc *ReattestUseCase) ReattestAllAndDrop(ctx context.Context) ([]GroupAttes
 	// Delete records for invalid groups
 	for _, result := range results {
 		if !result.IsValid {
-			// Delete all records in this group
-			for _, domain := range result.Domains {
-				if err := uc.repository.UnconditionalDelete(ctx, result.GroupID, domain); err != nil {
-					// If delete fails, return what we've processed so far with an error
-					return results, fmt.Errorf("failed to delete record %s (group %s): %w", domain, result.GroupID, err)
+			// Delete all records in this group using their snapshot revisions
+			for _, record := range result.Records {
+				if err := uc.repository.DeleteIfUnchanged(ctx, record.GroupID, record.Hostname, record.Rev); err != nil {
+					if err == model.ErrRevConflict {
+						// Record was modified, skip deletion
+						continue
+					}
+					// If delete fails for other reasons, return what we've processed so far with an error
+					return results, fmt.Errorf("failed to delete record %s (group %s): %w", record.Hostname, result.GroupID, err)
 				}
 			}
 		}
