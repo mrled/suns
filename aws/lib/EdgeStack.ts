@@ -19,6 +19,59 @@ export class EdgeStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: EdgeStackProps) {
     super(scope, id, props);
 
+    // Create CloudFront Function for redirecting suns.bz to zq.suns.bz
+    const redirectFunctionCode = `
+function handler(event) {
+  var request = event.request;
+  var headers = request.headers;
+  var host = headers.host && headers.host.value;
+
+  // Check if the host is suns.bz (without zq subdomain)
+  if (host === 'suns.bz') {
+    // Construct the new URL with zq subdomain, preserving path and query string
+    var newUrl = 'https://zq.suns.bz' + request.uri;
+
+    // Add query string if present
+    if (request.querystring && Object.keys(request.querystring).length > 0) {
+      var queryParts = [];
+      for (var key in request.querystring) {
+        var param = request.querystring[key];
+        if (param.multiValue) {
+          for (var i = 0; i < param.multiValue.length; i++) {
+            queryParts.push(encodeURIComponent(key) + '=' + encodeURIComponent(param.multiValue[i].value));
+          }
+        } else {
+          queryParts.push(encodeURIComponent(key) + '=' + encodeURIComponent(param.value));
+        }
+      }
+      newUrl += '?' + queryParts.join('&');
+    }
+
+    // Return a 301 permanent redirect
+    return {
+      statusCode: 301,
+      statusDescription: 'Moved Permanently',
+      headers: {
+        'location': { value: newUrl },
+        'cache-control': { value: 'max-age=3600' }
+      }
+    };
+  }
+
+  // For zq.suns.bz or any other host, continue with the request
+  return request;
+}
+    `.trim();
+
+    const redirectFunction = new cloudfront.Function(
+      this,
+      "RedirectToZqFunction",
+      {
+        code: cloudfront.FunctionCode.fromInline(redirectFunctionCode),
+        comment: "Redirects suns.bz to zq.suns.bz preserving path and query",
+      },
+    );
+
     // Create CloudFront Distribution with S3 website endpoint
     // Using website endpoint instead of OAC to avoid cyclic dependency
     // (since bucket is already publicly accessible)
@@ -67,6 +120,12 @@ export class EdgeStack extends cdk.Stack {
         // (ALL_VIEWER forwards Host header which causes API Gateway to return 403)
         originRequestPolicy:
           cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        functionAssociations: [
+          {
+            function: redirectFunction,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       },
       // Route /records/* paths to the S3 bucket root (for domains.json and future records)
       "/records/*": {
@@ -84,6 +143,12 @@ export class EdgeStack extends cdk.Stack {
           enableAcceptEncodingGzip: true,
           enableAcceptEncodingBrotli: true,
         }),
+        functionAssociations: [
+          {
+            function: redirectFunction,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       },
     };
 
@@ -99,6 +164,12 @@ export class EdgeStack extends cdk.Stack {
           cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD_OPTIONS,
           compress: true,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          functionAssociations: [
+            {
+              function: redirectFunction,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
         },
         additionalBehaviors,
         domainNames: [config.domainName, `zq.${config.domainName}`],
