@@ -100,6 +100,26 @@ so we can simplify this by using the group ID as the PK and the hostname as the 
   * If the owner wants to change their URL, they'll set new DNS records, and submit,
     and the old records will be invalidated on the next scan.
 
+## Concurrency
+
+User requests go through the webhook Lambda which saves data to DynamoDB.
+
+DynamoDB streams events to a streamer Lambda which saves each changed record to a JSON file in S3.
+This Lambda has `reservedConcurrentExecutions: 1` to only allow one to run at a time,
+which acts as a lock on writes to the JSON file.
+This Lambda is the only writer to the JSON file.
+
+There is a scheduler Lambda that is run every day that re-attests every record in the JSON file,
+updating Dynamo with new validation time or deleting recordds that fail attestation.
+(There is a grace period to prevent intermittent errors from removing actually valid records.)
+
+Aside from the Lambdas, the browser retrieves the JSON file when a user visits the website.
+
+We use a monotonic `Rev` field in our data model to prevent concurrency bugs.
+When we are making changes to a record in Dynamo,
+we use `ConditionExpression: rev = :snapshotRev` to ensure that
+the change fails if an update has been made to Dynamo since our last snapshot of the table.
+
 ## Dynamo storage costs
 
 * Data storage costs
