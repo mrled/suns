@@ -11,6 +11,7 @@ import { DynamoDbStack } from "../lib/DynamoDbStack";
 import { HttpApiStack } from "../lib/HttpApiStack";
 import { StreamerStack } from "../lib/StreamerStack";
 import { MonitoringStack } from "../lib/MonitoringStack";
+import { ReattestBatchStack } from "../lib/ReattestBatchStack";
 
 const app = new cdk.App();
 
@@ -82,6 +83,20 @@ const streamerStack = new StreamerStack(
 streamerStack.addDependency(dynamoDbStack);
 streamerStack.addDependency(storageStack);
 
+// ReattestBatch Stack - Lambda for batch re-attestation
+const reattestBatchStack = new ReattestBatchStack(
+  app,
+  `${config.stackPrefix}ReattestBatchStack`,
+  {
+    env: { account, region },
+    description: `Batch re-attestation Lambda for ${config.domainName}`,
+    table: dynamoDbStack.table,
+    contentBucket: storageStack.contentBucket,
+  },
+);
+reattestBatchStack.addDependency(dynamoDbStack);
+reattestBatchStack.addDependency(storageStack);
+
 // Edge Stack - can be in any region (CloudFront is global)
 const edgeStack = new EdgeStack(app, `${config.stackPrefix}EdgeStack`, {
   env: { account, region },
@@ -114,9 +129,11 @@ const monitoringStack = new MonitoringStack(
     description: `Monitoring and alerting for ${config.domainName}`,
     apiFunction: httpApiStack.apiFunction,
     streamerFunction: streamerStack.streamerFunction,
+    reattestBatchFunction: reattestBatchStack.reattestBatchFunction,
   },
 );
 monitoringStack.addDependency(httpApiStack);
 monitoringStack.addDependency(streamerStack);
+monitoringStack.addDependency(reattestBatchStack);
 
 app.synth();

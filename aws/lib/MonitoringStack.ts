@@ -11,6 +11,7 @@ import { config } from "./config";
 export interface MonitoringStackProps extends cdk.StackProps {
   apiFunction: lambda.IFunction;
   streamerFunction: lambda.IFunction;
+  reattestBatchFunction: lambda.IFunction;
 }
 
 export class MonitoringStack extends cdk.Stack {
@@ -218,6 +219,124 @@ export class MonitoringStack extends cdk.Stack {
       },
     );
     streamerThrottleAlarm.addAlarmAction(alarmAction);
+
+    // ReattestBatch Lambda monitoring (if provided)
+    if (props.reattestBatchFunction) {
+      // ReattestBatch Lambda error alarm
+      const reattestBatchErrorAlarm = new cloudwatch.Alarm(
+        this,
+        "ReattestBatchErrorAlarm",
+        {
+          alarmName: `${config.stackPrefix}-ReattestBatchErrors`,
+          alarmDescription: "Alert on reattestBatch Lambda function errors",
+          metric: new cloudwatch.Metric({
+            namespace: "AWS/Lambda",
+            metricName: "Errors",
+            dimensionsMap: {
+              FunctionName: props.reattestBatchFunction.functionName,
+            },
+            statistic: "Sum",
+            period: cdk.Duration.minutes(5),
+          }),
+          threshold: 1,
+          evaluationPeriods: 1,
+          treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+          comparisonOperator:
+            cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+        },
+      );
+      reattestBatchErrorAlarm.addAlarmAction(alarmAction);
+
+      // ReattestBatch Lambda throttle alarm
+      const reattestBatchThrottleAlarm = new cloudwatch.Alarm(
+        this,
+        "ReattestBatchThrottleAlarm",
+        {
+          alarmName: `${config.stackPrefix}-ReattestBatchThrottles`,
+          alarmDescription: "Alert on reattestBatch Lambda function throttles",
+          metric: new cloudwatch.Metric({
+            namespace: "AWS/Lambda",
+            metricName: "Throttles",
+            dimensionsMap: {
+              FunctionName: props.reattestBatchFunction.functionName,
+            },
+            statistic: "Sum",
+            period: cdk.Duration.minutes(5),
+          }),
+          threshold: 5,
+          evaluationPeriods: 1,
+          treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+          comparisonOperator:
+            cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        },
+      );
+      reattestBatchThrottleAlarm.addAlarmAction(alarmAction);
+
+      // ReattestBatch Lambda duration alarm (alert if it takes too long)
+      const reattestBatchDurationAlarm = new cloudwatch.Alarm(
+        this,
+        "ReattestBatchDurationAlarm",
+        {
+          alarmName: `${config.stackPrefix}-ReattestBatchDuration`,
+          alarmDescription:
+            "Alert when reattestBatch Lambda execution exceeds 10 minutes",
+          metric: new cloudwatch.Metric({
+            namespace: "AWS/Lambda",
+            metricName: "Duration",
+            dimensionsMap: {
+              FunctionName: props.reattestBatchFunction.functionName,
+            },
+            statistic: "Maximum",
+            period: cdk.Duration.minutes(5),
+          }),
+          threshold: 600000, // 10 minutes in milliseconds
+          evaluationPeriods: 1,
+          treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+          comparisonOperator:
+            cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        },
+      );
+      reattestBatchDurationAlarm.addAlarmAction(alarmAction);
+
+      // Import existing log group for the reattestBatch function
+      const reattestBatchLogGroup = logs.LogGroup.fromLogGroupName(
+        this,
+        "ReattestBatchLogGroup",
+        `/aws/lambda/${props.reattestBatchFunction.functionName}`,
+      );
+
+      const reattestBatchNotifyMetric = new logs.MetricFilter(
+        this,
+        "ReattestBatchNotifyMetric",
+        {
+          logGroup: reattestBatchLogGroup,
+          metricNamespace: `${config.stackPrefix}/Logs`,
+          metricName: "ReattestBatchNotifyMessages",
+          filterPattern: logs.FilterPattern.literal("{ $.notify = true }"),
+          metricValue: "1",
+          defaultValue: 0,
+        },
+      );
+
+      const reattestBatchNotifyAlarm = new cloudwatch.Alarm(
+        this,
+        "ReattestBatchNotifyAlarm",
+        {
+          alarmName: `${config.stackPrefix}-ReattestBatchNotifyMessages`,
+          alarmDescription: "Alert when reattestBatch logs contain notify=true",
+          metric: reattestBatchNotifyMetric.metric({
+            statistic: "Sum",
+            period: cdk.Duration.minutes(1),
+          }),
+          threshold: 1,
+          evaluationPeriods: 1,
+          treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+          comparisonOperator:
+            cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+        },
+      );
+      reattestBatchNotifyAlarm.addAlarmAction(alarmAction);
+    }
 
     // Outputs
     new cdk.CfnOutput(this, "AlertTopicArn", {
