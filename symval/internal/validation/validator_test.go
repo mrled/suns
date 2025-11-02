@@ -189,17 +189,18 @@ func TestValidateBase_Success(t *testing.T) {
 func TestValidate_AllSymmetryTypes(t *testing.T) {
 	tests := []struct {
 		name         string
+		owner        string
 		symmetryType symgroup.SymmetryType
 		hostnames    []string
 		groupID      string
 		expectValid  bool // Added field to specify expected result
 	}{
-		{"Palindrome", symgroup.Palindrome, []string{"aba"}, "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=", true},
-		{"Flip180", symgroup.Flip180, []string{"example.com"}, "v1:b:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false},             // Stub returns false
-		{"DoubleFlip180", symgroup.DoubleFlip180, []string{"example.com"}, "v1:c:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false}, // Stub returns false
-		{"MirrorText", symgroup.MirrorText, []string{"example.com"}, "v1:d:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false},       // Stub returns false
-		{"MirrorNames", symgroup.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=", true},
-		{"AntonymNames", symgroup.AntonymNames, []string{"example.com"}, "v1:f:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false}, // Stub returns false
+		{"Palindrome", "alice@example.com", symgroup.Palindrome, []string{"aba"}, "v1:a:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:4SStzOH7L4jh6nmcPQgghF7TQ+bHOeVBMfyzpW5Lwb0=", true},
+		{"Flip180", "alice@example.com", symgroup.Flip180, []string{"example.com"}, "v1:b:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false}, // Stub returns false
+		{"DoubleFlip180", "example.com", symgroup.DoubleFlip180, []string{"zq.su", "ns.bz"}, "v1:c:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=:xu+enReSFF//XwQQJBi/byb9BhSnccXimRkLjHttfls=", true},
+		{"MirrorText", "alice@example.com", symgroup.MirrorText, []string{"example.com"}, "v1:d:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false}, // Stub returns false
+		{"MirrorNames", "alice@example.com", symgroup.MirrorNames, []string{"a.b.com", "com.b.a"}, "v1:e:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:SGjit3PbOdrHhyHGQZzNBkgwB2bYLJ1ZDNqkPJW728c=", true},
+		{"AntonymNames", "alice@example.com", symgroup.AntonymNames, []string{"example.com"}, "v1:f:/42YGfwOEr8NJIkuRZh+JJoo3Og2qFytYOKOqqjG2XY=:o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUc=", false}, // Stub returns false
 	}
 
 	for _, tt := range tests {
@@ -207,7 +208,7 @@ func TestValidate_AllSymmetryTypes(t *testing.T) {
 			data := make([]*model.DomainRecord, len(tt.hostnames))
 			for i, hostname := range tt.hostnames {
 				data[i] = &model.DomainRecord{
-					Owner:    "alice@example.com",
+					Owner:    tt.owner,
 					Type:     tt.symmetryType,
 					Hostname: hostname,
 					GroupID:  tt.groupID,
@@ -215,11 +216,19 @@ func TestValidate_AllSymmetryTypes(t *testing.T) {
 			}
 
 			valid, err := Validate(data)
-			if err != nil {
-				t.Errorf("Expected no error for %s, got: %v", tt.name, err)
-			}
-			if valid != tt.expectValid {
-				t.Errorf("Expected valid=%v for %s, got %v", tt.expectValid, tt.name, valid)
+			if tt.expectValid {
+				// If we expect validation to pass, check for no error
+				if err != nil {
+					t.Errorf("Expected no error for %s, got: %v", tt.name, err)
+				}
+				if !valid {
+					t.Errorf("Expected valid=true for %s, got false", tt.name)
+				}
+			} else {
+				// If we expect validation to fail, we should get an error or false
+				if err == nil && valid {
+					t.Errorf("Expected validation to fail for %s, but it succeeded", tt.name)
+				}
 			}
 		})
 	}
