@@ -102,7 +102,7 @@ so we can simplify this by using the group ID as the PK and the hostname as the 
 
 ## Concurrency
 
-User requests go through the webhook Lambda which saves data to DynamoDB.
+User requests go through the `httpapi` Lambda which saves data to DynamoDB.
 
 DynamoDB streams events to a streamer Lambda which saves each changed record to a JSON file in S3.
 This Lambda has `reservedConcurrentExecutions: 1` to only allow one to run at a time,
@@ -126,7 +126,7 @@ the change fails if an update has been made to Dynamo since our last snapshot of
     * $0.25/GB
     * Each record is about 250B
     * e.g. 4M records would be 1GB and $0.25/mo; 1k records $0.01/mo
-* Webhook adding/updating new records
+* `httpapi` Lambda adding/updating new records
     * $0.000000625/write
     * e.g. with 1000 new members per day, $0.02
 * Bulk process writing to all records:

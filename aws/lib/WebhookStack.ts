@@ -38,7 +38,7 @@ export class WebhookStack extends cdk.Stack {
               "export GOARCH=arm64",
               "export CGO_ENABLED=0",
               "cd /asset-input",
-              'go build -tags netgo -ldflags "-s -w -extldflags -static" -trimpath -o /asset-output/bootstrap ./cmd/webhook',
+              'go build -tags netgo -ldflags "-s -w -extldflags -static" -trimpath -o /asset-output/bootstrap ./cmd/httpapi',
             ].join(" && "),
           ],
           user: "root",

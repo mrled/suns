@@ -27,15 +27,15 @@ dist/symval: $(GOSRCS)
 dist/reattestbatch: $(GOSRCS)
 	go build -o dist/reattestbatch cmd/reattestbatch/main.go
 
-dist/webhook: $(GOSRCS)
-	go build -o dist/webhook cmd/webhook/main.go
+dist/httpapi: $(GOSRCS)
+	go build -o dist/httpapi cmd/httpapi/main.go
 
 .PHONY: test
 test: ## Run tests
 	go test ./...
 
 .PHONY: all
-all: dist/symval dist/reattestbatch dist/webhook ## Build all binaries
+all: dist/symval dist/reattestbatch dist/httpapi ## Build all binaries
 
 .PHONY: clean
 clean: ## Clean build artifacts
