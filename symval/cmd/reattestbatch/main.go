@@ -32,7 +32,7 @@ var (
 func init() {
 	// Initialize logger with executable name for filtering
 	log = logger.NewDefaultLogger()
-	log = logger.WithExecutable(log, "scheduler")
+	log = logger.WithExecutable(log, "reattestbatch")
 	logger.SetDefault(log)
 
 	// Get environment variables

@@ -24,8 +24,8 @@ GOSRCS := $(shell find . -type f -name '*.go' -or -name 'go.mod' -or -name 'go.s
 dist/symval: $(GOSRCS)
 	go build -o dist/symval cmd/symval/main.go
 
-dist/scheduler: $(GOSRCS)
-	go build -o dist/scheduler cmd/scheduler/main.go
+dist/reattestbatch: $(GOSRCS)
+	go build -o dist/reattestbatch cmd/reattestbatch/main.go
 
 dist/webhook: $(GOSRCS)
 	go build -o dist/webhook cmd/webhook/main.go
@@ -35,7 +35,7 @@ test: ## Run tests
 	go test ./...
 
 .PHONY: all
-all: dist/symval dist/scheduler dist/webhook ## Build all binaries
+all: dist/symval dist/reattestbatch dist/webhook ## Build all binaries
 
 .PHONY: clean
 clean: ## Clean build artifacts
