@@ -7,7 +7,7 @@ The Society for Universal Name Symmetry is a club open to anyone with a symmetri
 DNS name symmetry can be achieved in several ways.
 Some examples:
 
-- Palindrom: `zb.snus.suns.bz`
+- Palindrome: `zb.snus.suns.bz`
     - Bonus for a fully palindrom'ed URL: `https://zb.snus.suns.bz//:sptth`
 - Single 180° flip: `zq.suns.bz` (`zq.su` + `ns.bz`, flip either half 180° to get the other half)
     - Bonus for a fully flipped URL: `https://zq.suns.bz//:sdʇʇɥ`
@@ -22,8 +22,7 @@ Want to join?
 
 - Create a symmetrical name with one of the methods above
 - Create TXT records for *each* domain
-- Submit to `/webhook?type=TYPE&name=NAME` for single name symmetries
-  or `/webhook?type=TYPE&name=NAME&mirror=MIRROR` for dual-name symmetries.
+- POST to `https://zq.suns.bz/api/v1/attest`
 
 Any domain owner can join by creating a palindrome of their domain.
 For instance, if you own `example.institute`,
@@ -35,17 +34,26 @@ create a DNS record for `su.moc.elpmaxe.example.com.us`.
 
 Of course, you can also join with one of the other methods above, like flips or mirrors.
 
+Each record has an owner, which we expect to be a URL,
+and which is rendered clickable in the members table below.
+
 Here's an example submission with curl:
 
 ```sh
 curl -X POST https://zq.suns.bz/api/v1/attest \
   -H "Content-Type: application/json" \
   -d '{
-    "owner": "https://me.micahrl.com",
-    "type": "mirrornames",
-    "domains": ["me.micahrl.com", "com.micahrl.me"]
+    "owner": "https://example.blog",
+    "type": "palindrome",
+    "domains": ["etutitsni.elpmaxe.example.institute"]
   }'
 ```
+
+The owner can be any URL and doesn't have to match one of the entries in the `domains` list;
+`https://example.blog` might own `example.institute`.
+Also note that the `owner` typically includes an `https://` prefix,
+but the `domains` list should be bare DNS names.
+
 
 ## Members
 
