@@ -17,6 +17,10 @@ class DomainRecords extends HTMLElement {
   async connectedCallback() {
     // Get the URL when the element is connected to the DOM
     this.recordsUrl = this.getAttribute('src') || '/records/domains.json';
+
+    // Get priority owner attribute (single owner to show first)
+    this.priorityOwner = this.getAttribute('priority-owner') || null;
+
     await this.fetchAndRender();
   }
 
@@ -34,6 +38,7 @@ class DomainRecords extends HTMLElement {
       this.renderError(error);
     }
   }
+
 
   getHumanReadableType(typeCode) {
     return this.typeCodeToName[typeCode] || typeCode;
@@ -60,6 +65,26 @@ class DomainRecords extends HTMLElement {
     return grouped;
   }
 
+  sortOwnersByPriority(owners) {
+    if (!this.priorityOwner) {
+      // No priority specified, return alphabetically sorted
+      return owners.sort();
+    }
+
+    // Sort all owners alphabetically first
+    const sortedOwners = [...owners].sort();
+
+    // If priority owner exists in the list, move it to the front
+    const priorityIndex = sortedOwners.indexOf(this.priorityOwner);
+    if (priorityIndex > -1) {
+      // Remove from current position and add to beginning
+      sortedOwners.splice(priorityIndex, 1);
+      sortedOwners.unshift(this.priorityOwner);
+    }
+
+    return sortedOwners;
+  }
+
   render(records) {
     const grouped = this.groupRecordsByOwnerAndGroup(records);
 
@@ -77,7 +102,11 @@ class DomainRecords extends HTMLElement {
     } else {
       html += '<ul>';
 
-      for (const [owner, groups] of Object.entries(grouped)) {
+      // Sort owners based on priority
+      const sortedOwners = this.sortOwnersByPriority(Object.keys(grouped));
+
+      for (const owner of sortedOwners) {
+        const groups = grouped[owner];
         html += `<li class="owner"><a href="${owner}">${owner}</a><ul>`;
         for (const [groupId, group] of Object.entries(groups)) {
           const humanReadableType = this.getHumanReadableType(group.type);

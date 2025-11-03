@@ -58,4 +58,4 @@ but the `domains` list should be bare DNS names.
 ## Members
 
 <script src="/domain-records.js"></script>
-<domain-records src='{{< param "recordsDomainsPath" >}}'></domain-records>
+<domain-records src='{{< param "recordsDomainsPath" >}}' priority-owner="https://zq.suns.bz"></domain-records>
