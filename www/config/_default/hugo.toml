@@ -4,6 +4,9 @@ title = 'SUNS'
 
 disableKinds = ["taxonomy", "term"]
 
+[params]
+recordsDomainsPath = "/records-domains-example.json"
+
 [markup]
   [markup.goldmark]
     [markup.goldmark.renderer]

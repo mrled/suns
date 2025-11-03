@@ -7,8 +7,8 @@ The Society for Universal Name Symmetry is a club open to anyone with a symmetri
 DNS name symmetry can be achieved in several ways.
 Some examples:
 
-- Palindrome: `zb.snus.suns.bz`
-    - Bonus for a fully pallindromed URL: `https://zb.snus.suns.bz//:sptth`
+- Palindrom: `zb.snus.suns.bz`
+    - Bonus for a fully palindrom'ed URL: `https://zb.snus.suns.bz//:sptth`
 - Single 180° flip: `zq.suns.bz` (`zq.su` + `ns.bz`, flip either half 180° to get the other half)
     - Bonus for a fully flipped URL: `https://zq.suns.bz//:sdʇʇɥ`
 - Double 180° flip: `zq.su` / `ns.bz` (example domains that we don't own)
@@ -49,11 +49,5 @@ curl -X POST https://zq.suns.bz/api/v1/attest \
 
 ## Members
 
-- <https://me.micahrl.com> / <https://com.micahrl.me>
-
 <script src="/domain-records.js"></script>
-<domain-records></domain-records>
-
-<hr/>
-
-<domain-records src="https://zq.suns.bz/records/domains.json"></domain-records>
+<domain-records src='{{< param "recordsDomainsPath" >}}'></domain-records>
