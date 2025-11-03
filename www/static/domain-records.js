@@ -1,7 +1,6 @@
 class DomainRecords extends HTMLElement {
   constructor() {
     super();
-    this.recordsUrl = this.getAttribute('src') || '/records/domains.json';
 
     // Mapping of short character group types to human readable types
     // Based on symgroup.go in symval/internal/symgroup/
@@ -16,6 +15,8 @@ class DomainRecords extends HTMLElement {
   }
 
   async connectedCallback() {
+    // Get the URL when the element is connected to the DOM
+    this.recordsUrl = this.getAttribute('src') || '/records/domains.json';
     await this.fetchAndRender();
   }
 
@@ -26,8 +27,10 @@ class DomainRecords extends HTMLElement {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const records = await response.json();
+      console.log(`Fetched domain records from ${this.recordsUrl}:`, records);
       this.render(records);
     } catch (error) {
+      console.error(`Error fetching domain records from ${this.recordsUrl}:`, error);
       this.renderError(error);
     }
   }
