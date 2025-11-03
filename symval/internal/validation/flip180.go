@@ -74,7 +74,7 @@ func isFlip180(s string) bool {
 	if err != nil {
 		return false
 	}
-	return strings.ToLower(flipped) == strings.ToLower(s)
+	return strings.EqualFold(flipped, s)
 }
 
 // validateFlip180 validates 180-degree flip symmetry
