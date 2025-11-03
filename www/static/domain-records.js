@@ -98,16 +98,12 @@ class DomainRecords extends HTMLElement {
     this.innerHTML = `
       <style>
         domain-records .error {
-          color: #d32f2f;
-          padding: 1em;
-          border: 1px solid #ffcdd2;
-          background-color: #ffebee;
-          border-radius: 4px;
+          color: #ff0000ff;
         }
       </style>
-      <div class="error">
+      <p class="error">
         Error loading domain records: ${error.message}
-      </div>
+      </p>
     `;
   }
 }
