@@ -53,3 +53,7 @@ curl -X POST https://zq.suns.bz/api/v1/attest \
 
 <script src="/domain-records.js"></script>
 <domain-records></domain-records>
+
+<hr/>
+
+<domain-records src="https://zq.suns.bz/records/domains.json"></domain-records>

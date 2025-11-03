@@ -1,8 +1,18 @@
 class DomainRecords extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
     this.recordsUrl = this.getAttribute('src') || '/records/domains.json';
+
+    // Mapping of short character group types to human readable types
+    // Based on symgroup.go in symval/internal/symgroup/
+    this.typeCodeToName = {
+      'a': 'Palindrome',
+      'b': 'Flip 180',
+      'c': 'Double Flip 180',
+      'd': 'Mirror Text',
+      'e': 'Mirror Names',
+      'f': 'Antonym Names'
+    };
   }
 
   async connectedCallback() {
@@ -20,6 +30,10 @@ class DomainRecords extends HTMLElement {
     } catch (error) {
       this.renderError(error);
     }
+  }
+
+  getHumanReadableType(typeCode) {
+    return this.typeCodeToName[typeCode] || typeCode;
   }
 
   groupRecordsByOwnerAndGroup(records) {
@@ -48,37 +62,9 @@ class DomainRecords extends HTMLElement {
 
     let html = `
       <style>
-        :host {
+        domain-records {
           display: block;
           font-family: inherit;
-        }
-        .owner {
-          margin-bottom: 1em;
-        }
-        .owner-link {
-          font-weight: bold;
-          color: inherit;
-        }
-        .group {
-          margin-left: 1.5em;
-          margin-top: 0.5em;
-        }
-        .group-type {
-          font-style: italic;
-        }
-        .hostnames {
-          margin-left: 1em;
-        }
-        .hostname {
-          display: inline-block;
-          margin-right: 1em;
-        }
-        .error {
-          color: #d32f2f;
-          padding: 1em;
-          border: 1px solid #ffcdd2;
-          background-color: #ffebee;
-          border-radius: 4px;
         }
       </style>
     `;
@@ -89,23 +75,11 @@ class DomainRecords extends HTMLElement {
       html += '<ul>';
 
       for (const [owner, groups] of Object.entries(grouped)) {
-        html += `
-          <li class="owner">
-            <a href="${owner}" class="owner-link">${owner}</a>
-            <ul>
-        `;
-
+        html += `<li class="owner"><a href="${owner}">${owner}</a><ul>`;
         for (const [groupId, group] of Object.entries(groups)) {
-          html += `
-            <li class="group">
-              <span class="group-type">Type: ${group.type}</span>
-              <div class="hostnames">
-                ${group.hostnames.map(hostname =>
-                  `<span class="hostname">${hostname}</span>`
-                ).join('')}
-              </div>
-            </li>
-          `;
+          const humanReadableType = this.getHumanReadableType(group.type);
+          const domainList = group.hostnames.map(h => `<code>${h}</code>`).join(', ');
+          html += `<li><span>${humanReadableType}</span>: ${domainList}</li>`;
         }
 
         html += '</ul></li>';
@@ -114,13 +88,13 @@ class DomainRecords extends HTMLElement {
       html += '</ul>';
     }
 
-    this.shadowRoot.innerHTML = html;
+    this.innerHTML = html;
   }
 
   renderError(error) {
-    this.shadowRoot.innerHTML = `
+    this.innerHTML = `
       <style>
-        .error {
+        domain-records .error {
           color: #d32f2f;
           padding: 1em;
           border: 1px solid #ffcdd2;
