@@ -143,6 +143,21 @@ function handler(event) {
           enableAcceptEncodingGzip: true,
           enableAcceptEncodingBrotli: true,
         }),
+        // Add CORS headers to allow cross-origin requests
+        responseHeadersPolicy: new cloudfront.ResponseHeadersPolicy(
+          this,
+          "RecordsResponseHeadersPolicy",
+          {
+            responseHeadersPolicyName: `${config.stackPrefix}RecordsResponseHeadersPolicy`,
+            corsBehavior: {
+              accessControlAllowOrigins: ["*"],
+              accessControlAllowHeaders: ["*"],
+              accessControlAllowMethods: ["GET", "HEAD", "OPTIONS"],
+              accessControlAllowCredentials: false,
+              originOverride: true,
+            },
+          },
+        ),
         functionAssociations: [
           {
             function: redirectFunction,
