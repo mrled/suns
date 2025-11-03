@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "AWS CDK infrastructure for suns.bz",
   "scripts": {
+    "build": "tsc --outDir dist",
     "cdk": "sh -c 'if command -v podman >/dev/null 2>&1; then CDK_DOCKER=podman exec cdk \"$@\"; else exec cdk \"$@\"; fi' --",
     "deploy": "npm run cdk -- deploy --all",
     "synth": "npm run cdk -- synth"
