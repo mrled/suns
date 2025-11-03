@@ -3,6 +3,7 @@ package attestation
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/mrled/suns/symval/internal/groupid"
@@ -17,6 +18,7 @@ import (
 type AttestationUseCase struct {
 	dnsService *dnsclaims.Service
 	repository model.DomainRepository
+	logger     *slog.Logger
 }
 
 // NewAttestationUseCase creates a new attestation use case
@@ -25,6 +27,7 @@ func NewAttestationUseCase(dnsService *dnsclaims.Service, repo model.DomainRepos
 	return &AttestationUseCase{
 		dnsService: dnsService,
 		repository: repo,
+		logger:     slog.Default().With("component", "attestation"),
 	}
 }
 
@@ -67,16 +70,37 @@ func (uc *AttestationUseCase) Attest(owner string, symmetryType symgroup.Symmetr
 			return nil, fmt.Errorf("failed to lookup DNS records for %s: %w", domain, err)
 		}
 
+		// Log the raw DNS records found for this domain
+		uc.logger.Debug("DNS records found for domain",
+			slog.String("domain", domain),
+			slog.Int("count", len(records)),
+			slog.Any("records", records))
+
+		// Check if DNS lookup returned zero results before filtering
+		if len(records) == 0 {
+			result.IsValid = false
+			result.ErrorMessage = fmt.Sprintf("no DNS TXT records found for domain %s", domain)
+			return result, nil
+		}
+
 		// Filter the records for this domain
 		filteredData, err := filterDomainRecords(domain, records, criteria, validateTime)
 		if err != nil {
 			return nil, fmt.Errorf("failed to filter records for %s: %w", domain, err)
 		}
 
+		// Log the filtered records for this domain
+		uc.logger.Debug("Filtered records for domain",
+			slog.String("domain", domain),
+			slog.Int("filtered_count", len(filteredData)),
+			slog.Int("original_count", len(records)),
+			slog.Any("filtered_records", filteredData))
+
 		// Fail attestation if no matching records found for this domain
 		if len(filteredData) == 0 {
 			result.IsValid = false
-			result.ErrorMessage = fmt.Sprintf("no matching records found for domain %s", domain)
+			// Include the number of records that were filtered out
+			result.ErrorMessage = fmt.Sprintf("no matching records found for domain %s (filtered out %d records)", domain, len(records))
 			return result, nil
 		}
 
