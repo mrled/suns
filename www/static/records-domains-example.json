@@ -7,6 +7,13 @@
     "ValidateTime": "2025-11-01T16:07:20.972821344Z"
   },
   {
+    "Owner": "https://example.blog",
+    "Type": "a",
+    "Hostname": "etutitsni.elpmaxe.example.institute",
+    "GroupID": "v1:a:DUS2oe94xFjaxf4CvZWLOyTRWJEXKgy6BtjfEXOHkwk=:+KAF43z0uQ/2zuW1oGrMaia5H6QU+3ZIRKEo2lldJzs=",
+    "ValidateTime": "2025-11-01T16:07:20.972821344Z"
+  },
+  {
     "Owner": "https://me.micahrl.com",
     "Type": "e",
     "Hostname": "me.micahrl.com",
