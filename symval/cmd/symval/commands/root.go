@@ -32,4 +32,5 @@ func init() {
 	rootCmd.AddCommand(revalidateCmd)
 	rootCmd.AddCommand(attestCmd)
 	rootCmd.AddCommand(reattestCmd)
+	rootCmd.AddCommand(showCmd)
 }
