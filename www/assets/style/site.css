@@ -12,6 +12,10 @@
   --body-fg-color-link: rgb(9, 255, 0);
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   color: var(--body-fg-color);
   background-color: var(--body-bg-color);
