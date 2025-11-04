@@ -1,5 +1,5 @@
 +++
-title = "Symmetries"
+title = "symmetries"
 +++
 
 A domain name, or a pair of domain names, might be symmetrical in one of several ways.

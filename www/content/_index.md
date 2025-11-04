@@ -22,7 +22,8 @@ Membership is open to anyone with control of a DNS zone.
 For example:
 
 1.  The owner of `example.institute` wants to set up Palindrome symmetry,
-    so they create a DNS record for `etutitsni.elpmaxe.example.institute`.
+    so they create a regular DNS record (`A`, `AAAA`, `CNAME`, however they want to use it)
+    for `etutitsni.elpmaxe.example.institute`.
 
 2.  They use `https://example.blog` as their main website,
     so they use that as the owner ID.
@@ -30,22 +31,13 @@ For example:
     It should have an `https://` prefix,
     and it may contain a path like `https://example.blog/about-me` if you like.
 
-3.  They calculate the Group ID as
-    `v1:a:EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=:UIfveywMs1sKCW+ywVfEYhuDl+s6r6H3fghgBqGwbh8=`.
-    Breaking this, down, it's a string with four components separated by `:`
+3.  They calculate the group ID as
+    `v1:a:DUS2oe94xFjaxf4CvZWLOyTRWJEXKgy6BtjfEXOHkwk=:+KAF43z0uQ/2zuW1oGrMaia5H6QU+3ZIRKEo2lldJzs=`.
+    See ths [groupid]({{< ref "groupid" >}}) page for an explanation of this value and a calculator.
 
-    1.  The string `v1`.
-    2.  The symmetry type code.
-        In our example, the Palindrome type code is `a`.
-    3.  A sha256 hash of the owner URL.
-        In this example, `sha256(https://example.blog)`.
-    4.  A sha256 hash of all the domains in the group.
-        In this example, we only have one domain in the group, so
-        `sha256([etutitsni.elpmaxe.example.institute])`.
-
-4.  They create a TXT record for every domain in the group with the Group ID.
+4.  They create a TXT record to attest ownership for every domain in the group with the group ID.
     In this case, that means a record at `_suns.etutitsni.elpmaxe.example.institute`
-    that contains `v1:a:EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=:UIfveywMs1sKCW+ywVfEYhuDl+s6r6H3fghgBqGwbh8=`.
+    that contains the group ID.
 
 5.  POST to the API endpoint, like this:
 
@@ -58,6 +50,8 @@ For example:
         "domains": ["etutitsni.elpmaxe.example.institute"]
       }'
     ```
+
+Membership remains valid as long as the attestation records stay in place.
 
 ## Members
 
