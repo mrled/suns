@@ -1,6 +1,20 @@
 +++
-title = "This could be a game"
+title = "ideas"
 +++
+
+Where we could take this in the future.
+
+## Domain tools
+
+* Show flips, mirrors, reverses, upside downs, etc
+* Punycode URLs that resolve anything to a static page, to test how browsers render URLs in the bar
+* Find words that start/end/contain a substring
+
+## Webring
+
+Get a webring with some simple graphics and a button that takes you to a random owner's site.
+
+## Make a game
 
 - Inspired by <https://ipv4.games> (also separate implementation at <https://ipv4.quest>)
   - To be really inspired by this, it should be submitted via DNS queries
