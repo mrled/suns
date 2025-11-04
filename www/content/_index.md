@@ -55,5 +55,10 @@ Membership remains valid as long as the attestation records stay in place.
 
 ## Members
 
+This list of validated members is public and can be found at `{{< param "recordsDomainsPath" >}}`.
+You can use this to make a little web ring if you like.
+It's just a file on S3 and has open CORS headers,
+but please don't abuse it.
+
 <script src="/domain-records.js"></script>
 <domain-records src='{{< param "recordsDomainsPath" >}}' priority-owner="https://zq.suns.bz"></domain-records>
