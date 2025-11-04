@@ -28,13 +28,6 @@ npx cdk deploy SunsDnsZoneStack # ... etc
 # After DNS zone deploys, update nameservers at your domain registrar
 # Outputs will show: SunsDnsZoneStack.NameServers = ns-xxxx.awsdns...
 
-# Upload content to S3 (get bucket name from stack outputs)
-aws s3 sync ./content s3://BUCKET-NAME/
-
-# Invalidate CloudFront cache after content changes
-# `hugo deploy` actually will do this if invalidateCDN is set to true (the defautl), so no need to run this ourselves:
-aws cloudfront create-invalidation --distribution-id DISTRIBUTION-ID --paths "/*"
-
 # Other useful commands
 npx cdk diff                    # Compare deployed vs current state
 npx cdk list                    # List all stacks
@@ -43,15 +36,25 @@ npm run build                   # Compile TypeScript
 npm run watch                   # Watch mode
 ```
 
+Deploying the website is done with `hugo deploy`,
+which copies files to S3 and also invalidates the CloudFront content cache.
+
 ## Stack Architecture
 
-1. SunsDnsZoneStack - Route53 hosted zone for suns.bz
-2. SunsCertStack - ACM certificate for suns.bz and \*.suns.bz (us-east-1 only)
-3. SunsStorageStack - S3 bucket for static content
-4. SunsEdgeStack - CloudFront distribution serving from S3
-5. SunsDnsStack - A/AAAA records pointing to CloudFront
+1. **SunsDnsZoneStack** - Route53 hosted zone for suns.bz
+2. **SunsCertStack** - ACM certificate for suns.bz and \*.suns.bz (us-east-1 only)
+3. **SunsStorageStack** - S3 bucket for static content and DynamoDB table
+4. **SunsEdgeStack** - CloudFront distribution serving from S3
+5. **SunsDnsStack** - A/AAAA records pointing to CloudFront
+6. **SunsHttpApiStack** - HTTP API Gateway with Lambda function
+   - Lambda: `SunsHttpApiFunction` - Handles API requests at /api/\* paths
+7. **SunsStreamerStack** - DynamoDB Streams processor
+   - Lambda: `SunsStreamerFunction` - Processes DynamoDB stream events
+8. **SunsReattestBatchStack** - Scheduled batch processing
+   - Lambda: `SunsReattestBatchFunction` - Runs daily re-attestation batch job
+9. **SunsMonitoringStack** - CloudWatch dashboards and alarms
 
-Dependencies: DNS Zone → Cert + DNS Records → Edge → Storage
+Dependencies: DNS Zone → Cert + DNS Records → Edge → Storage → HttpApi/Streamer/ReattestBatch → Monitoring
 
 ## Notes
 
@@ -62,9 +65,25 @@ Dependencies: DNS Zone → Cert + DNS Records → Edge → Storage
 - HTTPS enforced, TLS 1.2+ minimum
 - Route53 costs ~$0.50/month, CloudFront/S3 pay-as-you-go, ACM free
 
-## CloudWatch logs
+## CloudWatch Logs
+
+Lambda functions have predictable names for easy log access:
 
 ```sh
-# Read logs from the function that backs the /api URL path
-aws logs tail /aws/lambda/SunsApiFunction --region us-east-2
+# HTTP API function logs (handles /api/* requests)
+aws logs tail /aws/lambda/SunsHttpApiFunction --follow
+
+# DynamoDB Streams processor logs
+aws logs tail /aws/lambda/SunsStreamerFunction --follow
+
+# Batch re-attestation job logs (runs daily)
+aws logs tail /aws/lambda/SunsReattestBatchFunction --follow
+
+# View recent logs without following
+aws logs tail /aws/lambda/SunsHttpApiFunction --since 1h
+
+# Filter logs by pattern
+aws logs filter-log-events \
+  --log-group-name /aws/lambda/SunsHttpApiFunction \
+  --filter-pattern "ERROR"
 ```
