@@ -5,55 +5,59 @@ title = "Society for Universal Name Symmetry"
 The Society for Universal Name Symmetry is a club open to anyone with a symmetric DNS name.
 
 DNS name symmetry can be achieved in several ways.
-Some examples:
-
-- Palindrome: `zb.snus.suns.bz`
-    - Bonus for a fully palindrom'ed URL: `https://zb.snus.suns.bz//:sptth`
-- Single 180° flip: `zq.suns.bz` (`zq.su` + `ns.bz`, flip either half 180° to get the other half)
-    - Bonus for a fully flipped URL: `https://zq.suns.bz//:sdʇʇɥ`
-- Double 180° flip: `zq.su` / `ns.bz` (example domains that we don't own)
-- Mirrored text: `duq.xodbox.pub` (example domain that we don't own)
-- Mirrored DNS names: `me.example.com` / `com.example.me`
-- Antonymmic DNS names: `https://at.example.email` / `https@example.website`
+For instance, this domain name is `zq.suns.bz` which is a Single 180° Flip,
+because `zq.su` is `ns.bz` flipped 180 degrees.
+See the [symmetries]({{< ref "symmetries" >}}) page for a list of what we support with more examples.
 
 ## Joining suns
 
-Want to join?
+Membership is open to anyone with control of a DNS zone.
 
-- Create a symmetrical name with one of the methods above
-- Create TXT records for *each* domain
-- POST to `https://zq.suns.bz/api/v1/attest`
+1.  Create one or more symmetrical DNS names from the [list]({{< ref "symmetries" >}}) of symmetries
+2.  Decide on a URL to use as your owner ID
+3.  Calculate your symmetry's Group ID
+4.  Create TXT records for each domain in the group
+5.  POST to `https://zq.suns.bz/api/v1/attest`
 
-Any domain owner can join by creating a palindrome of their domain.
-For instance, if you own `example.institute`,
-create a DNS record for `etutitsni.elpmaxe.example.institute`.
+For example:
 
-This works fine even for subdomains.
-If you control DNS for a subdomain like `example.com.us`,
-create a DNS record for `su.moc.elpmaxe.example.com.us`.
+1.  The owner of `example.institute` wants to set up Palindrome symmetry,
+    so they create a DNS record for `etutitsni.elpmaxe.example.institute`.
 
-Of course, you can also join with one of the other methods above, like flips or mirrors.
+2.  They use `https://example.blog` as their main website,
+    so they use that as the owner ID.
+    The owner URL does not have to be one of the domains in the group.
+    It should have an `https://` prefix,
+    and it may contain a path like `https://example.blog/about-me` if you like.
 
-Each record has an owner, which we expect to be a URL,
-and which is rendered clickable in the members table below.
+3.  They calculate the Group ID as
+    `v1:a:EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=:UIfveywMs1sKCW+ywVfEYhuDl+s6r6H3fghgBqGwbh8=`.
+    Breaking this, down, it's a string with four components separated by `:`
 
-Here's an example submission with curl:
+    1.  The string `v1`.
+    2.  The symmetry type code.
+        In our example, the Palindrome type code is `a`.
+    3.  A sha256 hash of the owner URL.
+        In this example, `sha256(https://example.blog)`.
+    4.  A sha256 hash of all the domains in the group.
+        In this example, we only have one domain in the group, so
+        `sha256([etutitsni.elpmaxe.example.institute])`.
 
-```sh
-curl -X POST https://zq.suns.bz/api/v1/attest \
-  -H "Content-Type: application/json" \
-  -d '{
-    "owner": "https://example.blog",
-    "type": "palindrome",
-    "domains": ["etutitsni.elpmaxe.example.institute"]
-  }'
-```
+4.  They create a TXT record for every domain in the group with the Group ID.
+    In this case, that means a record at `_suns.etutitsni.elpmaxe.example.institute`
+    that contains `v1:a:EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=:UIfveywMs1sKCW+ywVfEYhuDl+s6r6H3fghgBqGwbh8=`.
 
-The owner can be any URL and doesn't have to match one of the entries in the `domains` list;
-`https://example.blog` might own `example.institute`.
-Also note that the `owner` typically includes an `https://` prefix,
-but the `domains` list should be bare DNS names.
+5.  POST to the API endpoint, like this:
 
+    ```sh
+    curl -X POST https://zq.suns.bz/api/v1/attest \
+      -H "Content-Type: application/json" \
+      -d '{
+        "owner": "https://example.blog",
+        "type": "palindrome",
+        "domains": ["etutitsni.elpmaxe.example.institute"]
+      }'
+    ```
 
 ## Members
 
