@@ -29,7 +29,6 @@ export class CertStack extends cdk.Stack {
     new cdk.CfnOutput(this, "CertificateArn", {
       value: this.certificate.certificateArn,
       description: "ACM Certificate ARN",
-      exportName: `${config.stackPrefix}CertificateArn`,
     });
   }
 }

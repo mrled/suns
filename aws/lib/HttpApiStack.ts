@@ -101,19 +101,11 @@ export class HttpApiStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ApiUrl", {
       value: this.api.apiEndpoint,
       description: "HTTP API Gateway URL",
-      exportName: `${config.stackPrefix}HttpApiUrl`,
     });
 
     new cdk.CfnOutput(this, "ApiId", {
       value: this.api.apiId,
       description: "HTTP API Gateway ID",
-      exportName: `${config.stackPrefix}HttpApiId`,
-    });
-
-    new cdk.CfnOutput(this, "FunctionArn", {
-      value: this.apiFunction.functionArn,
-      description: "HTTP API Lambda Function ARN",
-      exportName: `${config.stackPrefix}HttpApiFunctionArn`,
     });
 
     new cdk.CfnOutput(this, "AttestEndpoint", {

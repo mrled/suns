@@ -86,19 +86,16 @@ export class ReattestBatchStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ReattestBatchFunctionArn", {
       value: this.reattestBatchFunction.functionArn,
       description: "Re-attestation Batch Lambda Function ARN",
-      exportName: `${config.stackPrefix}ReattestBatchFunctionArn`,
     });
 
     new cdk.CfnOutput(this, "ReattestBatchFunctionName", {
       value: this.reattestBatchFunction.functionName,
       description: "Re-attestation Batch Lambda Function Name",
-      exportName: `${config.stackPrefix}ReattestBatchFunctionName`,
     });
 
     new cdk.CfnOutput(this, "ScheduleRuleArn", {
       value: rule.ruleArn,
       description: "EventBridge Schedule Rule ARN",
-      exportName: `${config.stackPrefix}ReattestBatchScheduleRuleArn`,
     });
   }
 }
