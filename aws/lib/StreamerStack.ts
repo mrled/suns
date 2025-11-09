@@ -24,7 +24,7 @@ export class StreamerStack extends cdk.Stack {
       runtime: lambda.Runtime.PROVIDED_AL2023,
       handler: "bootstrap",
       architecture: lambda.Architecture.ARM_64, // Graviton2
-      functionName: `${config.stackPrefix}StreamerFunction`,
+      functionName: config.functionNames.streamer,
       code: getUnifiedLambdaCode(this),
       environment: {
         LAMBDA_HANDLER: "streamer",

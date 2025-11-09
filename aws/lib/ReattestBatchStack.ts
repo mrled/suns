@@ -28,7 +28,7 @@ export class ReattestBatchStack extends cdk.Stack {
         runtime: lambda.Runtime.PROVIDED_AL2023,
         handler: "bootstrap",
         architecture: lambda.Architecture.ARM_64, // Graviton2
-        functionName: `${config.stackPrefix}ReattestBatchFunction`,
+        functionName: config.functionNames.reattestBatch,
         code: getUnifiedLambdaCode(this),
         environment: {
           LAMBDA_HANDLER: "reattestbatch",

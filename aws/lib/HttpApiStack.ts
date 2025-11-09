@@ -24,7 +24,7 @@ export class HttpApiStack extends cdk.Stack {
       runtime: lambda.Runtime.PROVIDED_AL2023,
       handler: "bootstrap",
       architecture: lambda.Architecture.ARM_64, // Graviton2
-      functionName: `${config.stackPrefix}HttpApiFunction`,
+      functionName: config.functionNames.httpApi,
       code: getUnifiedLambdaCode(this),
       environment: {
         // AWS_REGION: this.region, // This is set by the Lambda runtime and cannot be overridden
