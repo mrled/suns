@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mrled/suns/symval/internal/model"
 	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/repository/memrepo"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
@@ -43,7 +44,7 @@ Examples:
 		ctx := context.Background()
 
 		// Create repository based on persistence flags
-		var repo reattest.DomainRepository
+		var repo model.DomainRepository
 		if reattestFlags.DynamoTable != "" {
 			// DynamoDB persistence
 			r, err := repository.NewRepository(ctx, repository.RepositoryConfig{

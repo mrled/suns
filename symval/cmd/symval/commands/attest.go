@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mrled/suns/symval/internal/model"
 	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/repository/memrepo"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
@@ -65,7 +66,7 @@ Example:
 		symmetryType := symgroup.SymmetryType(typeCode)
 
 		// Create repository based on persistence flags
-		var repo attestation.DomainRepository
+		var repo model.DomainRepository
 		if attestFlags.DynamoTable != "" || attestFlags.FilePath != "" {
 			// Use persistent repository (file or DynamoDB)
 			r, err := repository.NewRepository(ctx, repository.RepositoryConfig{

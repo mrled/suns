@@ -119,7 +119,11 @@ Examples:
 		}
 
 		// Apply filters to get the records we're checking
-		candidateRecords := filterRecordsForDisplay(allRecords, filters)
+		candidateRecords := model.FilterRecords(allRecords, model.RecordFilter{
+			Owners:   filters.Owners,
+			Domains:  filters.Domains,
+			GroupIDs: filters.GroupIDs,
+		})
 
 		if len(candidateRecords) == 0 {
 			fmt.Println("\nNo records to check.")
@@ -191,55 +195,6 @@ Examples:
 
 		return nil
 	},
-}
-
-// filterRecordsForDisplay applies basic filtering to determine which records to display
-// This mirrors the logic in the revalidate use case but is used for display purposes
-func filterRecordsForDisplay(records []*model.DomainRecord, filters revalidate.FilterOptions) []*model.DomainRecord {
-	// If no filters specified, return all records
-	if len(filters.Owners) == 0 && len(filters.Domains) == 0 && len(filters.GroupIDs) == 0 {
-		return records
-	}
-
-	// Create lookup maps for efficient filtering
-	ownerMap := make(map[string]bool)
-	for _, owner := range filters.Owners {
-		ownerMap[owner] = true
-	}
-
-	domainMap := make(map[string]bool)
-	for _, domain := range filters.Domains {
-		domainMap[domain] = true
-	}
-
-	groupIDMap := make(map[string]bool)
-	for _, groupID := range filters.GroupIDs {
-		groupIDMap[groupID] = true
-	}
-
-	var filtered []*model.DomainRecord
-
-	for _, record := range records {
-		// Apply owner filter
-		if len(filters.Owners) > 0 && !ownerMap[record.Owner] {
-			continue
-		}
-
-		// Apply domain filter - note: the use case expands this to include whole groups,
-		// but for display we just show records that match initially
-		if len(filters.Domains) > 0 && !domainMap[record.Hostname] {
-			continue
-		}
-
-		// Apply groupID filter
-		if len(filters.GroupIDs) > 0 && !groupIDMap[record.GroupID] {
-			continue
-		}
-
-		filtered = append(filtered, record)
-	}
-
-	return filtered
 }
 
 func init() {

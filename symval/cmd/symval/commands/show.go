@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 
@@ -73,10 +72,20 @@ Examples:
 		}
 
 		// Filter records based on flags
-		filteredRecords := filterRecords(allRecords, showFlags.Owner, showFlags.GroupID, showFlags.Domain)
+		filter := model.RecordFilter{}
+		if showFlags.Owner != "" {
+			filter.Owners = []string{showFlags.Owner}
+		}
+		if showFlags.GroupID != "" {
+			filter.GroupIDs = []string{showFlags.GroupID}
+		}
+		if showFlags.Domain != "" {
+			filter.Domains = []string{showFlags.Domain}
+		}
+		filteredRecords := model.FilterRecords(allRecords, filter)
 
 		// Sort records
-		sortRecords(filteredRecords, showFlags.SortBy)
+		model.SortRecords(filteredRecords, showFlags.SortBy)
 
 		// Display results
 		if len(filteredRecords) == 0 {
@@ -113,68 +122,6 @@ Examples:
 
 		return nil
 	},
-}
-
-// filterRecords filters records based on the provided criteria
-func filterRecords(records []*model.DomainRecord, owner, groupID, domain string) []*model.DomainRecord {
-	var filtered []*model.DomainRecord
-
-	for _, record := range records {
-		// Check if record matches all specified filters (AND operation)
-		matches := true
-
-		if owner != "" && !strings.EqualFold(record.Owner, owner) {
-			matches = false
-		}
-
-		if groupID != "" && record.GroupID != groupID {
-			matches = false
-		}
-
-		if domain != "" && !strings.EqualFold(record.Hostname, domain) {
-			matches = false
-		}
-
-		if matches {
-			filtered = append(filtered, record)
-		}
-	}
-
-	return filtered
-}
-
-// sortRecords sorts records based on the specified field
-func sortRecords(records []*model.DomainRecord, sortBy string) {
-	switch sortBy {
-	case "owner":
-		sort.Slice(records, func(i, j int) bool {
-			return records[i].Owner < records[j].Owner
-		})
-	case "domain":
-		sort.Slice(records, func(i, j int) bool {
-			return records[i].Hostname < records[j].Hostname
-		})
-	case "group":
-		sort.Slice(records, func(i, j int) bool {
-			return records[i].GroupID < records[j].GroupID
-		})
-	case "validate-time":
-		sort.Slice(records, func(i, j int) bool {
-			return records[i].ValidateTime.After(records[j].ValidateTime)
-		})
-	case "type":
-		sort.Slice(records, func(i, j int) bool {
-			return records[i].Type < records[j].Type
-		})
-	default:
-		// Default sort by group ID, then by hostname
-		sort.Slice(records, func(i, j int) bool {
-			if records[i].GroupID != records[j].GroupID {
-				return records[i].GroupID < records[j].GroupID
-			}
-			return records[i].Hostname < records[j].Hostname
-		})
-	}
 }
 
 // displayRecordsDetailed displays records in detailed format
