@@ -342,7 +342,6 @@ export class MonitoringStack extends cdk.Stack {
     new cdk.CfnOutput(this, "AlertTopicArn", {
       value: this.alertTopic.topicArn,
       description: "SNS Topic ARN for alerts",
-      exportName: `${config.stackPrefix}AlertTopicArn`,
     });
 
     new cdk.CfnOutput(this, "AlertEmail", {
