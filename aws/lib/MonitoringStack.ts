@@ -3,15 +3,14 @@ import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import * as cloudwatchActions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as sns from "aws-cdk-lib/aws-sns";
 import * as snsSubscriptions from "aws-cdk-lib/aws-sns-subscriptions";
-import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import { config } from "./config";
 
 export interface MonitoringStackProps extends cdk.StackProps {
-  apiFunction: lambda.IFunction;
-  streamerFunction: lambda.IFunction;
-  reattestBatchFunction: lambda.IFunction;
+  apiFunctionName: string;
+  streamerFunctionName: string;
+  reattestBatchFunctionName: string;
 }
 
 export class MonitoringStack extends cdk.Stack {
@@ -44,7 +43,7 @@ export class MonitoringStack extends cdk.Stack {
         namespace: "AWS/Lambda",
         metricName: "IteratorAge",
         dimensionsMap: {
-          FunctionName: props.streamerFunction.functionName,
+          FunctionName: props.streamerFunctionName,
         },
         statistic: "Maximum",
         period: cdk.Duration.minutes(1),
@@ -64,7 +63,7 @@ export class MonitoringStack extends cdk.Stack {
         namespace: "AWS/Lambda",
         metricName: "Errors",
         dimensionsMap: {
-          FunctionName: props.apiFunction.functionName,
+          FunctionName: props.apiFunctionName,
         },
         statistic: "Sum",
         period: cdk.Duration.minutes(5),
@@ -88,7 +87,7 @@ export class MonitoringStack extends cdk.Stack {
           namespace: "AWS/Lambda",
           metricName: "Errors",
           dimensionsMap: {
-            FunctionName: props.streamerFunction.functionName,
+            FunctionName: props.streamerFunctionName,
           },
           statistic: "Sum",
           period: cdk.Duration.minutes(5),
@@ -108,7 +107,7 @@ export class MonitoringStack extends cdk.Stack {
     const apiLogGroup = logs.LogGroup.fromLogGroupName(
       this,
       "ApiLogGroup",
-      `/aws/lambda/${props.apiFunction.functionName}`,
+      `/aws/lambda/${props.apiFunctionName}`,
     );
 
     const apiNotifyMetric = new logs.MetricFilter(this, "ApiNotifyMetric", {
@@ -140,7 +139,7 @@ export class MonitoringStack extends cdk.Stack {
     const streamerLogGroup = logs.LogGroup.fromLogGroupName(
       this,
       "StreamerLogGroup",
-      `/aws/lambda/${props.streamerFunction.functionName}`,
+      `/aws/lambda/${props.streamerFunctionName}`,
     );
 
     const streamerNotifyMetric = new logs.MetricFilter(
@@ -183,7 +182,7 @@ export class MonitoringStack extends cdk.Stack {
         namespace: "AWS/Lambda",
         metricName: "Throttles",
         dimensionsMap: {
-          FunctionName: props.apiFunction.functionName,
+          FunctionName: props.apiFunctionName,
         },
         statistic: "Sum",
         period: cdk.Duration.minutes(5),
@@ -206,7 +205,7 @@ export class MonitoringStack extends cdk.Stack {
           namespace: "AWS/Lambda",
           metricName: "Throttles",
           dimensionsMap: {
-            FunctionName: props.streamerFunction.functionName,
+            FunctionName: props.streamerFunctionName,
           },
           statistic: "Sum",
           period: cdk.Duration.minutes(5),
@@ -233,7 +232,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: "AWS/Lambda",
             metricName: "Errors",
             dimensionsMap: {
-              FunctionName: props.reattestBatchFunction.functionName,
+              FunctionName: props.reattestBatchFunctionName,
             },
             statistic: "Sum",
             period: cdk.Duration.minutes(5),
@@ -258,7 +257,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: "AWS/Lambda",
             metricName: "Throttles",
             dimensionsMap: {
-              FunctionName: props.reattestBatchFunction.functionName,
+              FunctionName: props.reattestBatchFunctionName,
             },
             statistic: "Sum",
             period: cdk.Duration.minutes(5),
@@ -284,7 +283,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: "AWS/Lambda",
             metricName: "Duration",
             dimensionsMap: {
-              FunctionName: props.reattestBatchFunction.functionName,
+              FunctionName: props.reattestBatchFunctionName,
             },
             statistic: "Maximum",
             period: cdk.Duration.minutes(5),
@@ -302,7 +301,7 @@ export class MonitoringStack extends cdk.Stack {
       const reattestBatchLogGroup = logs.LogGroup.fromLogGroupName(
         this,
         "ReattestBatchLogGroup",
-        `/aws/lambda/${props.reattestBatchFunction.functionName}`,
+        `/aws/lambda/${props.reattestBatchFunctionName}`,
       );
 
       const reattestBatchNotifyMetric = new logs.MetricFilter(

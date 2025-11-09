@@ -127,9 +127,10 @@ const monitoringStack = new MonitoringStack(
   {
     env: { account, region },
     description: `Monitoring and alerting for ${config.domainName}`,
-    apiFunction: httpApiStack.apiFunction,
-    streamerFunction: streamerStack.streamerFunction,
-    reattestBatchFunction: reattestBatchStack.reattestBatchFunction,
+    apiFunctionName: httpApiStack.apiFunction.functionName,
+    streamerFunctionName: streamerStack.streamerFunction.functionName,
+    reattestBatchFunctionName:
+      reattestBatchStack.reattestBatchFunction.functionName,
   },
 );
 monitoringStack.addDependency(httpApiStack);
