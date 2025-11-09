@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/presenter"
 	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/spf13/cobra"
 )
@@ -138,15 +139,7 @@ func displayRecordsDetailed(records []*model.DomainRecord) {
 		fmt.Printf("Domains (%d):\n", len(groupRecords))
 
 		for _, record := range groupRecords {
-			timeSince := time.Since(record.ValidateTime)
-			var timeStr string
-			if timeSince < time.Hour {
-				timeStr = fmt.Sprintf("%.0f minutes ago", timeSince.Minutes())
-			} else if timeSince < 24*time.Hour {
-				timeStr = fmt.Sprintf("%.1f hours ago", timeSince.Hours())
-			} else {
-				timeStr = fmt.Sprintf("%.0f days ago", timeSince.Hours()/24)
-			}
+			timeStr := presenter.FormatTimeSince(record.ValidateTime)
 
 			fmt.Printf("  - %s (validated: %s, rev: %d)\n",
 				record.Hostname,
@@ -163,15 +156,7 @@ func displayRecordsCompact(records []*model.DomainRecord) {
 	fmt.Println(strings.Repeat("-", 120))
 
 	for _, record := range records {
-		timeSince := time.Since(record.ValidateTime)
-		var timeStr string
-		if timeSince < time.Hour {
-			timeStr = fmt.Sprintf("%.0fm ago", timeSince.Minutes())
-		} else if timeSince < 24*time.Hour {
-			timeStr = fmt.Sprintf("%.1fh ago", timeSince.Hours())
-		} else {
-			timeStr = fmt.Sprintf("%.0fd ago", timeSince.Hours()/24)
-		}
+		timeStr := presenter.FormatTimeSinceCompact(record.ValidateTime)
 
 		// Truncate long fields for compact display
 		domain := truncateString(record.Hostname, 38)
