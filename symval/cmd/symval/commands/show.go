@@ -98,8 +98,6 @@ Examples:
 		switch showFlags.Format {
 		case "compact":
 			displayRecordsCompact(filteredRecords)
-		case "json":
-			displayRecordsJSON(filteredRecords)
 		default: // "detailed" or empty
 			displayRecordsDetailed(filteredRecords)
 		}
@@ -172,27 +170,6 @@ func displayRecordsCompact(records []*model.DomainRecord) {
 	}
 }
 
-// displayRecordsJSON displays records in JSON format
-func displayRecordsJSON(records []*model.DomainRecord) {
-	// Simple JSON-like output without external dependencies
-	fmt.Println("[")
-	for i, record := range records {
-		fmt.Printf("  {\n")
-		fmt.Printf("    \"hostname\": \"%s\",\n", record.Hostname)
-		fmt.Printf("    \"owner\": \"%s\",\n", record.Owner)
-		fmt.Printf("    \"type\": \"%s\",\n", record.Type)
-		fmt.Printf("    \"groupId\": \"%s\",\n", record.GroupID)
-		fmt.Printf("    \"validateTime\": \"%s\",\n", record.ValidateTime.Format(time.RFC3339))
-		fmt.Printf("    \"revision\": %d\n", record.Rev)
-		if i < len(records)-1 {
-			fmt.Printf("  },\n")
-		} else {
-			fmt.Printf("  }\n")
-		}
-	}
-	fmt.Println("]")
-}
-
 // truncateString truncates a string to the specified length with ellipsis
 func truncateString(s string, maxLen int) string {
 	if len(s) <= maxLen {
@@ -216,6 +193,6 @@ func init() {
 	showCmd.Flags().StringVarP(&showFlags.Domain, "domain", "d", "", "Filter by domain name")
 
 	// Add format and sort flags
-	showCmd.Flags().StringVar(&showFlags.Format, "format", "detailed", "Output format: detailed, compact, or json")
+	showCmd.Flags().StringVar(&showFlags.Format, "format", "detailed", "Output format: detailed or compact")
 	showCmd.Flags().StringVar(&showFlags.SortBy, "sort", "", "Sort by: owner, domain, group, validate-time, or type")
 }
