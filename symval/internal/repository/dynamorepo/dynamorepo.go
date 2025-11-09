@@ -124,14 +124,15 @@ func (r *DynamoRepository) SetValidationIfUnchanged(ctx context.Context, data *m
 	}
 
 	// Use UpdateItem with condition expression to check revision
+	// Handle missing Rev attribute by treating it as rev 0 for backward compatibility
 	result, err := r.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: data.GroupID},
 			"sk": &types.AttributeValueMemberS{Value: data.Hostname},
 		},
-		UpdateExpression:    aws.String("SET #validateTime = :validateTime, #rev = #rev + :one"),
-		ConditionExpression: aws.String("#rev = :snapshotRev"),
+		UpdateExpression:    aws.String("SET #validateTime = :validateTime, #rev = if_not_exists(#rev, :zero) + :one"),
+		ConditionExpression: aws.String("(attribute_not_exists(#rev) AND :snapshotRev = :zero) OR (#rev = :snapshotRev)"),
 		ExpressionAttributeNames: map[string]string{
 			"#validateTime": "ValidateTime",
 			"#rev":          "Rev",
@@ -139,6 +140,7 @@ func (r *DynamoRepository) SetValidationIfUnchanged(ctx context.Context, data *m
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":validateTime": &types.AttributeValueMemberS{Value: data.ValidateTime.Format(time.RFC3339Nano)},
 			":snapshotRev":  &types.AttributeValueMemberN{Value: strconv.FormatInt(snapshotRev, 10)},
+			":zero":         &types.AttributeValueMemberN{Value: "0"},
 			":one":          &types.AttributeValueMemberN{Value: "1"},
 		},
 		ReturnValues: types.ReturnValueAllNew,
@@ -245,18 +247,20 @@ func (r *DynamoRepository) UnconditionalDelete(ctx context.Context, groupID, hos
 // DeleteIfUnchanged removes domain data only if revision matches
 func (r *DynamoRepository) DeleteIfUnchanged(ctx context.Context, groupID, hostname string, snapshotRev int64) error {
 	// Use ConditionExpression to check both existence and revision
+	// Handle missing Rev attribute by treating it as rev 0 for backward compatibility
 	_, err := r.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: groupID},
 			"sk": &types.AttributeValueMemberS{Value: hostname},
 		},
-		ConditionExpression: aws.String("attribute_exists(pk) AND attribute_exists(sk) AND #rev = :snapshotRev"),
+		ConditionExpression: aws.String("attribute_exists(pk) AND attribute_exists(sk) AND ((attribute_not_exists(#rev) AND :snapshotRev = :zero) OR (#rev = :snapshotRev))"),
 		ExpressionAttributeNames: map[string]string{
 			"#rev": "Rev",
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":snapshotRev": &types.AttributeValueMemberN{Value: strconv.FormatInt(snapshotRev, 10)},
+			":zero":        &types.AttributeValueMemberN{Value: "0"},
 		},
 	})
 
