@@ -19,17 +19,54 @@ export class EdgeStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: EdgeStackProps) {
     super(scope, id, props);
 
-    // Create CloudFront Function for redirecting suns.bz to zq.suns.bz
+    // Create CloudFront Function for redirects
     const redirectFunctionCode = `
 function handler(event) {
   var request = event.request;
   var headers = request.headers;
   var host = headers.host && headers.host.value;
+  var uri = request.uri;
+
+  // Rule 1: Redirect / to //:sdʇʇɥ (301 permanent redirect)
+  if (uri === '/' || uri === '') {
+    return {
+      statusCode: 301,
+      statusDescription: 'Moved Permanently',
+      headers: {
+        'location': { value: '//:sdʇʇɥ' },
+        'cache-control': { value: 'max-age=3600' }
+      }
+    };
+  }
+
+  // Rule 2: Redirect /:sdʇʇɥ to //:sdʇʇɥ (301 permanent redirect)
+  if (uri === '/:sdʇʇɥ') {
+    return {
+      statusCode: 301,
+      statusDescription: 'Moved Permanently',
+      headers: {
+        'location': { value: '//:sdʇʇɥ' },
+        'cache-control': { value: 'max-age=3600' }
+      }
+    };
+  }
+
+  // Rule 3: Redirect //:sdʇʇɥ/ (with trailing slash) to //:sdʇʇɥ (without trailing slash)
+  if (uri === '//:sdʇʇɥ/') {
+    return {
+      statusCode: 301,
+      statusDescription: 'Moved Permanently',
+      headers: {
+        'location': { value: '//:sdʇʇɥ' },
+        'cache-control': { value: 'max-age=3600' }
+      }
+    };
+  }
 
   // Check if the host is suns.bz (without zq subdomain)
   if (host === 'suns.bz') {
     // Construct the new URL with zq subdomain, preserving path and query string
-    var newUrl = 'https://zq.suns.bz' + request.uri;
+    var newUrl = 'https://zq.suns.bz' + uri;
 
     // Add query string if present
     if (request.querystring && Object.keys(request.querystring).length > 0) {
@@ -68,7 +105,8 @@ function handler(event) {
       "RedirectToZqFunction",
       {
         code: cloudfront.FunctionCode.fromInline(redirectFunctionCode),
-        comment: "Redirects suns.bz to zq.suns.bz preserving path and query",
+        comment:
+          "Handles redirects: root to //:sdʇʇɥ, /:sdʇʇɥ to //:sdʇʇɥ, removes trailing slash, and redirects suns.bz to zq.suns.bz",
       },
     );
 
