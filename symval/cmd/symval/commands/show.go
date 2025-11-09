@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/mrled/suns/symval/internal/model"
 	"github.com/mrled/suns/symval/internal/presenter"
