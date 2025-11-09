@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/repository/memrepo"
 	"github.com/mrled/suns/symval/internal/usecase/revalidate"
 	"github.com/spf13/cobra"
@@ -60,10 +61,19 @@ Examples:
   # Check specific group IDs
   symval revalidate --file ./data.json -g "v1:a:hash1:hash2"`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := context.Background()
+
 		// Create repository based on persistence flags
 		var repo model.DomainRepository
 		if revalidateDynamoName != "" {
-			return fmt.Errorf("--dynamo flag is not yet implemented")
+			// DynamoDB persistence
+			r, err := repository.NewRepository(ctx, repository.RepositoryConfig{
+				DynamoTable: revalidateDynamoName,
+			})
+			if err != nil {
+				return err
+			}
+			repo = r
 		} else if revalidateFilePath != "" {
 			// Use JSON file persistence
 			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(revalidateFilePath)
@@ -80,7 +90,6 @@ Examples:
 
 		// Create revalidate use case
 		revalidateUC := revalidate.NewRevalidateUseCase(repo)
-		ctx := context.Background()
 
 		// Build filter options
 		filters := revalidate.FilterOptions{

@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/repository/dynamorepo"
+	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/repository/memrepo"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/symgroup"
@@ -68,37 +65,18 @@ Example:
 		symmetryType := symgroup.SymmetryType(typeCode)
 
 		// Create repository based on persistence flags
-		var repo model.DomainRepository
-		if attestFlags.DynamoTable != "" {
-			// Use DynamoDB persistence
-			cfg, err := config.LoadDefaultConfig(ctx)
+		var repo attestation.DomainRepository
+		if attestFlags.DynamoTable != "" || attestFlags.FilePath != "" {
+			// Use persistent repository (file or DynamoDB)
+			r, err := repository.NewRepository(ctx, repository.RepositoryConfig{
+				FilePath:       attestFlags.FilePath,
+				DynamoTable:    attestFlags.DynamoTable,
+				DynamoEndpoint: attestFlags.DynamoEndpoint,
+			})
 			if err != nil {
-				return fmt.Errorf("failed to load AWS config: %w", err)
+				return err
 			}
-
-			// Create DynamoDB client
-			var client *dynamodb.Client
-			if attestFlags.DynamoEndpoint != "" {
-				// Use custom endpoint if specified
-				client = dynamodb.NewFromConfig(cfg, func(o *dynamodb.Options) {
-					o.BaseEndpoint = &attestFlags.DynamoEndpoint
-				})
-				fmt.Printf("Using DynamoDB endpoint: %s\n", attestFlags.DynamoEndpoint)
-			} else {
-				// Use default endpoint discovery
-				client = dynamodb.NewFromConfig(cfg)
-			}
-
-			repo = dynamorepo.NewDynamoRepository(client, attestFlags.DynamoTable)
-			fmt.Printf("Using DynamoDB table: %s\n", attestFlags.DynamoTable)
-		} else if attestFlags.FilePath != "" {
-			// Use JSON file persistence
-			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(attestFlags.FilePath)
-			if err != nil {
-				return fmt.Errorf("failed to create repository: %w", err)
-			}
-			repo = memRepo
-			fmt.Printf("Using JSON persistence: %s\n", attestFlags.FilePath)
+			repo = r
 		} else {
 			// Use in-memory only (no persistence)
 			repo = memrepo.NewMemoryRepository()

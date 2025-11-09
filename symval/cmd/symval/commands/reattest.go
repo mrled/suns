@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mrled/suns/symval/internal/model"
+	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/mrled/suns/symval/internal/repository/memrepo"
 	"github.com/mrled/suns/symval/internal/service/dnsclaims"
 	"github.com/mrled/suns/symval/internal/usecase/reattest"
@@ -40,10 +40,21 @@ Examples:
   # Dry run to see what would happen
   symval reattest --file ./data.json --dry-run`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := context.Background()
+
 		// Create repository based on persistence flags
-		var repo model.DomainRepository
+		var repo reattest.DomainRepository
 		if reattestFlags.DynamoTable != "" {
-			return fmt.Errorf("--dynamodb-table flag is not yet implemented")
+			// DynamoDB persistence
+			r, err := repository.NewRepository(ctx, repository.RepositoryConfig{
+				FilePath:       reattestFlags.FilePath,
+				DynamoTable:    reattestFlags.DynamoTable,
+				DynamoEndpoint: reattestFlags.DynamoEndpoint,
+			})
+			if err != nil {
+				return err
+			}
+			repo = r
 		} else if reattestFlags.FilePath != "" {
 			// Use JSON file persistence
 			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(reattestFlags.FilePath)
@@ -63,7 +74,6 @@ Examples:
 
 		// Create reattest use case
 		reattestUC := reattest.NewReattestUseCase(dnsService, repo)
-		ctx := context.Background()
 
 		// Perform re-attestation
 		var results []reattest.GroupAttestResult

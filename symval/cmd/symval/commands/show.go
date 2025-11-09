@@ -7,11 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/mrled/suns/symval/internal/model"
-	"github.com/mrled/suns/symval/internal/repository/dynamorepo"
-	"github.com/mrled/suns/symval/internal/repository/memrepo"
+	"github.com/mrled/suns/symval/internal/repository"
 	"github.com/spf13/cobra"
 )
 
@@ -60,39 +57,13 @@ Examples:
 		ctx := context.Background()
 
 		// Create repository based on persistence flags
-		var repo model.DomainRepository
-		if showFlags.DynamoTable != "" {
-			// Use DynamoDB persistence
-			cfg, err := config.LoadDefaultConfig(ctx)
-			if err != nil {
-				return fmt.Errorf("failed to load AWS config: %w", err)
-			}
-
-			// Create DynamoDB client
-			var client *dynamodb.Client
-			if showFlags.DynamoEndpoint != "" {
-				// Use custom endpoint if specified
-				client = dynamodb.NewFromConfig(cfg, func(o *dynamodb.Options) {
-					o.BaseEndpoint = &showFlags.DynamoEndpoint
-				})
-				fmt.Printf("Using DynamoDB endpoint: %s\n", showFlags.DynamoEndpoint)
-			} else {
-				// Use default endpoint discovery
-				client = dynamodb.NewFromConfig(cfg)
-			}
-
-			repo = dynamorepo.NewDynamoRepository(client, showFlags.DynamoTable)
-			fmt.Printf("Using DynamoDB table: %s\n", showFlags.DynamoTable)
-		} else if showFlags.FilePath != "" {
-			// Use JSON file persistence
-			memRepo, err := memrepo.NewMemoryRepositoryWithPersistence(showFlags.FilePath)
-			if err != nil {
-				return fmt.Errorf("failed to create repository: %w", err)
-			}
-			repo = memRepo
-			fmt.Printf("Using JSON persistence: %s\n", showFlags.FilePath)
-		} else {
-			return fmt.Errorf("must specify either --file or --dynamodb-table")
+		repo, err := repository.NewRepository(ctx, repository.RepositoryConfig{
+			FilePath:       showFlags.FilePath,
+			DynamoTable:    showFlags.DynamoTable,
+			DynamoEndpoint: showFlags.DynamoEndpoint,
+		})
+		if err != nil {
+			return err
 		}
 
 		// Get all records from repository
