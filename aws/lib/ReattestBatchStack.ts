@@ -6,8 +6,8 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import { Construct } from "constructs";
-import { config, repositoryRoot } from "./config";
-import * as path from "path";
+import { config } from "./config";
+import { getUnifiedLambdaCode } from "./LambdaCode";
 
 export interface ReattestBatchStackProps extends cdk.StackProps {
   table: dynamodb.ITable;
@@ -29,25 +29,9 @@ export class ReattestBatchStack extends cdk.Stack {
         handler: "bootstrap",
         architecture: lambda.Architecture.ARM_64, // Graviton2
         functionName: `${config.stackPrefix}ReattestBatchFunction`,
-        code: lambda.Code.fromAsset(path.join(repositoryRoot, "symval"), {
-          bundling: {
-            image: lambda.Runtime.PROVIDED_AL2023.bundlingImage,
-            command: [
-              "sh",
-              "-c",
-              [
-                "dnf install -y golang",
-                "export GOOS=linux",
-                "export GOARCH=arm64",
-                "export CGO_ENABLED=0",
-                "cd /asset-input",
-                'go build -tags netgo -ldflags "-s -w -extldflags -static" -trimpath -o /asset-output/bootstrap ./cmd/reattestbatch',
-              ].join(" && "),
-            ],
-            user: "root",
-          },
-        }),
+        code: getUnifiedLambdaCode(this),
         environment: {
+          LAMBDA_HANDLER: "reattestbatch",
           DYNAMODB_TABLE: props.table.tableName,
           S3_BUCKET: props.contentBucket.bucketName,
           S3_DATA_KEY: config.domainsDataKey || "records/domains.json",

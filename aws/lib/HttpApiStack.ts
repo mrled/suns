@@ -5,8 +5,8 @@ import * as apigatewayIntegrations from "aws-cdk-lib/aws-apigatewayv2-integratio
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
-import { config, repositoryRoot } from "./config";
-import * as path from "path";
+import { config } from "./config";
+import { getUnifiedLambdaCode } from "./LambdaCode";
 
 export interface HttpApiStackProps extends cdk.StackProps {
   table: dynamodb.ITable;
@@ -25,26 +25,10 @@ export class HttpApiStack extends cdk.Stack {
       handler: "bootstrap",
       architecture: lambda.Architecture.ARM_64, // Graviton2
       functionName: `${config.stackPrefix}HttpApiFunction`,
-      code: lambda.Code.fromAsset(path.join(repositoryRoot, "symval"), {
-        bundling: {
-          image: lambda.Runtime.PROVIDED_AL2023.bundlingImage,
-          command: [
-            "sh",
-            "-c",
-            [
-              "dnf install -y golang",
-              "export GOOS=linux",
-              "export GOARCH=arm64",
-              "export CGO_ENABLED=0",
-              "cd /asset-input",
-              'go build -tags netgo -ldflags "-s -w -extldflags -static" -trimpath -o /asset-output/bootstrap ./cmd/httpapi',
-            ].join(" && "),
-          ],
-          user: "root",
-        },
-      }),
+      code: getUnifiedLambdaCode(this),
       environment: {
         // AWS_REGION: this.region, // This is set by the Lambda runtime and cannot be overridden
+        LAMBDA_HANDLER: "httpapi",
         DYNAMODB_TABLE: props.table.tableName,
       },
       timeout: cdk.Duration.seconds(5),
