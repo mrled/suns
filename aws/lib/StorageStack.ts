@@ -35,13 +35,11 @@ export class StorageStack extends cdk.Stack {
     new cdk.CfnOutput(this, "BucketName", {
       value: this.contentBucket.bucketName,
       description: "S3 Bucket Name",
-      exportName: `${config.stackPrefix}ContentBucketName`,
     });
 
     new cdk.CfnOutput(this, "BucketArn", {
       value: this.contentBucket.bucketArn,
       description: "S3 Bucket ARN",
-      exportName: `${config.stackPrefix}ContentBucketArn`,
     });
 
     new cdk.CfnOutput(this, "BucketWebsiteUrl", {

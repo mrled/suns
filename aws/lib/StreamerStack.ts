@@ -87,13 +87,11 @@ export class StreamerStack extends cdk.Stack {
     new cdk.CfnOutput(this, "StreamerFunctionArn", {
       value: this.streamerFunction.functionArn,
       description: "DynamoDB Streams Lambda Function ARN",
-      exportName: `${config.stackPrefix}StreamerFunctionArn`,
     });
 
     new cdk.CfnOutput(this, "StreamerFunctionName", {
       value: this.streamerFunction.functionName,
       description: "DynamoDB Streams Lambda Function Name",
-      exportName: `${config.stackPrefix}StreamerFunctionName`,
     });
 
     new cdk.CfnOutput(this, "DomainsDataUrl", {

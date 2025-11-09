@@ -216,13 +216,11 @@ function handler(event) {
     new cdk.CfnOutput(this, "DistributionId", {
       value: this.distribution.distributionId,
       description: "CloudFront Distribution ID",
-      exportName: `${config.stackPrefix}DistributionId`,
     });
 
     new cdk.CfnOutput(this, "DistributionDomainName", {
       value: this.distribution.distributionDomainName,
       description: "CloudFront Distribution Domain Name",
-      exportName: `${config.stackPrefix}DistributionDomainName`,
     });
 
     new cdk.CfnOutput(this, "WebhookEndpointViaCDN", {

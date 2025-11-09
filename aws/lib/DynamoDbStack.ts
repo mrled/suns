@@ -32,13 +32,11 @@ export class DynamoDbStack extends cdk.Stack {
     new cdk.CfnOutput(this, "TableName", {
       value: this.table.tableName,
       description: "DynamoDB Table Name",
-      exportName: `ApplicationTableName`,
     });
 
     new cdk.CfnOutput(this, "TableArn", {
       value: this.table.tableArn,
       description: "DynamoDB Table ARN",
-      exportName: `ApplicationTableArn`,
     });
   }
 }

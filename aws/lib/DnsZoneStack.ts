@@ -23,7 +23,6 @@ export class DnsZoneStack extends cdk.Stack {
     new cdk.CfnOutput(this, "HostedZoneId", {
       value: this.hostedZone.hostedZoneId,
       description: "Route53 Hosted Zone ID",
-      exportName: `${config.stackPrefix}HostedZoneId`,
     });
 
     new cdk.CfnOutput(this, "NameServers", {
