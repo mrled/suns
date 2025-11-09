@@ -220,7 +220,7 @@ export class MonitoringStack extends cdk.Stack {
     streamerThrottleAlarm.addAlarmAction(alarmAction);
 
     // ReattestBatch Lambda monitoring (if provided)
-    if (props.reattestBatchFunction) {
+    if (props.reattestBatchFunctionName) {
       // ReattestBatch Lambda error alarm
       const reattestBatchErrorAlarm = new cloudwatch.Alarm(
         this,
