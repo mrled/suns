@@ -73,7 +73,7 @@ export class DnsStack extends cdk.Stack {
       recordName: "_suns.zq",
       values: [
         // flip180
-        "v1:b:Adg2VY1R7OIZHMz/Z1uk1lOCe2DtwzXYTpaBHpDEtkU=:AjlAANu+Rl8TYqK0CvGy+S6NIswJmRuEsYSn43MG+2s=",
+        "v1:b:1TcHFCGUO8ipNQfOLGZ5xs2nnhEsKOqIQkYyXkE9vcE=:AjlAANu+Rl8TYqK0CvGy+S6NIswJmRuEsYSn43MG+2s=",
       ],
       ttl: cdk.Duration.minutes(1),
     });
