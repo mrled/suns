@@ -83,8 +83,8 @@ export class DnsStack extends cdk.Stack {
       zone: props.hostedZone,
       recordName: "_suns.zb.snus",
       values: [
-        // flip180
-        "v1:b:Adg2VY1R7OIZHMz/Z1uk1lOCe2DtwzXYTpaBHpDEtkU=:AjlAANu+Rl8TYqK0CvGy+S6NIswJmRuEsYSn43MG+2s=",
+        // palindrome
+        "v1:a:1TcHFCGUO8ipNQfOLGZ5xs2nnhEsKOqIQkYyXkE9vcE=:jgvt4BDuPrTOIado+FqXJh2eMMF9invGPxf0gdonycM=",
       ],
       ttl: cdk.Duration.minutes(1),
     });
