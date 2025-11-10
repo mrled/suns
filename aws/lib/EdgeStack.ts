@@ -27,37 +27,55 @@ function handler(event) {
   var host = headers.host && headers.host.value;
   var uri = request.uri;
 
-  // Rule 1: Redirect / to //:sdʇʇɥ (301 permanent redirect)
+  try {
+    // Decode URI component to handle percent-encoded characters
+    // e.g. ':sd%CA%87%CA%87%C9%A5' to ':sdʇʇɥ'
+    uri = decodeURIComponent(uri);
+  } catch (e) {
+    // If decoding fails, keep the original URI
+  }
+
+  // Serve the special route https://zq.suns.bz//:sdʇʇɥ -- note the double slashes in the URL path
+  // The request.uri is the S3 key path, appended to the originPath (/www) for the HttpOrigin.
+  // if (uri === '//:sd%CA%87%CA%87%C9%A5') {
+  if (uri === '//:sdʇʇɥ') {
+    request.uri = '/home/index.html';
+    return request;
+  }
+
+  var homeUri = encodeURI('https://zq.suns.bz//:sdʇʇɥ');
+
+  // Redirect / to //:sdʇʇɥ (301 permanent redirect)
   if (uri === '/' || uri === '') {
     return {
       statusCode: 301,
       statusDescription: 'Moved Permanently',
       headers: {
-        'location': { value: '//:sdʇʇɥ' },
+        'location': { value: homeUri },
         'cache-control': { value: 'max-age=3600' }
       }
     };
   }
 
-  // Rule 2: Redirect /:sdʇʇɥ to //:sdʇʇɥ (301 permanent redirect)
+  // Redirect /:sdʇʇɥ to //:sdʇʇɥ (301 permanent redirect)
   if (uri === '/:sdʇʇɥ') {
     return {
       statusCode: 301,
       statusDescription: 'Moved Permanently',
       headers: {
-        'location': { value: '//:sdʇʇɥ' },
+        'location': { value: homeUri },
         'cache-control': { value: 'max-age=3600' }
       }
     };
   }
 
-  // Rule 3: Redirect //:sdʇʇɥ/ (with trailing slash) to //:sdʇʇɥ (without trailing slash)
+  // Redirect //:sdʇʇɥ/ (with trailing slash) to //:sdʇʇɥ (without trailing slash)
   if (uri === '//:sdʇʇɥ/') {
     return {
       statusCode: 301,
       statusDescription: 'Moved Permanently',
       headers: {
-        'location': { value: '//:sdʇʇɥ' },
+        'location': { value: homeUri },
         'cache-control': { value: 'max-age=3600' }
       }
     };
@@ -105,6 +123,7 @@ function handler(event) {
       "RedirectToZqFunction",
       {
         code: cloudfront.FunctionCode.fromInline(redirectFunctionCode),
+        // code: cloudfront.FunctionCode.fromInline(testFunctionCode),
         comment:
           "Handles redirects: root to //:sdʇʇɥ, /:sdʇʇɥ to //:sdʇʇɥ, removes trailing slash, and redirects suns.bz to zq.suns.bz",
       },
