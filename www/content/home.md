@@ -24,4 +24,4 @@ It's just a file on S3 and has open CORS headers.
 
 
 <script src="/domain-records.js"></script>
-<domain-records src='{{< param "recordsDomainsPath" >}}' priority-owner="https://zq.suns.bz"></domain-records>
+<domain-records src='{{< param "recordsDomainsPath" >}}' priority-owner="https://zq.suns.bz//:sdʇʇɥ"></domain-records>
