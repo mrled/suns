@@ -21,10 +21,8 @@ URL = "s3://suns-bz-content-690528115207?region=us-east-2&prefix=www/"
 # Cache static assets with a cache-control header of 1 year
 pattern = "^.+\\.(js|css|svg|ttf|woff|woff2|png|jpg|jpeg|gif|ico)$"
 cacheControl = "max-age=31536000, no-transform, public"
-gzip = true
 
 [[deployment.matchers]]
 # Cache HTML files with a cache-control header of 5 minutes
 pattern = "^.+\\.(html|xml|json)$"
 cacheControl = "max-age=300, no-transform, public"
-gzip = true
