@@ -159,7 +159,7 @@ func handleAttest(ctx context.Context, request events.APIGatewayV2HTTPRequest) (
 		if _, codeExists := symgroup.TypeCodeToName[typeName]; codeExists {
 			typeCode = typeName
 		} else {
-			return errorResponseV2(400, "invalid symmetry type. Valid types: palindrome (a), flip180 (b), doubleflip180 (c), mirrortext (d), mirrornames (e), antonymnames (f)")
+			return errorResponseV2(400, "invalid symmetry type. "+symgroup.ValidSymmetryTypesText())
 		}
 	}
 

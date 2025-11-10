@@ -30,14 +30,6 @@ It performs the following checks:
   3. Checks that all group IDs are consistent (same owner hash)
   4. Validates the group according to its symmetry type
 
-The type can be specified as either a name or code:
-  palindrome (a)    - Domain names that read the same forwards and backwards
-  flip180 (b)       - Domain names that look the same when rotated 180 degrees
-  doubleflip180 (c) - Two domains that flip180 relative to each other
-  mirrortext (d)    - Domain names that mirror each other visually
-  mirrornames (e)   - Domain names with parts that mirror each other
-  antonymnames (f)  - Domain names with antonym parts
-
 Example:
   symval attest myowner palindrome example.com test.com
   symval attest myowner a example.com test.com
@@ -58,7 +50,7 @@ Example:
 				typeCode = typeName
 			} else {
 				cmd.SilenceUsage = false
-				validTypesMsg := "Valid types: palindrome (a), flip180 (b), doubleflip180 (c), mirrortext (d), mirrornames (e), antonymnames (f)"
+				validTypesMsg := symgroup.ValidSymmetryTypesText()
 				return UsageError{fmt.Errorf("invalid symmetry type: %s\n%s", typeName, validTypesMsg)}
 			}
 		}

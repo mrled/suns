@@ -71,8 +71,6 @@ func Validate(data []*model.DomainRecord) (bool, error) {
 		return validateMirrorText(data)
 	case symgroup.MirrorNames:
 		return validateMirrorNames(data)
-	case symgroup.AntonymNames:
-		return validateAntonymNames(data)
 	default:
 		return false, fmt.Errorf("unknown symmetry type: %s", symmetryType)
 	}
