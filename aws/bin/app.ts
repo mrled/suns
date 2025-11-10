@@ -102,7 +102,7 @@ const edgeStack = new EdgeStack(app, `${config.stackPrefix}EdgeStack`, {
   env: { account, region },
   description: `CloudFront distribution for ${config.domainName}`,
   contentBucket: storageStack.contentBucket,
-  certificate: certStack.certificate,
+  certificate: certStack.certificateV2,
   httpApi: httpApiStack.api,
   crossRegionReferences: true,
 });

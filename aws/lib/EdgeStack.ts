@@ -244,7 +244,11 @@ function handler(event) {
           ],
         },
         additionalBehaviors,
-        domainNames: [config.domainName, `zq.${config.domainName}`],
+        domainNames: [
+          config.domainName,
+          `zq.${config.domainName}`,
+          `zb.snus.${config.domainName}`,
+        ],
         certificate: props.certificate,
         defaultRootObject: "index.html",
         // Commented out error responses to allow API errors to pass through
