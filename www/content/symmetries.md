@@ -10,6 +10,7 @@ A domain name, or a pair of domain names, might be symmetrical in one of several
   <thead>
     <tr>
       <td>Type</td>
+      <td>Code</td>
       <td>Example</td>
       <td>Supported</td>
       <td>Notes</td>
@@ -18,12 +19,14 @@ A domain name, or a pair of domain names, might be symmetrical in one of several
   <tbody>
     <tr>
       <td>Single Palindrome</td>
+      <td><code>a</code></td>
       <td><code>zb.snus.suns.bz</code></td>
       <td>Yes</td>
       <td><code>zb.snus</code> is <code>suns.bz</code> with letters in reverse order</td>
     </tr>
     <tr>
       <td>Double Palindrome</td>
+      <td><code></code></td>
       <td>
         <code>su.suns.bz</code>, <code>zb.snus.us</code>
         <br/>(example domain we don't own)
@@ -33,12 +36,14 @@ A domain name, or a pair of domain names, might be symmetrical in one of several
     </tr>
     <tr>
       <td>Single 180° Flip</td>
+      <td><code>b</code></td>
       <td><code>zq.suns.bz</code></td>
       <td>Yes</td>
       <td><code>zq.su</code> is <code>ns.bz</code> flipped 180°</td>
     </tr>
     <tr>
       <td>Double 180° Flip</td>
+      <td><code>c</code></td>
       <td>
         <code>zq.su</code>, <code>ns.bz</code>
         <br/>(example domains we don't own)
@@ -48,6 +53,7 @@ A domain name, or a pair of domain names, might be symmetrical in one of several
     </tr>
     <tr>
       <td>Single Mirrored DNS Components</td>
+      <td><code></code></td>
       <td>
         <code>com.example.www.example.com</code>
       </td>
@@ -56,6 +62,7 @@ A domain name, or a pair of domain names, might be symmetrical in one of several
     </tr>
     <tr>
       <td>Double Mirrored DNS Components</td>
+      <td><code>e</code></td>
       <td>
         <code>me.example.com</code>, <code>com.example.me</code>
       </td>
@@ -64,6 +71,7 @@ A domain name, or a pair of domain names, might be symmetrical in one of several
     </tr>
     <tr>
       <td>Mirrored Text</td>
+      <td><code>d</code></td>
       <td>
         <code>duq.xodbox.pub</code>
         <br/>(example domain we don't own)
@@ -73,6 +81,7 @@ A domain name, or a pair of domain names, might be symmetrical in one of several
     </tr>
     <tr>
       <td>Double Mirrored Text</td>
+      <td><code></code></td>
       <td>
         <code>ood.pub</code>, <code>duq.boo</code>
         <br/>(example domains we don't own)
