@@ -43,7 +43,7 @@
       </ul>
     </nav>
 
-    <h1>{{ .Title }}</h1>
+    {{ block "title" . }}<h1>{{ .Title }}</h1>{{ end }}
 
     <main id="content">
       {{ block "main" . }}{{ .Content }}{{ end }}
