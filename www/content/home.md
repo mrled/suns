@@ -1,7 +1,10 @@
 +++
 title = "Society for Universal Name Symmetry"
-url = '//\:sdʇʇɥ'
 +++
+
+<!--This is the REAL homepage for the site.
+    In CloudFront, this is served from the URL https://zq.suns.bz//:sdʇʇɥ
+    -->
 
 The Society for Universal Name Symmetry is a club open to anyone with a symmetric DNS name.
 
