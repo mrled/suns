@@ -17,18 +17,13 @@ export class CertStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: CertStackProps) {
     super(scope, id, props);
 
-    // Original cert
-    this.certificate = new acm.Certificate(
-      this,
-      `${config.stackPrefix}Certificate`,
-      {
-        domainName: config.domainName,
-        subjectAlternativeNames: [`*.${config.domainName}`],
-        validation: acm.CertificateValidation.fromDns(props.hostedZone),
-      },
-    );
-
-    // New cert to add subjAlt
+    // Certificate
+    // This can never be changed after creation;
+    // if we try to change it, a new cert will be created, which creates a new ARN,
+    // which will prevent CloudFormation from updating any stacks that depend on this one.
+    // Instead, create a new cert with a different name,
+    // update dependent stacks to use the new cert,
+    // then delete this cert once they're all updated.
     this.certificateV2 = new acm.Certificate(
       this,
       `${config.stackPrefix}CertificateV2`,
@@ -41,10 +36,5 @@ export class CertStack extends cdk.Stack {
         validation: acm.CertificateValidation.fromDns(props.hostedZone),
       },
     );
-
-    new cdk.CfnOutput(this, "CertificateArn", {
-      value: this.certificate.certificateArn,
-      description: "ACM Certificate ARN",
-    });
   }
 }
